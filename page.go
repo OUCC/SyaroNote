@@ -1,15 +1,22 @@
 package main
 
 import (
+	"bufio"
+	"bytes"
 	"github.com/russross/blackfriday"
+	"html/template"
 	"io/ioutil"
+	"net/http"
 	"os"
+	"path"
+	"regexp"
 )
 
 type Page struct {
 	FilePath     string
-	MarkDownText []byte
-	HTMLBody     []byte
+	Title        string
+	MarkdownText string
+	MarkdownHTML template.HTML
 }
 
 func LoadPage(filePath string) (*Page, error) {
@@ -27,12 +34,16 @@ func LoadPage(filePath string) (*Page, error) {
 	}
 
 	// convert md to html
-	html := blackfriday.MarkdownCommon(md)
+	mdhtml := blackfriday.MarkdownCommon(md)
+
+	// find title
+	title := searchTitle(mdhtml)
 
 	return &Page{
 		FilePath:     filePath,
-		MarkDownText: md,
-		HTMLBody:     html,
+		Title:        title,
+		MarkdownText: string(md),
+		MarkdownHTML: template.HTML(mdhtml),
 	}, nil
 }
 
@@ -46,9 +57,32 @@ func NewPage(filePath string) (*Page, error) {
 
 	return &Page{
 		FilePath:     filePath,
-		MarkDownText: nil,
-		HTMLBody:     nil,
+		Title:        "",
+		MarkdownText: "",
+		MarkdownHTML: template.HTML(""),
 	}, nil
+}
+
+func (page *Page) Render(rw http.ResponseWriter) error {
+	// read template html
+	filePath := path.Clean(templateDir + "/page.html")
+	f, err := os.Open(filePath)
+	if err != nil {
+		return err
+	}
+	html, err := ioutil.ReadAll(f)
+	if err != nil {
+		return err
+	}
+
+	// parce html
+	tmpl, err := template.New(page.Title).Parse(string(html))
+	if err != nil {
+		return err
+	}
+
+	// render
+	return tmpl.Execute(rw, &page)
 }
 
 func (page *Page) Save(mdtext []byte) error {
@@ -72,7 +106,21 @@ func (page *Page) Save(mdtext []byte) error {
 	}
 
 	// convert md to html
-	page.HTMLBody = blackfriday.MarkdownCommon(mdtext)
+	page.MarkdownHTML = template.HTML(blackfriday.MarkdownCommon(mdtext))
 
 	return nil
+}
+
+func searchTitle(b []byte) string {
+	reader := bytes.NewReader(b)
+	scanner := bufio.NewScanner(reader)
+
+	re := regexp.MustCompile("^<h1>([^<]*)</h1>$")
+	for scanner.Scan() {
+		submatch := re.FindStringSubmatch(scanner.Text())
+		if len(submatch) != 0 {
+			return submatch[1]
+		}
+	}
+	return ""
 }
