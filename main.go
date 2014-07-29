@@ -9,8 +9,9 @@ import (
 )
 
 const (
-	TEMPLATE_FILE_EXAMPLE = "page.html"
-	REPOSITORY_DIR        = "syaro"
+	TEMPLATE_DIR_DEFAULT_NAME = "templates"
+	TEMPLATE_FILE_EXAMPLE     = "page.html"
+	REPOSITORY_DIR            = "syaro"
 )
 
 var (
@@ -62,17 +63,18 @@ func findTemplateDir(dir string) string {
 		return dir
 	} else { // directory isn't specified by user so search it by myself
 		// first, $GOROOT/src/...
-		_, err := os.Stat(path.Join(os.Getenv("GOROOT"), "src", REPOSITORY_DIR,
-			"template", TEMPLATE_FILE_EXAMPLE))
+		_, err := os.Stat(path.Join(os.Getenv("GOPATH"), "src", REPOSITORY_DIR,
+			TEMPLATE_DIR_DEFAULT_NAME, TEMPLATE_FILE_EXAMPLE))
 		if err == nil {
-			return path.Join(os.Getenv("GOROOT"), "src", REPOSITORY_DIR)
+			return path.Join(os.Getenv("GOPATH"), "src", REPOSITORY_DIR,
+				TEMPLATE_DIR_DEFAULT_NAME)
 		}
 
 		// second, /usr/local/share/syaro
-		_, err = os.Stat(path.Join("/usr/local/share/syaro", "templates",
-			TEMPLATE_FILE_EXAMPLE))
+		_, err = os.Stat(path.Join("/usr/local/share/syaro",
+			TEMPLATE_DIR_DEFAULT_NAME, TEMPLATE_FILE_EXAMPLE))
 		if err == nil {
-			return path.Join("/usr/local/share/syaro", "templates")
+			return path.Join("/usr/local/share/syaro", TEMPLATE_DIR_DEFAULT_NAME)
 		}
 
 		// can't find template dir
