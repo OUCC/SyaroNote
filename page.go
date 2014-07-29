@@ -2,117 +2,49 @@ package main
 
 import (
 	"bufio"
-	"bytes"
 	"github.com/russross/blackfriday"
 	"html/template"
 	"io/ioutil"
 	"net/http"
 	"os"
-	"path"
+	"path/filepath"
 	"regexp"
+	"strings"
 )
 
+// Page stores both row markdown and converted html.
 type Page struct {
-	FilePath     string
-	Title        string
-	MarkdownText string
-	MarkdownHTML template.HTML
+	filePath string
 }
 
-func LoadPage(filePath string) (*Page, error) {
-	// open md file
-	f, err := os.Open(filePath)
-	defer f.Close()
+// LoadPage returns new Page.
+func LoadPage(mdpath string) (*Page, error) {
+	_, err := os.Stat(mdpath)
 	if err != nil {
 		return nil, err
 	}
 
-	// read md file
-	md, err := ioutil.ReadAll(f)
-	if err != nil {
-		return nil, err
-	}
-
-	// convert md to html
-	mdhtml := blackfriday.MarkdownCommon(md)
-
-	// find title
-	title := searchTitle(mdhtml)
-
-	return &Page{
-		FilePath:     filePath,
-		Title:        title,
-		MarkdownText: string(md),
-		MarkdownHTML: template.HTML(mdhtml),
-	}, nil
+	return &Page{filePath: mdpath}, nil
 }
 
-func NewPage(filePath string) (*Page, error) {
+// NewPage create new markdown file in local repo.
+func NewPage(mdpath string) (*Page, error) {
 	// create md file
-	f, err := os.Create(filePath)
-	defer f.Close()
+	f, err := os.Create(mdpath)
 	if err != nil {
 		return nil, err
 	}
+	f.Close()
 
-	return &Page{
-		FilePath:     filePath,
-		Title:        "",
-		MarkdownText: "",
-		MarkdownHTML: template.HTML(""),
-	}, nil
+	return &Page{filePath: mdpath}, nil
 }
 
-func (page *Page) Render(rw http.ResponseWriter) error {
-	// read template html
-	filePath := path.Clean(templateDir + "/page.html")
-	f, err := os.Open(filePath)
-	if err != nil {
-		return err
-	}
-	html, err := ioutil.ReadAll(f)
-	if err != nil {
-		return err
-	}
+// FilePath returns file path.
+func (page *Page) FilePath() string { return page.filePath }
 
-	// parce html
-	tmpl, err := template.New(page.Title).Parse(string(html))
-	if err != nil {
-		return err
-	}
-
-	// render
-	return tmpl.Execute(rw, &page)
-}
-
-func (page *Page) Save(mdtext []byte) error {
-	// open md file
-	f, err := os.Open(page.FilePath)
-	defer f.Close()
-	if err != nil {
-		return err
-	}
-
-	// delete all content
-	err = f.Truncate(0)
-	if err != nil {
-		return err
-	}
-
-	// write
-	_, err = f.Write(mdtext)
-	if err != nil {
-		return err
-	}
-
-	// convert md to html
-	page.MarkdownHTML = template.HTML(blackfriday.MarkdownCommon(mdtext))
-
-	return nil
-}
-
-func searchTitle(b []byte) string {
-	reader := bytes.NewReader(b)
+// Title returns title of page.
+func (page *Page) Title() string {
+	reader := strings.NewReader(string(page.MarkdownHTML()))
 	scanner := bufio.NewScanner(reader)
 
 	re := regexp.MustCompile("^<h1>([^<]*)</h1>$")
@@ -123,4 +55,44 @@ func searchTitle(b []byte) string {
 		}
 	}
 	return ""
+}
+
+// row returns row file data.
+func (page *Page) row() []byte {
+	// read md file
+	b, err := ioutil.ReadFile(page.FilePath())
+	if err != nil {
+		panic(err)
+	}
+	return b
+}
+
+func (page *Page) MarkdownText() string {
+	return string(page.row())
+}
+
+func (page *Page) MarkdownHTML() template.HTML {
+	// convert md to html
+	return template.HTML(blackfriday.MarkdownCommon(page.row()))
+}
+
+func (page *Page) Render(rw http.ResponseWriter) error {
+	// read template html
+	html, err := ioutil.ReadFile(filepath.Join(templateDir, "page.html"))
+	if err != nil {
+		return err
+	}
+
+	// parce html
+	tmpl, err := template.New(page.Title()).Parse(string(html))
+	if err != nil {
+		return err
+	}
+
+	// render
+	return tmpl.Execute(rw, &page)
+}
+
+func (page *Page) Save(b []byte) error {
+	return ioutil.WriteFile(page.FilePath(), b, 0644)
 }
