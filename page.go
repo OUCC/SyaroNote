@@ -1,4 +1,4 @@
-package syaro
+package main
 
 import (
 	"bufio"
