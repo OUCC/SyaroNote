@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"errors"
 	"github.com/russross/blackfriday"
 	"html/template"
 	"io/ioutil"
@@ -19,9 +20,13 @@ type Page struct {
 
 // LoadPage returns new Page.
 func LoadPage(mdpath string) (*Page, error) {
-	_, err := os.Stat(mdpath)
+	info, err := os.Stat(mdpath)
 	if err != nil {
 		return nil, err
+	}
+	if info.IsDir() {
+		// FIXME return special page
+		return nil, errors.New("this is directory, not a file.")
 	}
 
 	return &Page{filePath: mdpath}, nil
@@ -42,6 +47,7 @@ func NewPage(mdpath string) (*Page, error) {
 // FilePath returns file path.
 func (page *Page) FilePath() string { return page.filePath }
 
+// FIXME serious performance
 // Title returns title of page.
 func (page *Page) Title() string {
 	reader := strings.NewReader(string(page.MarkdownHTML()))
@@ -57,6 +63,7 @@ func (page *Page) Title() string {
 	return ""
 }
 
+// FIXME wrong performance (returning value)
 // row returns row file data.
 func (page *Page) row() []byte {
 	// read md file
@@ -67,13 +74,16 @@ func (page *Page) row() []byte {
 	return b
 }
 
+// FIXME wrong performance (returning value)
 func (page *Page) MarkdownText() string {
 	return string(page.row())
 }
 
+// FIXME wrong performance (returning value)
+// MarkdownHTML converts markdown text (with wikilink) to html
 func (page *Page) MarkdownHTML() template.HTML {
-	// convert md to html
-	return template.HTML(blackfriday.MarkdownCommon(page.row()))
+	html := blackfriday.MarkdownCommon(page.row())
+	return template.HTML(processWikiLink(html, filepath.Dir(page.FilePath())))
 }
 
 func (page *Page) Render(rw http.ResponseWriter) error {
