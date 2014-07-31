@@ -44,7 +44,10 @@ func main() {
 
 	// set http handler
 	http.HandleFunc("/", handler)
-	http.ListenAndServe(":8080", nil)
+	err := http.ListenAndServe(":8080", nil)
+	if err != nil {
+		fmt.Println("Error:", err)
+	}
 }
 
 // findTemplateDir finds template directory contains html, css, etc...
@@ -103,6 +106,7 @@ func handler(rw http.ResponseWriter, req *http.Request) {
 			fmt.Println("File not exist, create new page")
 			page, err = NewPage(filePath)
 			if err != nil { // strange error
+				fmt.Println("Error:", err)
 				http.Error(rw, err.Error(), http.StatusInternalServerError)
 			}
 		}
