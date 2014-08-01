@@ -31,7 +31,7 @@ func LoadPage(path string) (*Page, error) {
 		logger.Println(path, "is out of", wikiRoot)
 		return nil, errors.New("requested file is out of wikiRoot")
 	}
-	if filepath.Ext(path) != "" && !isMarkdown(path) {
+	if !(path == "/" || path == "" || path == ".") && filepath.Ext(path) != "" && !isMarkdown(path) {
 		logger.Println(path, "is not a markdown. ignored.")
 		return nil, errors.New("requested file is not a markdown")
 	}
@@ -99,6 +99,7 @@ func (page *Page) PageList() []*Page {
 		return nil
 	}
 
+	logger.Println("reading directory", page.filePath, "...")
 	infos, err := ioutil.ReadDir(page.filePath)
 	if err != nil {
 		logger.Println("in Page.PageList() ioutil.ReadDir(", page.filePath,
@@ -106,6 +107,7 @@ func (page *Page) PageList() []*Page {
 		return nil
 	}
 
+	logger.Println(len(infos), "file/dirs found")
 	ret := make([]*Page, len(infos))
 	for i, info := range infos {
 		ret[i], _ = LoadPage(filepath.Join(page.filePath, info.Name()))

@@ -29,9 +29,10 @@
     <div class="markdown">
       {{.MarkdownHTML}}
     </div>
+    <br>
+    <br>
+
     {{if .IsDir}}
-    <br>
-    <br>
 
     <!-- file list -->
     <div class="panel panel-info">
@@ -42,24 +43,29 @@
         <thead>
           <tr>
             <th>#</th>
-            <th>Page Name</th>
+            <th>Name</th>
             <th>Title</th>
             <th>Path</th>
           </tr>
         </thead>
         <tbody>
           {{range $index, $page := .PageList}}
+          {{with $page}}
           <tr>
             <td>{{add $index 1}}</td>
-            <td><a href="{{.WikiPath}}">{{$page.Name}}</a></td>
+            <td><a href="{{$page.WikiPath}}">{{$page.Name}}</a></td>
             <td></td>
             <td>{{$page.WikiPath}}</td>
           </tr>
+          {{end}}
           {{end}}
         </tbody>
       </table>
 
     </div>
+
+    <br>
+    <br>
     {{end}}
 
   </div>
