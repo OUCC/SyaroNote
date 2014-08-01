@@ -50,8 +50,7 @@ func processWikiLink(b []byte, currentDir string) []byte {
 					line = embedLinkTag(line, index, WikiLink{Name: name})
 				}
 
-			} else { // tag not found
-				logger.Println("bracket tag not found. lets go to next line")
+			} else { // tag not found, so go next line
 				break
 			}
 		}
@@ -120,11 +119,24 @@ func searchPageByBaseName(baseName string) ([]string, error) {
 	logger.Println("searchPageByBaseName(", baseName, ")")
 
 	foundPath := list.New()
+
+	// func for filepath.Walk
+	// This judges whether path match to baseName, and add path to list
 	walkfunc := func(path string, info os.FileInfo, err error) error {
-		// FIXME directory?
 		if removeExt(info.Name()) == baseName {
-			logger.Println("page found!", path)
-			foundPath.PushBack(path)
+			if info.IsDir() {
+				logger.Println("dir found!", path)
+				foundPath.PushBack(path)
+
+			} else {
+				logger.Println("page found!", path)
+				if filepath.Base(filepath.Dir(path)) == baseName {
+					logger.Println("this page is main page of dir",
+						filepath.Dir(path), ". ignored.")
+				} else {
+					foundPath.PushBack(path)
+				}
+			}
 		}
 		return nil
 	}
@@ -135,11 +147,6 @@ func searchPageByBaseName(baseName string) ([]string, error) {
 	}
 
 	logger.Println(foundPath.Len(), "pages found")
-	ret := make([]string, foundPath.Len())
-	for e, i := foundPath.Front(), 0; i < len(ret); e.Next() {
-		ret[i] = e.Value.(string)
-		i++
-	}
 
-	return ret, nil
+	return toStringArray(foundPath), nil
 }
