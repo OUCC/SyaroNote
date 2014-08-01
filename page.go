@@ -19,33 +19,55 @@ type Page struct {
 }
 
 // LoadPage returns new Page.
-func LoadPage(mdpath string) (*Page, error) {
-	info, err := os.Stat(mdpath)
-	if err != nil {
+func LoadPage(path string) (*Page, error) {
+	// security check
+	if !isIn(path, wikiRoot) { // path is out of wikiRoot
+		logger.Println(path, "is out of", wikiRoot)
+		return nil, errors.New("requested file is out of wikiRoot")
+	}
+	if filepath.Ext(path) != "" && !isMarkdown(path) {
+		logger.Println(path, "is not a markdown. ignored.")
+		return nil, errors.New("requested file is not a markdown")
+	}
+
+	_, err := os.Stat(path)
+	if err == nil {
+		logger.Println(path, "found")
+		return &Page{filePath: path}, nil
+
+	} else if _, ok := err.(*os.PathError); ok {
+		logger.Println(path, "not found")
+		paths := addExt(path)
+		logger.Println("search result:", paths)
+
+		if len(paths) == 1 { // only one page found
+			return &Page{filePath: paths[0]}, nil
+
+		} else if len(paths) > 1 { // more than one page found
+			// TODO avoid ambiguous page
+			return nil, errors.New("More than one page found")
+
+		} else { // no page found
+			return nil, os.ErrNotExist
+		}
+
+	} else {
 		return nil, err
 	}
-	if info.IsDir() {
-		// FIXME return special page
-		return nil, errors.New("this is directory, not a file.")
-	}
-
-	return &Page{filePath: mdpath}, nil
-}
-
-// NewPage create new markdown file in local repo.
-func NewPage(mdpath string) (*Page, error) {
-	// create md file
-	f, err := os.Create(mdpath)
-	if err != nil {
-		return nil, err
-	}
-	f.Close()
-
-	return &Page{filePath: mdpath}, nil
 }
 
 // FilePath returns file path.
 func (page *Page) FilePath() string { return page.filePath }
+
+// IsDir returns whether path is dir or not.
+func (page *Page) IsDir() bool {
+	info, err := os.Stat(page.filePath)
+	if err != nil {
+		logger.Panicln(page.filePath, "not found!")
+		panic(err)
+	}
+	return info.IsDir()
+}
 
 // FIXME serious performance
 // Title returns title of page.
@@ -69,6 +91,7 @@ func (page *Page) row() []byte {
 	// read md file
 	b, err := ioutil.ReadFile(page.FilePath())
 	if err != nil {
+		logger.Panicln(page.filePath, "not found!")
 		panic(err)
 	}
 	return b
