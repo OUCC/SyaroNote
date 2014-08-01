@@ -1,6 +1,8 @@
 package main
 
 import (
+	"container/list"
+	"os"
 	"path/filepath"
 	"strings"
 )
@@ -39,4 +41,42 @@ func removeExt(filename string) string {
 	}
 
 	return filepath.Join(dir, base)
+}
+
+func addExt(pathWithoutExt string) []string {
+	files := list.New()
+
+	for _, ext := range mdExtList {
+		path := pathWithoutExt + ext
+		_, err := os.Stat(path)
+		if err == nil { // file exists
+			files.PushBack(path)
+		}
+	}
+
+	return toStringArray(files)
+}
+
+func toStringArray(src *list.List) []string {
+	ret := make([]string, src.Len())
+	for i, v := 0, src.Front(); i < len(ret); i, v = i+1, v.Next() {
+		ret[i] = v.Value.(string)
+	}
+	return ret
+}
+
+// isIn returns true when dirA is in dirB
+func isIn(dirA, dirB string) bool {
+	dirA, err := filepath.Abs(dirA)
+	if err != nil {
+		logger.Fatalln("filepath.Abs(", dirA, ")", err)
+		return false
+	}
+	dirB, err = filepath.Abs(dirB)
+	if err != nil {
+		logger.Fatalln("filepath.Abs(", dirB, ")", err)
+		return false
+	}
+
+	return strings.HasPrefix(dirA, dirB)
 }
