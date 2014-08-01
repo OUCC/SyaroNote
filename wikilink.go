@@ -98,16 +98,15 @@ func searchPage(name string, currentDir string) ([]WikiLink, error) {
 		return nil, err
 	}
 
-	if paths != nil {
+	if len(paths) != 0 {
 		ret := make([]WikiLink, len(paths))
-		for i := 0; i < len(paths); i++ {
+		for i, path := range paths {
 			ret[i] = WikiLink{
 				Name:     []byte(name),
-				FilePath: []byte(paths[i]),
+				FilePath: []byte(path),
 				Title:    nil, // TODO
 			}
 		}
-
 		return ret, nil
 	}
 
@@ -123,6 +122,8 @@ func searchPageByBaseName(baseName string) ([]string, error) {
 	// func for filepath.Walk
 	// This judges whether path match to baseName, and add path to list
 	walkfunc := func(path string, info os.FileInfo, err error) error {
+		path = "/" + path // make it wiki path
+
 		if removeExt(info.Name()) == baseName {
 			if info.IsDir() {
 				logger.Println("dir found!", path)
@@ -130,6 +131,7 @@ func searchPageByBaseName(baseName string) ([]string, error) {
 
 			} else {
 				logger.Println("page found!", path)
+
 				if filepath.Base(filepath.Dir(path)) == baseName {
 					logger.Println("this page is main page of dir",
 						filepath.Dir(path), ". ignored.")
