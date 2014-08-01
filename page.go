@@ -13,6 +13,11 @@ import (
 	"strings"
 )
 
+const (
+	PAGE_TMPL  = "page.html"
+	FLIST_TMPL = "filelist.html"
+)
+
 // Page stores both row markdown and converted html.
 type Page struct {
 	filePath string
@@ -41,13 +46,16 @@ func LoadPage(path string) (*Page, error) {
 		logger.Println("search result:", paths)
 
 		if len(paths) == 1 { // only one page found
+			logger.Println("using", paths[0])
 			return &Page{filePath: paths[0]}, nil
 
 		} else if len(paths) > 1 { // more than one page found
 			// TODO avoid ambiguous page
+			logger.Println("more than one page found")
 			return nil, errors.New("More than one page found")
 
 		} else { // no page found
+			logger.Println("no page found")
 			return nil, os.ErrNotExist
 		}
 
@@ -56,17 +64,52 @@ func LoadPage(path string) (*Page, error) {
 	}
 }
 
+// Name returns page name
+func (page *Page) Name() string {
+	return removeExt(filepath.Base(page.filePath))
+}
+
 // FilePath returns file path.
 func (page *Page) FilePath() string { return page.filePath }
+
+// WikiPath returns file path relative to wikiRoot
+func (page *Page) WikiPath() string {
+	ret, err := filepath.Rel(wikiRoot, page.filePath)
+	if err != nil {
+		logger.Println("in Page.WikiPath() filepath.Rel(", wikiRoot, ",", page.filePath,
+			") returned error", err)
+		return ""
+	}
+
+	return "/" + ret
+}
 
 // IsDir returns whether path is dir or not.
 func (page *Page) IsDir() bool {
 	info, err := os.Stat(page.filePath)
 	if err != nil {
 		logger.Panicln(page.filePath, "not found!")
-		panic(err)
 	}
 	return info.IsDir()
+}
+
+func (page *Page) PageList() []*Page {
+	if !page.IsDir() {
+		return nil
+	}
+
+	infos, err := ioutil.ReadDir(page.filePath)
+	if err != nil {
+		logger.Println("in Page.PageList() ioutil.ReadDir(", page.filePath,
+			") returned error", err)
+		return nil
+	}
+
+	ret := make([]*Page, len(infos))
+	for i, info := range infos {
+		ret[i], _ = LoadPage(filepath.Join(page.filePath, info.Name()))
+	}
+	return ret
 }
 
 // FIXME serious performance
@@ -85,14 +128,39 @@ func (page *Page) Title() string {
 	return ""
 }
 
-// FIXME wrong performance (returning value)
 // row returns row file data.
 func (page *Page) row() []byte {
+	var path string
+	if page.IsDir() {
+		logger.Println("requested page is dir")
+
+		path = filepath.Join(page.filePath, filepath.Base(page.filePath))
+		logger.Println("searching page", path, "...")
+		paths := addExt(path)
+		logger.Println("search result:", paths)
+
+		if len(paths) == 1 { // only one page found
+			logger.Println("using", paths[0])
+			path = paths[0]
+
+		} else if len(paths) > 1 { // more than one page found
+			// TODO avoid ambiguous page
+			logger.Println("more than one file found")
+			logger.Println("using", paths[0])
+			path = paths[0]
+
+		} else { // no page found
+			logger.Println("no file found")
+			return nil
+		}
+	} else { // page.filePath isn't dir
+		path = page.filePath
+	}
+
 	// read md file
-	b, err := ioutil.ReadFile(page.FilePath())
+	b, err := ioutil.ReadFile(path)
 	if err != nil {
 		logger.Panicln(page.filePath, "not found!")
-		panic(err)
 	}
 	return b
 }
@@ -111,13 +179,18 @@ func (page *Page) MarkdownHTML() template.HTML {
 
 func (page *Page) Render(rw http.ResponseWriter) error {
 	// read template html
-	html, err := ioutil.ReadFile(filepath.Join(templateDir, "page.html"))
+	html, err := ioutil.ReadFile(filepath.Join(templateDir, PAGE_TMPL))
 	if err != nil {
 		return err
 	}
 
+	// funcs for calculation on template
+	funcMap := template.FuncMap{
+		"add": func(a, b int) int { return a + b },
+	}
+
 	// parce html
-	tmpl, err := template.New(page.Title()).Parse(string(html))
+	tmpl, err := template.New(page.Title()).Funcs(funcMap).Parse(string(html))
 	if err != nil {
 		return err
 	}

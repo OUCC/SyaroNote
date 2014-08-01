@@ -2,9 +2,53 @@
   <head>
     <title>{{.Title}}</title>
     <meta content="">
+
+    <!-- Bootstrap -->
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" type="text/css" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+    <!-- Optional theme -->
+    <link rel="stylesheet" type="text/css" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css">
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+
+    <!-- css for displaying markdown -->
     <link rel="stylesheet" type="text/css" href="/syaro/markdown.css">
   </head>
   <body>
+    <div class="markdown">
       {{.MarkdownHTML}}
+    </div>
+    {{if .IsDir}}
+    <br>
+    <br>
+
+    <!-- file list -->
+    <div class="panel panel-info">
+      <div class="panel-heading">Files under {{.WikiPath}}</div>
+
+      <!-- Table -->
+      <table class="table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Page Name</th>
+            <th>Title</th>
+            <th>Path</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{range $index, $page := .PageList}}
+          <tr>
+            <td>{{add $index 1}}</td>
+            <td><a href="{{.WikiPath}}">{{$page.Name}}</a></td>
+            <td></td>
+            <td>{{$page.WikiPath}}</td>
+          </tr>
+          {{end}}
+        </tbody>
+      </table>
+
+    </div>
+    {{end}}
   </body>
 </html>
