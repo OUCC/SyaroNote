@@ -1,20 +1,31 @@
+<!DOCTYPE html>
 <html>
-  <head>
-    <title>{{.Title}}</title>
-    <meta content="">
+<head>
+  <title>{{.Title}}</title>
+  <meta content="">
 
-    <!-- Bootstrap -->
-    <!-- Latest compiled and minified CSS -->
-    <link rel="stylesheet" type="text/css" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
-    <!-- Optional theme -->
-    <link rel="stylesheet" type="text/css" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css">
-    <!-- Latest compiled and minified JavaScript -->
-    <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+  <!-- Bootstrap -->
+  <!-- Latest compiled and minified CSS -->
+  <link rel="stylesheet" type="text/css" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+  <!-- Optional theme -->
+  <link rel="stylesheet" type="text/css" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css">
+  <!-- Latest compiled and minified JavaScript -->
+  <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
 
-    <!-- css for displaying markdown -->
-    <link rel="stylesheet" type="text/css" href="/syaro/markdown.css">
-  </head>
-  <body>
+  <!-- css for displaying markdown -->
+  <link rel="stylesheet" type="text/css" href="/syaro/markdown.css">
+</head>
+<body>
+
+  {{with.SidebarHTML}}
+  <div class="syaro-sidebar col-md-3">
+    <div class="markdown">
+      {{.}}
+    </div>
+  </div>
+  {{end}}
+
+  <div class="syaro-main col-md-9">
     <div class="markdown">
       {{.MarkdownHTML}}
     </div>
@@ -50,5 +61,7 @@
 
     </div>
     {{end}}
-  </body>
+
+  </div>
+</body>
 </html>

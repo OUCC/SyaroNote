@@ -16,6 +16,7 @@ import (
 const (
 	PAGE_TMPL  = "page.html"
 	FLIST_TMPL = "filelist.html"
+	SIDEBAR_MD = "_Sidebar.md"
 )
 
 // Page stores both row markdown and converted html.
@@ -174,7 +175,26 @@ func (page *Page) MarkdownText() string {
 // MarkdownHTML converts markdown text (with wikilink) to html
 func (page *Page) MarkdownHTML() template.HTML {
 	html := blackfriday.MarkdownCommon(page.row())
-	return template.HTML(processWikiLink(html, filepath.Dir(page.FilePath())))
+	return template.HTML(processWikiLink(html, filepath.Dir(page.filePath)))
+}
+
+func (page *Page) SidebarHTML() template.HTML {
+	path := filepath.Join(wikiRoot, SIDEBAR_MD)
+	_, err := os.Stat(path)
+	if err != nil {
+		logger.Println(SIDEBAR_MD, "not found")
+		return template.HTML("")
+	}
+
+	logger.Println(SIDEBAR_MD, "found")
+	b, err := ioutil.ReadFile(path)
+	if err != nil {
+		logger.Println("in SidebarHTML ioutil.ReadFile(", path, ") error", err)
+		return template.HTML("")
+	}
+
+	html := blackfriday.MarkdownCommon(b)
+	return template.HTML(processWikiLink(html, filepath.Dir(page.filePath)))
 }
 
 func (page *Page) Render(rw http.ResponseWriter) error {
