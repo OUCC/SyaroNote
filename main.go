@@ -2,8 +2,6 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
-	"net/http"
 	"os"
 	"path"
 )
@@ -39,15 +37,7 @@ func main() {
 	}
 	fmt.Println("WikiRoot:", wikiRoot)
 
-	fmt.Println("Server started. Waiting connection on port :8080")
-	fmt.Println()
-
-	// set http handler
-	http.HandleFunc("/", handler)
-	err := http.ListenAndServe(":8080", nil)
-	if err != nil {
-		fmt.Println("Error:", err)
-	}
+	startServer()
 }
 
 // findTemplateDir finds template directory contains html, css, etc...
@@ -82,54 +72,5 @@ func findTemplateDir(dir string) string {
 
 		// can't find template dir
 		return ""
-	}
-}
-
-// handler is basic http request handler
-func handler(rw http.ResponseWriter, req *http.Request) {
-	fmt.Printf("Response received (%s)\n", req.URL.Path)
-
-	filePath := req.URL.Path
-
-	// FIXME wrong method (ext isn't always .md)
-	if path.Ext(filePath) == "" {
-		filePath += ".md"
-	}
-
-	if path.Ext(filePath) == ".md" {
-		fmt.Println("Rendering page...")
-		filePath = path.Clean(wikiRoot + filePath)
-
-		// load md file
-		page, err := LoadPage(filePath)
-		if err != nil { // file not exist, so create new page
-			fmt.Println("File not exist, create new page")
-			page, err = NewPage(filePath)
-			if err != nil { // strange error
-				fmt.Println("Error:", err)
-				http.Error(rw, err.Error(), http.StatusInternalServerError)
-			}
-		}
-
-		// render html
-		err = page.Render(rw)
-		if err != nil {
-			fmt.Println("rendering error!", err.Error())
-			http.Error(rw, err.Error(), http.StatusInternalServerError)
-		}
-
-	} else if ext := path.Ext(filePath); ext == ".css" || ext == ".js" {
-		f, err := os.Open(path.Clean(templateDir + filePath))
-		if err != nil {
-			fmt.Println("not found")
-			http.Error(rw, err.Error(), http.StatusNotFound)
-		}
-		b, err := ioutil.ReadAll(f)
-		if err != nil {
-			fmt.Println("can't read")
-			http.Error(rw, err.Error(), http.StatusInternalServerError)
-		}
-
-		fmt.Fprint(rw, string(b))
 	}
 }
