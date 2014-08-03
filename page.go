@@ -27,9 +27,9 @@ type Page struct {
 // LoadPage returns new Page.
 func LoadPage(path string) (*Page, error) {
 	// security check
-	if !isIn(path, wikiRoot) { // path is out of wikiRoot
-		logger.Println(path, "is out of", wikiRoot)
-		return nil, errors.New("requested file is out of wikiRoot")
+	if !isIn(path, setting.wikiRoot) { // path is out of setting.wikiRoot
+		logger.Println(path, "is out of", setting.wikiRoot)
+		return nil, errors.New("requested file is out of setting.wikiRoot")
 	}
 	if !(path == "/" || path == "" || path == ".") && filepath.Ext(path) != "" && !isMarkdown(path) {
 		logger.Println(path, "is not a markdown. ignored.")
@@ -73,11 +73,11 @@ func (page *Page) Name() string {
 // FilePath returns file path.
 func (page *Page) FilePath() string { return page.filePath }
 
-// WikiPath returns file path relative to wikiRoot
+// WikiPath returns file path relative to setting.wikiRoot
 func (page *Page) WikiPath() string {
-	ret, err := filepath.Rel(wikiRoot, page.filePath)
+	ret, err := filepath.Rel(setting.wikiRoot, page.filePath)
 	if err != nil {
-		logger.Println("in Page.WikiPath() filepath.Rel(", wikiRoot, ",", page.filePath,
+		logger.Println("in Page.WikiPath() filepath.Rel(", setting.wikiRoot, ",", page.filePath,
 			") returned error", err)
 		return ""
 	}
@@ -181,7 +181,7 @@ func (page *Page) MarkdownHTML() template.HTML {
 }
 
 func (page *Page) SidebarHTML() template.HTML {
-	path := filepath.Join(wikiRoot, SIDEBAR_MD)
+	path := filepath.Join(setting.wikiRoot, SIDEBAR_MD)
 	_, err := os.Stat(path)
 	if err != nil {
 		logger.Println(SIDEBAR_MD, "not found")
@@ -201,7 +201,7 @@ func (page *Page) SidebarHTML() template.HTML {
 
 func (page *Page) Render(rw http.ResponseWriter) error {
 	// read template html
-	html, err := ioutil.ReadFile(filepath.Join(templateDir, PAGE_TMPL))
+	html, err := ioutil.ReadFile(filepath.Join(setting.tmplDir, PAGE_TMPL))
 	if err != nil {
 		return err
 	}

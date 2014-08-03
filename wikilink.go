@@ -143,7 +143,7 @@ func searchPageByBaseName(baseName string) ([]string, error) {
 		return nil
 	}
 
-	err := filepath.Walk(wikiRoot, walkfunc)
+	err := filepath.Walk(setting.wikiRoot, walkfunc)
 	if err != nil {
 		return nil, err
 	}

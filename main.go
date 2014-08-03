@@ -1,41 +1,47 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
-	"path"
+	"path/filepath"
 )
 
 const (
-	TEMPLATE_DIR_DEFAULT_NAME = "templates"
-	TEMPLATE_FILE_EXAMPLE     = "page.html"
-	REPOSITORY_DIR            = "syaro"
+	SYARO_REPOSITORY = "github.com/OUCC/syaro"
 )
 
 var (
-	wikiRoot    string
-	templateDir string
+	setting *Setting
 )
 
 func main() {
+	if len(os.Args) > 1 {
+		switch os.Args[1] {
+		case "--usage", "--help", "-h":
+			flag.Usage()
+		}
+	}
+
 	// print welcome message
 	fmt.Println("===== Syaro Wiki Server =====")
 	fmt.Println("Starting...")
+	fmt.Println("")
 
-	templateDir = findTemplateDir("")
-	if templateDir == "" {
+	flag.Parse()
+
+	findTemplateDir()
+	if setting.tmplDir == "" {
 		fmt.Println("Error: Can't find template dir.")
+		fmt.Println("Server shutdown.")
 		return
 	}
-	fmt.Println("Template dir:", templateDir)
 
-	// set repository root
-	if len(os.Args) == 2 {
-		wikiRoot = os.Args[1]
-	} else {
-		wikiRoot = "./"
-	}
-	fmt.Println("WikiRoot:", wikiRoot)
+	fmt.Println("WikiRoot:", setting.wikiRoot)
+	fmt.Println("Template dir:", setting.tmplDir)
+	fmt.Println("Port:", setting.port)
+	fmt.Println("URL prefix:", setting.urlPrefix)
+	fmt.Println("")
 
 	startServer()
 }
@@ -44,33 +50,42 @@ func main() {
 // dir is directory specified by user as template dir.
 // This search several directory and return right dir.
 // If not found, return empty string.
-func findTemplateDir(dir string) string {
+func findTemplateDir() {
+	const (
+		TEMPLATE_DIR_DEFAULT_NAME = "templates"
+		TEMPLATE_FILE_EXAMPLE     = "page.html"
+	)
+
 	// if template dir is specified by user, search this dir
-	if dir != "" {
-		_, err := os.Stat(path.Join(dir, TEMPLATE_FILE_EXAMPLE))
+	if setting.tmplDir != "" {
+		_, err := os.Stat(filepath.Join(setting.tmplDir, TEMPLATE_FILE_EXAMPLE))
 		// if directory isn't exist
 		if err != nil {
 			fmt.Println("Error: Can't find template file dir specified in argument")
-			return ""
+			setting.tmplDir = ""
+			return
 		}
-		return dir
 	} else { // directory isn't specified by user so search it by myself
 		// first, $GOROOT/src/...
-		_, err := os.Stat(path.Join(os.Getenv("GOPATH"), "src", REPOSITORY_DIR,
-			TEMPLATE_DIR_DEFAULT_NAME, TEMPLATE_FILE_EXAMPLE))
+		path := filepath.Join(os.Getenv("GOPATH"), "src", SYARO_REPOSITORY,
+			TEMPLATE_DIR_DEFAULT_NAME)
+		_, err := os.Stat(filepath.Join(path, TEMPLATE_FILE_EXAMPLE))
 		if err == nil {
-			return path.Join(os.Getenv("GOPATH"), "src", REPOSITORY_DIR,
-				TEMPLATE_DIR_DEFAULT_NAME)
+			setting.tmplDir = path
+			return
 		}
 
 		// second, /usr/local/share/syaro
-		_, err = os.Stat(path.Join("/usr/local/share/syaro",
-			TEMPLATE_DIR_DEFAULT_NAME, TEMPLATE_FILE_EXAMPLE))
+		path = filepath.Join("/usr/local/share/syaro",
+			TEMPLATE_DIR_DEFAULT_NAME)
+		_, err = os.Stat(filepath.Join(path, TEMPLATE_FILE_EXAMPLE))
 		if err == nil {
-			return path.Join("/usr/local/share/syaro", TEMPLATE_DIR_DEFAULT_NAME)
+			setting.tmplDir = path
+			return
 		}
 
 		// can't find template dir
-		return ""
+		setting.tmplDir = ""
+		return
 	}
 }
