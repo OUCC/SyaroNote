@@ -14,10 +14,13 @@
 
   <!-- css for displaying markdown -->
   <link rel="stylesheet" type="text/css" href="/syaro/markdown.css">
+
+  <!-- css -->
+  <link rel="stylesheet" type="text/css" href="/syaro/syaro.css">
 </head>
 <body>
 
-  {{with.SidebarHTML}}
+  {{with .SidebarHTML}}
   <div class="syaro-sidebar col-md-3">
     <div class="markdown">
       {{.}}
@@ -26,46 +29,44 @@
   {{end}}
 
   <div class="syaro-main col-md-9">
+    {{with .MarkdownHTML}}
     <div class="markdown">
-      {{.MarkdownHTML}}
+      {{.}}
     </div>
-    <br>
-    <br>
+    {{end}}
 
     {{if .IsDir}}
-
     <!-- file list -->
-    <div class="panel panel-info">
-      <div class="panel-heading">Files under {{.WikiPath}}</div>
+    <div class="syaro-filelist">
+      <div class="panel panel-info">
+        <div class="panel-heading">Files under {{.WikiPath}}</div>
 
-      <!-- Table -->
-      <table class="table">
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Name</th>
-            <th>Title</th>
-            <th>Path</th>
-          </tr>
-        </thead>
-        <tbody>
-          {{range $index, $page := .PageList}}
-          {{with $page}}
-          <tr>
-            <td>{{add $index 1}}</td>
-            <td><a href="{{$page.WikiPath}}">{{$page.Name}}</a></td>
-            <td></td>
-            <td>{{$page.WikiPath}}</td>
-          </tr>
-          {{end}}
-          {{end}}
-        </tbody>
-      </table>
+        <!-- Table -->
+        <table class="table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Name</th>
+              <th>Title</th>
+              <th>Path</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{range $index, $page := .PageList}}
+            {{with $page}}
+            <tr>
+              <td>{{add $index 1}}</td>
+              <td><a href="{{$page.WikiPath}}">{{$page.Name}}</a></td>
+              <td></td>
+              <td>{{$page.WikiPath}}</td>
+            </tr>
+            {{end}}
+            {{end}}
+          </tbody>
+        </table>
 
+      </div>
     </div>
-
-    <br>
-    <br>
     {{end}}
 
   </div>
