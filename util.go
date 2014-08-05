@@ -69,12 +69,12 @@ func toStringArray(src *list.List) []string {
 func isIn(dirA, dirB string) bool {
 	dirA, err := filepath.Abs(dirA)
 	if err != nil {
-		logger.Fatalln("filepath.Abs(", dirA, ")", err)
+		loggerE.Fatalf("filepath.Abs(%v)", dirA, err)
 		return false
 	}
 	dirB, err = filepath.Abs(dirB)
 	if err != nil {
-		logger.Fatalln("filepath.Abs(", dirB, ")", err)
+		loggerE.Fatalf("filepath.Abs(%v)", dirB, err)
 		return false
 	}
 

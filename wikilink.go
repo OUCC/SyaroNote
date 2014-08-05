@@ -31,13 +31,13 @@ func processWikiLink(b []byte, currentDir string) []byte {
 			index := re.FindIndex(line)
 
 			if len(index) != 0 { // tag found
-				logger.Println("bracket tag found:", string(line[index[0]:index[1]]))
+				loggerV.Println("bracket tag found:", string(line[index[0]:index[1]]))
 
 				name := line[index[0]+2 : index[1]-2]
 				links, err := searchPage(string(name), currentDir)
 				if err != nil {
-					logger.Fatalln("error occurd in serarchPage(", string(name), ",", currentDir, ")")
-					logger.Fatalln(err.Error())
+					loggerE.Fatalf("error occurd in serarchPage(%s, %s)", string(name), currentDir)
+					loggerE.Fatalln(err.Error())
 					continue
 				}
 
@@ -115,7 +115,7 @@ func searchPage(name string, currentDir string) ([]WikiLink, error) {
 }
 
 func searchPageByBaseName(baseName string) ([]string, error) {
-	logger.Println("searchPageByBaseName(", baseName, ")")
+	loggerV.Printf("searchPageByBaseName(%s)", baseName)
 
 	foundPath := list.New()
 
@@ -126,15 +126,15 @@ func searchPageByBaseName(baseName string) ([]string, error) {
 
 		if removeExt(info.Name()) == baseName {
 			if info.IsDir() {
-				logger.Println("dir found!", path)
+				loggerV.Println("dir found!", path)
 				foundPath.PushBack(path)
 
 			} else {
-				logger.Println("page found!", path)
+				loggerV.Println("page found!", path)
 
 				if filepath.Base(filepath.Dir(path)) == baseName {
-					logger.Println("this page is main page of dir",
-						filepath.Dir(path), ". ignored.")
+					loggerV.Print("this page is main page of dir %s. Ignored.",
+						filepath.Dir(path))
 				} else {
 					foundPath.PushBack(path)
 				}
@@ -148,7 +148,7 @@ func searchPageByBaseName(baseName string) ([]string, error) {
 		return nil, err
 	}
 
-	logger.Println(foundPath.Len(), "pages found")
+	loggerV.Println(foundPath.Len(), "pages found")
 
 	return toStringArray(foundPath), nil
 }

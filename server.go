@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 	"path/filepath"
 )
@@ -11,8 +10,8 @@ const (
 )
 
 func startServer() {
-	fmt.Println("Server started. Waiting connection on port :8080")
-	fmt.Println()
+	loggerM.Println("Server started. Waiting connection on port :8080")
+	loggerM.Println()
 
 	// set http handler
 	// for files under /syaro/
@@ -24,29 +23,29 @@ func startServer() {
 
 	err := http.ListenAndServe(":8080", nil)
 	if err != nil {
-		fmt.Println("Error:", err)
+		loggerE.Println("Error:", err)
 	}
 }
 
 // handler is basic http request handler
 func handler(rw http.ResponseWriter, req *http.Request) {
-	fmt.Printf("Request received (%s)\n", req.URL.Path)
+	loggerM.Printf("Request received (%s)\n", req.URL.Path)
 
 	path := filepath.Join(setting.wikiRoot, req.URL.Path)
 
 	// load md file
 	page, err := LoadPage(path)
 	if err != nil {
-		fmt.Println("Error:", err)
+		loggerE.Println("Error:", err)
 		http.Error(rw, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	// render html
-	fmt.Println("Rendering page...")
+	loggerM.Println("Rendering page...")
 	err = page.Render(rw)
 	if err != nil {
-		fmt.Println("Rendering error!", err.Error())
+		loggerE.Println("Rendering error!", err.Error())
 		http.Error(rw, err.Error(), http.StatusInternalServerError)
 		return
 	}

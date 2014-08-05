@@ -30,18 +30,20 @@ func main() {
 
 	flag.Parse()
 
+	setupLogger()
+
 	findTemplateDir()
 	if setting.tmplDir == "" {
-		fmt.Println("Error: Can't find template dir.")
-		fmt.Println("Server shutdown.")
+		loggerM.Println("Error: Can't find template dir.")
+		loggerM.Println("Server shutdown.")
 		return
 	}
 
-	fmt.Println("WikiRoot:", setting.wikiRoot)
-	fmt.Println("Template dir:", setting.tmplDir)
-	fmt.Println("Port:", setting.port)
-	fmt.Println("URL prefix:", setting.urlPrefix)
-	fmt.Println("")
+	loggerM.Println("WikiRoot:", setting.wikiRoot)
+	loggerM.Println("Template dir:", setting.tmplDir)
+	loggerM.Println("Port:", setting.port)
+	loggerM.Println("URL prefix:", setting.urlPrefix)
+	loggerM.Println("")
 
 	startServer()
 }
@@ -61,7 +63,7 @@ func findTemplateDir() {
 		_, err := os.Stat(filepath.Join(setting.tmplDir, TEMPLATE_FILE_EXAMPLE))
 		// if directory isn't exist
 		if err != nil {
-			fmt.Println("Error: Can't find template file dir specified in argument")
+			loggerE.Println("Error: Can't find template file dir specified in argument")
 			setting.tmplDir = ""
 			return
 		}
