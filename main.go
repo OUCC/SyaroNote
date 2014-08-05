@@ -41,6 +41,11 @@ func main() {
 
 	loggerM.Println("WikiRoot:", setting.wikiRoot)
 	loggerM.Println("Template dir:", setting.tmplDir)
+	if setting.fcgi {
+		loggerM.Println("Fast CGI mode: YES")
+	} else {
+		loggerM.Println("Fast CGI mode: NO")
+	}
 	loggerM.Println("Port:", setting.port)
 	loggerM.Println("URL prefix:", setting.urlPrefix)
 	loggerM.Println("")

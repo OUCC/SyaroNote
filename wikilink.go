@@ -64,7 +64,7 @@ func embedLinkTag(line []byte, tagIndex []int, link WikiLink) []byte {
 	return bytes.Join([][]byte{
 		line[:tagIndex[0]],
 		[]byte("<a href=\""),
-		link.FilePath,
+		[]byte(filepath.Join("/", setting.urlPrefix, string(link.FilePath))),
 		[]byte("\" title=\""),
 		link.Title,
 		[]byte("\">"),

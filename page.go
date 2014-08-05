@@ -82,7 +82,7 @@ func (page *Page) WikiPath() string {
 		return ""
 	}
 
-	return "/" + ret
+	return filepath.Join("/", setting.urlPrefix, ret)
 }
 
 // IsDir returns whether path is dir or not.
@@ -109,8 +109,12 @@ func (page *Page) PageList() []*Page {
 
 	loggerV.Println(len(infos), "file/dirs found")
 	ret := make([]*Page, len(infos))
-	for i, info := range infos {
-		ret[i], _ = LoadPage(filepath.Join(page.filePath, info.Name()))
+	i := 0
+	for _, info := range infos {
+		if info.Name()[:1] != "." { // not a hidden file
+			ret[i], _ = LoadPage(filepath.Join(page.filePath, info.Name()))
+			i++
+		}
 	}
 	return ret
 }
@@ -168,12 +172,10 @@ func (page *Page) row() []byte {
 	return b
 }
 
-// FIXME wrong performance (returning value)
 func (page *Page) MarkdownText() string {
 	return string(page.row())
 }
 
-// FIXME wrong performance (returning value)
 // MarkdownHTML converts markdown text (with wikilink) to html
 func (page *Page) MarkdownHTML() template.HTML {
 	html := blackfriday.MarkdownCommon(page.row())

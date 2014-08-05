@@ -1,8 +1,11 @@
 package main
 
 import (
+	"net"
 	"net/http"
+	"net/http/fcgi"
 	"path/filepath"
+	"strconv"
 )
 
 const (
@@ -10,20 +13,34 @@ const (
 )
 
 func startServer() {
-	loggerM.Println("Server started. Waiting connection on port :8080")
-	loggerM.Println()
+	// listen port
+	l, err := net.Listen("tcp", ":"+strconv.Itoa(setting.port))
+	if err != nil {
+		loggerE.Fatalln("Error:", err)
+	}
+
+	mux := http.NewServeMux()
 
 	// set http handler
 	// for files under /syaro/
-	http.Handle(SYARO_PREFIX, http.StripPrefix(SYARO_PREFIX,
+	mux.Handle(SYARO_PREFIX, http.StripPrefix(SYARO_PREFIX,
 		http.FileServer(http.Dir(setting.tmplDir))))
 
 	// for pages
-	http.HandleFunc("/", handler)
+	mux.HandleFunc(filepath.Clean("/"+setting.urlPrefix)+"/", handler)
 
-	err := http.ListenAndServe(":8080", nil)
+	loggerM.Printf("Server started. Waiting connection localhost:%d/%s\n",
+		setting.port, setting.urlPrefix)
+	loggerM.Println()
+
+	if setting.fcgi {
+		err = fcgi.Serve(l, mux)
+	} else {
+		err = http.Serve(l, mux)
+	}
+
 	if err != nil {
-		loggerE.Println("Error:", err)
+		loggerE.Fatal("Error:", err)
 	}
 }
 
@@ -31,7 +48,14 @@ func startServer() {
 func handler(rw http.ResponseWriter, req *http.Request) {
 	loggerM.Printf("Request received (%s)\n", req.URL.Path)
 
-	path := filepath.Join(setting.wikiRoot, req.URL.Path)
+	path, err := filepath.Rel(filepath.Clean("/"+setting.urlPrefix),
+		filepath.Clean("/"+req.URL.Path))
+	if err != nil {
+		loggerE.Println("Error:", err)
+		http.Error(rw, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	path = filepath.Join(setting.wikiRoot, path)
 
 	// load md file
 	page, err := LoadPage(path)
