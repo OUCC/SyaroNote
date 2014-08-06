@@ -1,3 +1,23 @@
+.syaro-sidebar {
+    background-color: #f5f5f5;
+}
+
 .syaro-filelist {
     padding: 30px;
+}
+
+.navbar-header>a.navbar-brand:hover {
+    color: #ffa600;
+}
+.navbar-nav>li>a.hover-orange:hover {
+    color: #ff8800;
+}
+.navbar-nav>li>a.hover-green:hover {
+    color: #00e613;
+}
+.navbar-nav>li>a.hover-purple:hover {
+    color: #b300ff;
+}
+.navbar-nav>li>a.hover-red:hover {
+    color: #ff002e;
 }

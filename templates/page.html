@@ -8,9 +8,7 @@
   <!-- Latest compiled and minified CSS -->
   <link rel="stylesheet" type="text/css" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
   <!-- Optional theme -->
-  <link rel="stylesheet" type="text/css" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css">
-  <!-- Latest compiled and minified JavaScript -->
-  <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+  <!-- <link rel="stylesheet" type="text/css" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css"> -->
 
   <!-- css for displaying markdown -->
   <link rel="stylesheet" type="text/css" href="/syaro/markdown.css">
@@ -18,57 +16,128 @@
   <!-- css -->
   <link rel="stylesheet" type="text/css" href="/syaro/syaro.css">
 </head>
+
 <body>
 
-  {{with .SidebarHTML}}
-  <div class="syaro-sidebar col-md-3">
-    <div class="markdown">
-      {{.}}
+  <!-- navigation bar -->
+  <div class="navbar navbar-default navbar-static-top" role="navigation">
+    <div class="container">
+
+      <!-- wiki title -->
+      <div class="navbar-header">
+        <a class="navbar-brand" href="/{{urlPrefix}}/Home">Syaro Wiki</a>
+      </div>
+
+      <div class="navbar-collapse collapse">
+
+        <!-- search box -->
+        <form class="navbar-form navbar-left" role="search">
+          <div class="form-group">
+            <input type="text" class="form-control" placeholder="Search">
+            <button type="submit" class="btn btn-default">
+              <span class="glyphicon glyphicon-search"></span>
+            </button>
+          </div>
+        </form>
+
+        <ul class="nav navbar-nav navbar-right">
+          <li>
+            <a href="#" class="hover-orange">
+              <span class="glyphicon glyphicon-plus"></span> New
+            </a>
+          </li>
+          <li>
+            <a href="#" class="hover-green">
+              <span class="glyphicon glyphicon-asterisk"></span> Rename
+            </a>
+          </li>
+          <li>
+            <a href="#" class="hover-green">
+              <span class="glyphicon glyphicon-pencil"></span> Edit
+            </a>
+          </li>
+          <li>
+            <a href="#" class="hover-purple">
+              <span class="glyphicon glyphicon-time"></span> History
+            </a>
+          </li>
+          <li>
+            <a href="#" class="hover-red">
+              <span class="glyphicon glyphicon-trash"></span> Delete
+            </a>
+          </li>
+        </ul>
+      </div>
     </div>
   </div>
-  {{end}}
 
-  <div class="syaro-main col-md-9">
-    {{with .MarkdownHTML}}
-    <div class="markdown">
-      {{.}}
-    </div>
-    {{end}}
+  <div class="container">
 
-    {{if .IsDir}}
-    <!-- file list -->
-    <div class="syaro-filelist">
-      <div class="panel panel-info">
-        <div class="panel-heading">Files under {{.WikiPath}}</div>
+  <!-- breadcrumb list -->
+    <ol class="breadcrumb">
+      {{range $index, $page := .WikiPathList}}
+      <li><a href="{{$page.WikiPath}}">{{$page.Name}}</a></li>
+      {{end}}
+    </ol>
 
-        <!-- Table -->
-        <table class="table">
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Name</th>
-              <th>Title</th>
-              <th>Path</th>
-            </tr>
-          </thead>
-          <tbody>
-            {{range $index, $page := .PageList}}
-            {{with $page}}
-            <tr>
-              <td>{{add $index 1}}</td>
-              <td><a href="{{$page.WikiPath}}">{{$page.Name}}</a></td>
-              <td></td>
-              <td>{{$page.WikiPath}}</td>
-            </tr>
-            {{end}}
-            {{end}}
-          </tbody>
-        </table>
-
+    {{with .SidebarHTML}}
+    <div class="syaro-sidebar col-md-3">
+      <div class="markdown">
+        {{.}}
       </div>
     </div>
     {{end}}
 
+    <div class="syaro-main col-md-9">
+      {{with .MarkdownHTML}}
+      <div class="markdown">
+        {{.}}
+      </div>
+      {{end}}
+
+      {{if .IsDir}}
+      <!-- file list -->
+      <div class="syaro-filelist">
+        <div class="panel panel-info">
+          <div class="panel-heading">Files under {{.WikiPath}}</div>
+
+          <!-- Table -->
+          <table class="table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Name</th>
+                <th>Title</th>
+                <th>Path</th>
+              </tr>
+            </thead>
+            <tbody>
+              {{range $index, $page := .PageList}}
+              {{with $page}}
+              <tr>
+                <td>{{add $index 1}}</td>
+                <td><a href="{{$page.WikiPath}}">{{$page.Name}}</a></td>
+                <td></td>
+                <td>{{$page.WikiPath}}</td>
+              </tr>
+              {{end}}
+              {{end}}
+            </tbody>
+          </table>
+
+        </div>
+      </div>
+      {{end}}
+
+    </div>
+
   </div>
+
+  <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+
+  <!-- Bootstrap -->
+  <!-- Latest compiled and minified JavaScript -->
+  <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
 </body>
 </html>

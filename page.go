@@ -85,6 +85,27 @@ func (page *Page) WikiPath() string {
 	return filepath.Join("/", setting.urlPrefix, ret)
 }
 
+// WikiPathList returns slice of each pages in wikipath
+// (slice dosen't include urlPrefix)
+func (page *Page) WikiPathList() []*Page {
+	path := removeExt(page.WikiPath())
+
+	s := strings.Split(path, "/")
+	if s[0] == "" {
+		s = s[1:]
+	}
+	// remove url prefix
+	if s[0] == setting.urlPrefix {
+		s = s[1:]
+	}
+
+	ret := make([]*Page, len(s))
+	for i := 0; i < len(ret); i++ {
+		ret[i], _ = LoadPage(filepath.Join(setting.wikiRoot, strings.Join(s[:i+1], "/")))
+	}
+	return ret
+}
+
 // IsDir returns whether path is dir or not.
 func (page *Page) IsDir() bool {
 	info, err := os.Stat(page.filePath)
@@ -210,7 +231,8 @@ func (page *Page) Render(rw http.ResponseWriter) error {
 
 	// funcs for calculation on template
 	funcMap := template.FuncMap{
-		"add": func(a, b int) int { return a + b },
+		"add":       func(a, b int) int { return a + b },
+		"urlPrefix": func() string { return setting.urlPrefix },
 	}
 
 	// parce html

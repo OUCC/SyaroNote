@@ -41,6 +41,7 @@ const (
 	VERBOSE_DEFAULT  = false
 )
 
+// TODO wikiname
 type Setting struct {
 	wikiRoot  string
 	tmplDir   string
