@@ -16,12 +16,12 @@ var (
 )
 
 func main() {
-	if len(os.Args) > 1 {
-		switch os.Args[1] {
-		case "--usage", "--help", "-h":
-			flag.Usage()
-		}
-	}
+	// if len(os.Args) > 1 {
+	// 	switch os.Args[1] {
+	// 	case "--usage", "--help", "-h":
+	// 		flag.Usage()
+	// 	}
+	// }
 
 	// print welcome message
 	fmt.Println("===== Syaro Wiki Server =====")

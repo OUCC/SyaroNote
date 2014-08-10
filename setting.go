@@ -6,7 +6,7 @@ import (
 
 const (
 	WIKIROOT_ARGNAME = "wikiroot"
-	WIKIROOT_USAGE   = "Root folder of wiki (default: " + WIKIROOT_DEFAULT + ")."
+	WIKIROOT_USAGE   = "Root folder of wiki."
 	WIKIROOT_DEFAULT = "./"
 )
 
@@ -18,7 +18,7 @@ const (
 
 const (
 	PORT_ARGNAME = "port"
-	PORT_USAGE   = "Port (default: " + string(PORT_DEFAULT) + ")."
+	PORT_USAGE   = "Port."
 	PORT_DEFAULT = 8080
 )
 
@@ -37,7 +37,7 @@ const (
 const (
 	VERBOSE_ARGNAME  = "verbose"
 	VERBOSE_ARGNAMES = "v"
-	VERBOSE_USAGE    = "Verbose output"
+	VERBOSE_USAGE    = "Verbose output."
 	VERBOSE_DEFAULT  = false
 )
 
