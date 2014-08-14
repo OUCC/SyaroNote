@@ -2,22 +2,17 @@
 <html>
 <head>
   <title>{{.Title}}</title>
-  <meta content="">
 
-  <!-- Bootstrap -->
-  <!-- Latest compiled and minified CSS -->
   <link rel="stylesheet" type="text/css" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
-  <!-- Optional theme -->
-  <!-- <link rel="stylesheet" type="text/css" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css"> -->
+  <link rel="stylesheet" type="text/css" href="/css/markdown.css">
+  <link rel="stylesheet" type="text/css" href="/css/syaro.css">
 
-  <!-- css for displaying markdown -->
-  <link rel="stylesheet" type="text/css" href="/syaro/markdown.css">
-
-  <!-- css -->
-  <link rel="stylesheet" type="text/css" href="/syaro/syaro.css">
+  <link rel="favicon" href="/ico/favicon.ico">
 </head>
-
 <body>
+  <noscript>
+    <p>PLEASE ENABLE JavaScript</p>
+  </noscript>
 
   <!-- navigation bar -->
   <div class="navbar navbar-default navbar-static-top" role="navigation">
@@ -25,7 +20,7 @@
 
       <!-- wiki title -->
       <div class="navbar-header">
-        <a class="navbar-brand" href="/{{urlPrefix}}/Home">Syaro Wiki</a>
+        <a class="navbar-brand" href="{{urlPrefix}}/Home">Syaro Wiki</a>
       </div>
 
       <div class="navbar-collapse collapse">
@@ -40,40 +35,32 @@
           </div>
         </form>
 
+        <!-- right buttons -->
         <ul class="nav navbar-nav navbar-right">
           <li>
-            <a href="#" class="hover-orange">
-              <span class="glyphicon glyphicon-plus"></span> New
-            </a>
+            <a href="#" class="hover-orange"><span class="glyphicon glyphicon-plus"></span> New</a>
           </li>
           <li>
-            <a href="#" class="hover-green">
-              <span class="glyphicon glyphicon-asterisk"></span> Rename
-            </a>
+            <a href="#" class="hover-green"><span class="glyphicon glyphicon-asterisk"></span> Rename</a>
           </li>
           <li>
-            <a href="#" class="hover-green">
-              <span class="glyphicon glyphicon-pencil"></span> Edit
-            </a>
+            <a href="?edit" class="hover-green"><span class="glyphicon glyphicon-pencil"></span> Edit</a>
           </li>
           <li>
-            <a href="#" class="hover-purple">
-              <span class="glyphicon glyphicon-time"></span> History
-            </a>
+            <a href="?history" class="hover-purple"><span class="glyphicon glyphicon-time"></span> History</a>
           </li>
           <li>
-            <a href="#" class="hover-red">
-              <span class="glyphicon glyphicon-trash"></span> Delete
-            </a>
+            <a href="#" class="hover-red"><span class="glyphicon glyphicon-trash"></span> Delete</a>
           </li>
         </ul>
+
       </div>
     </div>
   </div>
 
   <div class="container">
 
-  <!-- breadcrumb list -->
+    <!-- breadcrumb list -->
     <ol class="breadcrumb">
       {{range $index, $page := .WikiPathList}}
       <li><a href="{{$page.WikiPath}}">{{$page.Name}}</a></li>
@@ -130,14 +117,9 @@
       {{end}}
 
     </div>
-
   </div>
 
-  <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
-
-  <!-- Bootstrap -->
-  <!-- Latest compiled and minified JavaScript -->
   <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
 </body>
 </html>

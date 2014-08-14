@@ -11,9 +11,9 @@ const (
 )
 
 const (
-	TEMPLATE_DIR_ARGNAME = "template-dir"
-	TEMPLATE_DIR_USAGE   = "Directory for HTML, css, etc."
-	TEMPLATE_DIR_DEFAULT = ""
+	SYARO_DIR_ARGNAME = "syaro-dir"
+	SYARO_DIR_USAGE   = "Directory for HTML, css, js etc."
+	SYARO_DIR_DEFAULT = ""
 )
 
 const (
@@ -44,7 +44,7 @@ const (
 // TODO wikiname
 type Setting struct {
 	wikiRoot  string
-	tmplDir   string
+	syaroDir  string
 	port      int
 	urlPrefix string
 	fcgi      bool
@@ -55,7 +55,7 @@ func init() {
 	setting = new(Setting)
 
 	flag.StringVar(&setting.wikiRoot, WIKIROOT_ARGNAME, WIKIROOT_DEFAULT, WIKIROOT_USAGE)
-	flag.StringVar(&setting.tmplDir, TEMPLATE_DIR_ARGNAME, TEMPLATE_DIR_DEFAULT, TEMPLATE_DIR_USAGE)
+	flag.StringVar(&setting.syaroDir, SYARO_DIR_ARGNAME, SYARO_DIR_DEFAULT, SYARO_DIR_USAGE)
 	flag.IntVar(&setting.port, PORT_ARGNAME, PORT_DEFAULT, PORT_USAGE)
 	flag.StringVar(&setting.urlPrefix, URL_PREFIX_ARGNAME, URL_PREFIX_DEFAULT, URL_PREFIX_USAGE)
 	flag.BoolVar(&setting.fcgi, FCGI_ARGNAME, FCGI_DEFAULT, FCGI_USAGE)

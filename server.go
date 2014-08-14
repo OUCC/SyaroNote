@@ -8,10 +8,6 @@ import (
 	"strconv"
 )
 
-const (
-	SYARO_PREFIX = "/syaro/"
-)
-
 func startServer() {
 	// listen port
 	l, err := net.Listen("tcp", ":"+strconv.Itoa(setting.port))
@@ -21,15 +17,25 @@ func startServer() {
 
 	mux := http.NewServeMux()
 
+	// fix url prefix
+	if setting.urlPrefix != "" {
+		setting.urlPrefix = filepath.Clean("/" + setting.urlPrefix)
+	}
+
 	// set http handler
-	// for files under /syaro/
-	mux.Handle(SYARO_PREFIX, http.StripPrefix(SYARO_PREFIX,
-		http.FileServer(http.Dir(setting.tmplDir))))
+	// files under SYARO_DIR/public
+	rootDir := http.Dir(filepath.Join(setting.syaroDir, PUBLIC_DIR))
+	fileServer := http.FileServer(rootDir)
+	mux.Handle(setting.urlPrefix+"/css/", fileServer)
+	mux.Handle(setting.urlPrefix+"/fonts/", fileServer)
+	mux.Handle(setting.urlPrefix+"/ico/", fileServer)
+	mux.Handle(setting.urlPrefix+"/img/", fileServer)
+	mux.Handle(setting.urlPrefix+"/js/", fileServer)
 
 	// for pages
-	mux.HandleFunc(filepath.Clean("/"+setting.urlPrefix)+"/", handler)
+	mux.HandleFunc(setting.urlPrefix+"/", handler)
 
-	loggerM.Printf("Server started. Waiting connection localhost:%d/%s\n",
+	loggerM.Printf("Server started. Waiting connection localhost:%d%s\n",
 		setting.port, setting.urlPrefix)
 	loggerM.Println()
 
@@ -45,14 +51,14 @@ func startServer() {
 }
 
 // handler is basic http request handler
-func handler(rw http.ResponseWriter, req *http.Request) {
+func handler(res http.ResponseWriter, req *http.Request) {
 	loggerM.Printf("Request received (%s)\n", req.URL.Path)
 
 	path, err := filepath.Rel(filepath.Clean("/"+setting.urlPrefix),
 		filepath.Clean("/"+req.URL.Path))
 	if err != nil {
 		loggerE.Println("Error:", err)
-		http.Error(rw, err.Error(), http.StatusInternalServerError)
+		http.Error(res, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	path = filepath.Join(setting.wikiRoot, path)
@@ -61,16 +67,16 @@ func handler(rw http.ResponseWriter, req *http.Request) {
 	page, err := LoadPage(path)
 	if err != nil {
 		loggerE.Println("Error:", err)
-		http.Error(rw, err.Error(), http.StatusInternalServerError)
+		http.Error(res, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	// render html
 	loggerM.Println("Rendering page...")
-	err = page.Render(rw)
+	err = page.Render(res)
 	if err != nil {
 		loggerE.Println("Rendering error!", err.Error())
-		http.Error(rw, err.Error(), http.StatusInternalServerError)
+		http.Error(res, err.Error(), http.StatusInternalServerError)
 		return
 	}
 }

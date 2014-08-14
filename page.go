@@ -224,7 +224,7 @@ func (page *Page) SidebarHTML() template.HTML {
 
 func (page *Page) Render(rw http.ResponseWriter) error {
 	// read template html
-	html, err := ioutil.ReadFile(filepath.Join(setting.tmplDir, PAGE_TMPL))
+	html, err := ioutil.ReadFile(filepath.Join(setting.syaroDir,VIEWS_DIR, PAGE_TMPL))
 	if err != nil {
 		return err
 	}
