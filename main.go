@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"html/template"
 	"os"
 	"path/filepath"
 )
@@ -14,6 +15,7 @@ const (
 
 var (
 	setting *Setting
+	views   *template.Template
 )
 
 func main() {
@@ -40,6 +42,12 @@ func main() {
 	loggerM.Println("Port:", setting.port)
 	loggerM.Println("URL prefix:", setting.urlPrefix)
 	loggerM.Println("")
+
+	loggerM.Println("Parsing template...")
+	err := setupViews()
+	if err != nil {
+		loggerE.Fatalln("Failed to parse template:", err)
+	}
 
 	startServer()
 }
@@ -87,4 +95,19 @@ func findSyaroDir() {
 		setting.syaroDir = ""
 		return
 	}
+}
+
+func setupViews() error {
+	// funcs for template
+	tmpl := template.New("").Funcs(template.FuncMap{
+		"add":       func(a, b int) int { return a + b },
+		"urlPrefix": func() string { return setting.urlPrefix },
+	})
+	tmpl, err := tmpl.ParseGlob(filepath.Join(setting.syaroDir, VIEWS_DIR, "*.html"))
+	if err != nil {
+		return err
+	}
+
+	views = tmpl
+	return nil
 }

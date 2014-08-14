@@ -222,27 +222,8 @@ func (page *Page) SidebarHTML() template.HTML {
 	return template.HTML(processWikiLink(html, filepath.Dir(page.filePath)))
 }
 
-func (page *Page) Render(rw http.ResponseWriter) error {
-	// read template html
-	html, err := ioutil.ReadFile(filepath.Join(setting.syaroDir,VIEWS_DIR, PAGE_TMPL))
-	if err != nil {
-		return err
-	}
-
-	// funcs for calculation on template
-	funcMap := template.FuncMap{
-		"add":       func(a, b int) int { return a + b },
-		"urlPrefix": func() string { return setting.urlPrefix },
-	}
-
-	// parce html
-	tmpl, err := template.New(page.Title()).Funcs(funcMap).Parse(string(html))
-	if err != nil {
-		return err
-	}
-
-	// render
-	return tmpl.Execute(rw, &page)
+func (page *Page) Render(res http.ResponseWriter) error {
+	return views.ExecuteTemplate(res, "page.html", &page)
 }
 
 func (page *Page) Save(b []byte) error {
