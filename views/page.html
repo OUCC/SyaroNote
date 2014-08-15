@@ -65,7 +65,7 @@
     <!-- breadcrumb list -->
     <ol class="breadcrumb">
       {{range .WikiPathList}}
-      <li><a href="{{join urlPrefix "/" .WikiPath}}">{{.Name}}</a></li>
+      <li><a href="{{urlPrefix}}{{.WikiPath}}">{{.NameWithoutExt}}</a></li>
       {{end}}
     </ol>
 
@@ -95,21 +95,17 @@
             <thead>
               <tr>
                 <th>#</th>
-                <th>Name</th>
-                <th>Title</th>
-                <th>Path</th>
+                <th>Page name</th>
+                <th>WikiPath</th>
               </tr>
             </thead>
             <tbody>
-              {{range $index, $page := .PageList}}
-              {{with $page}}
+              {{range $index, $file:= .Files}}
               <tr>
                 <td>{{add $index 1}}</td>
-                <td><a href="{{$page.WikiPath}}">{{$page.Name}}</a></td>
-                <td></td>
-                <td>{{$page.WikiPath}}</td>
+                <td><a href="{{urlPrefix}}{{$file.WikiPath}}">{{$file.NameWithoutExt}}</a></td>
+                <td>{{$file.WikiPath}}</td>
               </tr>
-              {{end}}
               {{end}}
             </tbody>
           </table>

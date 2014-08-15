@@ -1,81 +1,79 @@
 package main
 
 import (
+	. "github.com/OUCC/syaro/logger"
+	"github.com/OUCC/syaro/setting"
+
 	"net"
 	"net/http"
 	"net/http/fcgi"
 	"path/filepath"
 	"strconv"
+	"strings"
 )
 
 func startServer() {
 	// listen port
-	l, err := net.Listen("tcp", ":"+strconv.Itoa(setting.port))
+	l, err := net.Listen("tcp", ":"+strconv.Itoa(setting.Port))
 	if err != nil {
-		loggerE.Fatalln("Error:", err)
+		LoggerE.Fatalln("Error: main.startServer:", err)
 	}
 
 	mux := http.NewServeMux()
 
 	// fix url prefix
-	if setting.urlPrefix != "" {
-		setting.urlPrefix = filepath.Clean("/" + setting.urlPrefix)
+	if setting.UrlPrefix != "" {
+		setting.UrlPrefix = filepath.Clean("/" + setting.UrlPrefix)
 	}
 
 	// set http handler
 	// files under SYARO_DIR/public
-	rootDir := http.Dir(filepath.Join(setting.syaroDir, PUBLIC_DIR))
-	fileServer := http.StripPrefix(setting.urlPrefix, http.FileServer(rootDir))
-	mux.Handle(setting.urlPrefix+"/css/", fileServer)
-	mux.Handle(setting.urlPrefix+"/fonts/", fileServer)
-	mux.Handle(setting.urlPrefix+"/ico/", fileServer)
-	mux.Handle(setting.urlPrefix+"/img/", fileServer)
-	mux.Handle(setting.urlPrefix+"/js/", fileServer)
+	rootDir := http.Dir(filepath.Join(setting.SyaroDir, PUBLIC_DIR))
+	fileServer := http.StripPrefix(setting.UrlPrefix, http.FileServer(rootDir))
+	mux.Handle(setting.UrlPrefix+"/css/", fileServer)
+	mux.Handle(setting.UrlPrefix+"/fonts/", fileServer)
+	mux.Handle(setting.UrlPrefix+"/ico/", fileServer)
+	mux.Handle(setting.UrlPrefix+"/img/", fileServer)
+	mux.Handle(setting.UrlPrefix+"/js/", fileServer)
 
 	// for pages
-	mux.HandleFunc(setting.urlPrefix+"/", handler)
+	mux.HandleFunc(setting.UrlPrefix+"/", handler)
 
-	loggerM.Printf("Server started. Waiting connection localhost:%d%s\n",
-		setting.port, setting.urlPrefix)
-	loggerM.Println()
+	LoggerM.Printf("main.startServer: Server started. Waiting connection localhost:%d%s\n",
+		setting.Port, setting.UrlPrefix)
+	LoggerM.Println()
 
-	if setting.fcgi {
+	if setting.FCGI {
 		err = fcgi.Serve(l, mux)
 	} else {
 		err = http.Serve(l, mux)
 	}
 
 	if err != nil {
-		loggerE.Fatal("Error:", err)
+		LoggerE.Fatal("Error: main.startServer:", err)
 	}
 }
 
 // handler is basic http request handler
 func handler(res http.ResponseWriter, req *http.Request) {
-	loggerM.Printf("Request received (%s)\n", req.URL.Path)
+	LoggerM.Printf("main.handler: Request received (%s)\n", req.URL.Path)
 
-	path, err := filepath.Rel(filepath.Clean("/"+setting.urlPrefix),
-		filepath.Clean("/"+req.URL.Path))
-	if err != nil {
-		loggerE.Println("Error:", err)
-		http.Error(res, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	path = filepath.Join(setting.wikiRoot, path)
+	wpath := filepath.Join(setting.WikiRoot,
+		strings.TrimPrefix(req.URL.Path, setting.UrlPrefix))
 
 	// load md file
-	page, err := LoadPage(path)
+	page, err := LoadPage(wpath)
 	if err != nil {
-		loggerE.Println("Error:", err)
+		LoggerE.Println("Error: main.handler:", err)
 		http.Error(res, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	// render html
-	loggerM.Println("Rendering page...")
+	LoggerM.Println("main.handler: Rendering page...")
 	err = page.Render(res)
 	if err != nil {
-		loggerE.Println("Rendering error!", err.Error())
+		LoggerE.Println("Error: main.handler: Rendering error!", err.Error())
 		http.Error(res, err.Error(), http.StatusInternalServerError)
 		return
 	}

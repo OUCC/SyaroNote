@@ -1,11 +1,14 @@
 package main
 
 import (
+	. "github.com/OUCC/syaro/logger"
+	"github.com/OUCC/syaro/setting"
+	"github.com/OUCC/syaro/wikiio"
+
 	"flag"
 	"html/template"
 	"os"
 	"path/filepath"
-	"strings"
 )
 
 const (
@@ -15,40 +18,44 @@ const (
 )
 
 var (
-	setting *Setting
-	views   *template.Template
+	views *template.Template
 )
 
 func main() {
 	flag.Parse()
-	setupLogger()
+	SetupLogger()
 
 	// print welcome message
-	loggerM.Println("===== Syaro Wiki Server =====")
-	loggerM.Println("Starting...")
-	loggerM.Println("")
+	LoggerM.Println("===== Syaro Wiki Server =====")
+	LoggerM.Println("Starting...")
+	LoggerM.Println("")
 
 	findSyaroDir()
-	if setting.syaroDir == "" {
-		loggerE.Fatalln("Error: Can't find system file directory.")
+	if setting.SyaroDir == "" {
+		LoggerE.Fatalln("Error: Can't find system file directory.")
 	}
 
-	loggerM.Println("WikiRoot:", setting.wikiRoot)
-	loggerM.Println("Syaro dir:", setting.syaroDir)
-	if setting.fcgi {
-		loggerM.Println("Fast CGI mode: YES")
+	LoggerM.Println("WikiRoot:", setting.WikiRoot)
+	LoggerM.Println("Syaro dir:", setting.SyaroDir)
+	if setting.FCGI {
+		LoggerM.Println("Fast CGI mode: YES")
 	} else {
-		loggerM.Println("Fast CGI mode: NO")
+		LoggerM.Println("Fast CGI mode: NO")
 	}
-	loggerM.Println("Port:", setting.port)
-	loggerM.Println("URL prefix:", setting.urlPrefix)
-	loggerM.Println("")
+	LoggerM.Println("Port:", setting.Port)
+	LoggerM.Println("URL prefix:", setting.UrlPrefix)
+	LoggerM.Println("")
 
-	loggerM.Println("Parsing template...")
+	LoggerM.Println("Parsing template...")
 	err := setupViews()
 	if err != nil {
-		loggerE.Fatalln("Failed to parse template:", err)
+		LoggerE.Fatalln("Failed to parse template:", err)
 	}
+	LoggerM.Println("Template parsed")
+
+	LoggerM.Println("Building index...")
+	wikiio.BuildIndex()
+	LoggerM.Println("Index built")
 
 	startServer()
 }
@@ -59,12 +66,12 @@ func main() {
 // If not found, return empty string.
 func findSyaroDir() {
 	// if syaro dir is specified by user, search this dir
-	if setting.syaroDir != "" {
-		_, err := os.Stat(filepath.Join(setting.syaroDir, VIEWS_DIR))
+	if setting.SyaroDir != "" {
+		_, err := os.Stat(filepath.Join(setting.SyaroDir, VIEWS_DIR))
 		// if directory isn't exist
 		if err != nil {
-			loggerE.Println("Error: Can't find template file dir specified in argument")
-			setting.syaroDir = ""
+			LoggerE.Println("Error: Can't find template file dir specified in argument")
+			setting.SyaroDir = ""
 			return
 		}
 	} else { // directory isn't specified by user so search it by myself
@@ -72,7 +79,7 @@ func findSyaroDir() {
 		path := filepath.Join(os.Getenv("GOPATH"), "src", SYARO_REPOSITORY)
 		_, err := os.Stat(filepath.Join(path, VIEWS_DIR))
 		if err == nil {
-			setting.syaroDir = path
+			setting.SyaroDir = path
 			return
 		}
 
@@ -80,7 +87,7 @@ func findSyaroDir() {
 		path = "/usr/local/share/syaro"
 		_, err = os.Stat(filepath.Join(path, VIEWS_DIR))
 		if err == nil {
-			setting.syaroDir = path
+			setting.SyaroDir = path
 			return
 		}
 
@@ -88,12 +95,12 @@ func findSyaroDir() {
 		path = "/Program Files/Syaro"
 		_, err = os.Stat(filepath.Join(path, VIEWS_DIR))
 		if err == nil {
-			setting.syaroDir = path
+			setting.SyaroDir = path
 			return
 		}
 
 		// can't find syaro dir
-		setting.syaroDir = ""
+		setting.SyaroDir = ""
 		return
 	}
 }
@@ -102,10 +109,9 @@ func setupViews() error {
 	// funcs for template
 	tmpl := template.New("").Funcs(template.FuncMap{
 		"add":       func(a, b int) int { return a + b },
-		"urlPrefix": func() string { return setting.urlPrefix },
-		"join":      func(s ...string) string { return strings.Join(s, "") },
+		"urlPrefix": func() string { return setting.UrlPrefix },
 	})
-	tmpl, err := tmpl.ParseGlob(filepath.Join(setting.syaroDir, VIEWS_DIR, "*.html"))
+	tmpl, err := tmpl.ParseGlob(filepath.Join(setting.SyaroDir, VIEWS_DIR, "*.html"))
 	if err != nil {
 		return err
 	}

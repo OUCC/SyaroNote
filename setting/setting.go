@@ -1,4 +1,4 @@
-package main
+package setting
 
 import (
 	"flag"
@@ -42,23 +42,21 @@ const (
 )
 
 // TODO wikiname
-type Setting struct {
-	wikiRoot  string
-	syaroDir  string
-	port      int
-	urlPrefix string
-	fcgi      bool
-	verbose   bool
-}
+var (
+	WikiRoot  string
+	SyaroDir  string
+	Port      int
+	UrlPrefix string
+	FCGI      bool
+	Verbose   bool
+)
 
 func init() {
-	setting = new(Setting)
-
-	flag.StringVar(&setting.wikiRoot, WIKIROOT_ARGNAME, WIKIROOT_DEFAULT, WIKIROOT_USAGE)
-	flag.StringVar(&setting.syaroDir, SYARO_DIR_ARGNAME, SYARO_DIR_DEFAULT, SYARO_DIR_USAGE)
-	flag.IntVar(&setting.port, PORT_ARGNAME, PORT_DEFAULT, PORT_USAGE)
-	flag.StringVar(&setting.urlPrefix, URL_PREFIX_ARGNAME, URL_PREFIX_DEFAULT, URL_PREFIX_USAGE)
-	flag.BoolVar(&setting.fcgi, FCGI_ARGNAME, FCGI_DEFAULT, FCGI_USAGE)
-	flag.BoolVar(&setting.verbose, VERBOSE_ARGNAME, VERBOSE_DEFAULT, VERBOSE_USAGE)
-	flag.BoolVar(&setting.verbose, VERBOSE_ARGNAMES, VERBOSE_DEFAULT, VERBOSE_USAGE)
+	flag.StringVar(&WikiRoot, WIKIROOT_ARGNAME, WIKIROOT_DEFAULT, WIKIROOT_USAGE)
+	flag.StringVar(&SyaroDir, SYARO_DIR_ARGNAME, SYARO_DIR_DEFAULT, SYARO_DIR_USAGE)
+	flag.IntVar(&Port, PORT_ARGNAME, PORT_DEFAULT, PORT_USAGE)
+	flag.StringVar(&UrlPrefix, URL_PREFIX_ARGNAME, URL_PREFIX_DEFAULT, URL_PREFIX_USAGE)
+	flag.BoolVar(&FCGI, FCGI_ARGNAME, FCGI_DEFAULT, FCGI_USAGE)
+	flag.BoolVar(&Verbose, VERBOSE_ARGNAME, VERBOSE_DEFAULT, VERBOSE_USAGE)
+	flag.BoolVar(&Verbose, VERBOSE_ARGNAMES, VERBOSE_DEFAULT, VERBOSE_USAGE)
 }

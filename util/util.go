@@ -1,4 +1,4 @@
-package main
+package util
 
 import (
 	"container/list"
@@ -8,20 +8,17 @@ import (
 )
 
 var (
-	mdExtList []string
+	// markdown file's extensiton list
+	mdExtList = []string{
+		".md",
+		".mkd",
+		".mkdn",
+		".mdown",
+		".markdown",
+	}
 )
 
-func init() {
-	// markdown file's extensiton list
-	mdExtList = make([]string, 5)
-	mdExtList[0] = ".md"
-	mdExtList[1] = ".mkd"
-	mdExtList[2] = ".mkdn"
-	mdExtList[3] = ".mdown"
-	mdExtList[4] = ".markdown"
-}
-
-func isMarkdown(filename string) bool {
+func IsMarkdown(filename string) bool {
 	ext := filepath.Ext(filename)
 	for _, mdext := range mdExtList {
 		if ext == mdext {
@@ -32,7 +29,7 @@ func isMarkdown(filename string) bool {
 }
 
 // TODO test
-func removeExt(filename string) string {
+func RemoveExt(filename string) string {
 	dir := filepath.Dir(filename)
 	base := filepath.Base(filename)
 
@@ -43,7 +40,7 @@ func removeExt(filename string) string {
 	return filepath.Join(dir, base)
 }
 
-func addExt(pathWithoutExt string) []string {
+func AddExt(pathWithoutExt string) []string {
 	files := list.New()
 
 	for _, ext := range mdExtList {
@@ -54,10 +51,10 @@ func addExt(pathWithoutExt string) []string {
 		}
 	}
 
-	return toStringArray(files)
+	return ToStringArray(files)
 }
 
-func toStringArray(src *list.List) []string {
+func ToStringArray(src *list.List) []string {
 	ret := make([]string, src.Len())
 	for i, v := 0, src.Front(); i < len(ret); i, v = i+1, v.Next() {
 		ret[i] = v.Value.(string)
@@ -66,17 +63,9 @@ func toStringArray(src *list.List) []string {
 }
 
 // isIn returns true when dirA is in dirB
-func isIn(dirA, dirB string) bool {
-	dirA, err := filepath.Abs(dirA)
-	if err != nil {
-		loggerE.Fatalf("filepath.Abs(%v)", dirA, err)
-		return false
-	}
-	dirB, err = filepath.Abs(dirB)
-	if err != nil {
-		loggerE.Fatalf("filepath.Abs(%v)", dirB, err)
-		return false
-	}
+func IsIn(dirA, dirB string) bool {
+	dirA, _ = filepath.Abs(dirA)
+	dirB, _ = filepath.Abs(dirB)
 
 	return strings.HasPrefix(dirA, dirB)
 }
