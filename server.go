@@ -25,7 +25,7 @@ func startServer() {
 	// set http handler
 	// files under SYARO_DIR/public
 	rootDir := http.Dir(filepath.Join(setting.syaroDir, PUBLIC_DIR))
-	fileServer := http.FileServer(rootDir)
+	fileServer := http.StripPrefix(setting.urlPrefix, http.FileServer(rootDir))
 	mux.Handle(setting.urlPrefix+"/css/", fileServer)
 	mux.Handle(setting.urlPrefix+"/fonts/", fileServer)
 	mux.Handle(setting.urlPrefix+"/ico/", fileServer)

@@ -74,6 +74,8 @@ func (page *Page) Name() string {
 func (page *Page) FilePath() string { return page.filePath }
 
 // WikiPath returns file path relative to setting.wikiRoot
+// ex) FilePath: /path/to/wikiroot/hoge/fuga.md
+//     WikiPath: /hoge/fuga.md
 func (page *Page) WikiPath() string {
 	ret, err := filepath.Rel(setting.wikiRoot, page.filePath)
 	if err != nil {
@@ -82,20 +84,14 @@ func (page *Page) WikiPath() string {
 		return ""
 	}
 
-	return filepath.Join("/", setting.urlPrefix, ret)
+	return ret
 }
 
 // WikiPathList returns slice of each pages in wikipath
 // (slice dosen't include urlPrefix)
 func (page *Page) WikiPathList() []*Page {
-	path := removeExt(page.WikiPath())
-
-	s := strings.Split(path, "/")
+	s := strings.Split(removeExt(page.WikiPath()), "/")
 	if s[0] == "" {
-		s = s[1:]
-	}
-	// remove url prefix
-	if s[0] == setting.urlPrefix {
 		s = s[1:]
 	}
 

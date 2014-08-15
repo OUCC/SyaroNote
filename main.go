@@ -5,6 +5,7 @@ import (
 	"html/template"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 const (
@@ -102,6 +103,7 @@ func setupViews() error {
 	tmpl := template.New("").Funcs(template.FuncMap{
 		"add":       func(a, b int) int { return a + b },
 		"urlPrefix": func() string { return setting.urlPrefix },
+		"join":      func(s ...string) string { return strings.Join(s, "") },
 	})
 	tmpl, err := tmpl.ParseGlob(filepath.Join(setting.syaroDir, VIEWS_DIR, "*.html"))
 	if err != nil {
