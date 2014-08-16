@@ -2,6 +2,7 @@ package main
 
 import (
 	. "github.com/OUCC/syaro/logger"
+	"github.com/OUCC/syaro/setting"
 	"github.com/OUCC/syaro/wikiio"
 
 	"bufio"
@@ -58,7 +59,13 @@ func embedLinkTag(line []byte, tagIndex []int, linkname []byte, file *wikiio.Wik
 		// TODO file not found page
 		return bytes.Join([][]byte{
 			line[:tagIndex[0]],
+			[]byte("<a class=\"notfound\" href=\""),
+			[]byte(setting.UrlPrefix),
+			[]byte("/404.html?name="),
 			linkname,
+			[]byte("\">"),
+			linkname,
+			[]byte("</a>"),
 			line[tagIndex[1]:],
 		}, nil)
 	}

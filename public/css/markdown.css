@@ -39,6 +39,8 @@
 .markdown h5 { font-size: 16px }
 .markdown h6 { font-size: 14px }
 
+.markdown a.notfound { color: #ba0000; }
+
 .markdown ul,
 .markdown ol {
     padding: 0;
