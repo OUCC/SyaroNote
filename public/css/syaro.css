@@ -21,3 +21,7 @@
 .navbar-nav>li>a.hover-red:hover {
     color: #ff002e;
 }
+
+.error-container {
+    max-width: 750px;
+}

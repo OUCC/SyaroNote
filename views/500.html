@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>500 Internal server error</title>
+
+  {{template "meta.html"}}
+
+  {{template "page-css.html"}}
+
+  <link rel="favicon" href="{{urlPrefix}}/ico/favicon.ico">
+</head>
+<body>
+
+  <!-- navigation bar -->
+  {{template "page-navbar.html"}}
+
+  <div class="container error-container">
+
+    <div class="jumbotron">
+
+      <h1>500 Internal server error</h1>
+      <p>{{.}}</p>
+
+    </div>
+
+  </div>
+
+</body>
+</html>

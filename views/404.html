@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>404 Not found</title>
+
+  {{template "meta.html"}}
+
+  {{template "page-css.html"}}
+
+  <link rel="favicon" href="{{urlPrefix}}/ico/favicon.ico">
+</head>
+<body>
+
+  <!-- navigation bar -->
+  {{template "page-navbar.html"}}
+
+  <div class="container error-container">
+
+    <div class="jumbotron">
+
+      <h1>404 Not found</h1>
+      <p>{{.}} not found</p>
+
+    </div>
+
+  </div>
+
+</body>
+</html>

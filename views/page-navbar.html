@@ -1,0 +1,43 @@
+<!-- navigation bar -->
+<div class="navbar navbar-default navbar-static-top" role="navigation">
+  <div class="container">
+
+    <!-- wiki title -->
+    <div class="navbar-header">
+      <a class="navbar-brand" href="{{urlPrefix}}/Home">Syaro Wiki</a>
+    </div>
+
+    <div class="navbar-collapse collapse">
+
+      <!-- search box -->
+      <form action="{{urlPrefix}}/error/501?data=Search" method="post" class="navbar-form navbar-left" role="search">
+        <div class="form-group">
+          <input type="text" class="form-control" placeholder="Search">
+          <button type="submit" class="btn btn-default">
+            <span class="glyphicon glyphicon-search"></span>
+          </button>
+        </div>
+      </form>
+
+      <!-- right buttons -->
+      <ul class="nav navbar-nav navbar-right">
+        <li>
+          <a href="{{urlPrefix}}/error/501?data=Create+new+page" class="hover-orange"><span class="glyphicon glyphicon-plus"></span> New</a>
+        </li>
+        <li>
+          <a href="{{urlPrefix}}/error/501?data=Rename" class="hover-green"><span class="glyphicon glyphicon-asterisk"></span> Rename</a>
+        </li>
+        <li>
+          <a href="?view=editor" class="hover-green"><span class="glyphicon glyphicon-pencil"></span> Edit</a>
+        </li>
+        <li>
+          <a href="?view=history" class="hover-purple"><span class="glyphicon glyphicon-time"></span> History</a>
+        </li>
+        <li>
+          <a href="{{urlPrefix}}/error/501?data=Delete" class="hover-red"><span class="glyphicon glyphicon-trash"></span> Delete</a>
+        </li>
+      </ul>
+
+    </div>
+  </div>
+</div>

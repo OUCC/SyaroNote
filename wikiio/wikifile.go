@@ -33,6 +33,7 @@ func (f *WikiFile) FilePath() string {
 	return filepath.Join(setting.WikiRoot, f.wikiPath)
 }
 
+// FIXME url escape
 // URLPREFIX/a/b/c.md
 func (f *WikiFile) URLPath() string {
 	return filepath.Join(setting.UrlPrefix, f.wikiPath)

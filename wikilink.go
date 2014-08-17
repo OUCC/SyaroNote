@@ -7,6 +7,7 @@ import (
 
 	"bufio"
 	"bytes"
+	"net/url"
 	"regexp"
 )
 
@@ -56,13 +57,12 @@ func processWikiLink(b []byte, currentDir string) []byte {
 
 func embedLinkTag(line []byte, tagIndex []int, linkname []byte, file *wikiio.WikiFile) []byte {
 	if file == nil {
-		// TODO file not found page
 		return bytes.Join([][]byte{
 			line[:tagIndex[0]],
 			[]byte("<a class=\"notfound\" href=\""),
 			[]byte(setting.UrlPrefix),
-			[]byte("/404.html?name="),
-			linkname,
+			[]byte("/error/404?data="),
+			[]byte(url.QueryEscape(string(linkname))),
 			[]byte("\">"),
 			linkname,
 			[]byte("</a>"),
