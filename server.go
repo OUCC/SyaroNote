@@ -81,8 +81,6 @@ func handler(res http.ResponseWriter, req *http.Request) {
 		switch requrl.Query().Get("action") {
 		case "":
 			LoggerM.Println("main.handler: Page requested")
-
-			// load md file
 			v, err = LoadPage(wpath)
 
 		case "new":
@@ -115,10 +113,7 @@ func handler(res http.ResponseWriter, req *http.Request) {
 
 	case "editor":
 		LoggerM.Println("main.handler: Editor requested")
-
-		// not implemented
-		errorHandler(res, http.StatusNotImplemented, "Editor")
-		return
+		v, err = NewEditor(wpath)
 
 	case "history":
 		LoggerM.Println("main.handler: History view requested")
