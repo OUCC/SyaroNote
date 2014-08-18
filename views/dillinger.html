@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>{{.WikiPath}}</title>
+
+  {{template "meta.html"}}
+
+  <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Arvo:400,700&subset=latin">
+  <link rel="stylesheet" type="text/css" href="{{urlPrefix}}/css/dillinger-0.6.5.min.css">
+  <link rel="stylesheet" type="text/css" href="{{urlPrefix}}/css/markdown.css">
+
+  <link rel="favicon" href="/ico/favicon.ico">
+</head>
+<body>
+  <noscript>
+    <p>PLEASE ENABLE JavaScript</p>
+  </noscript>
+
+  <!-- notify -->
+  <div id="notify_container">
+    <div id="notify"></div>
+  </div>
+
+  <!-- loading -->
+  <div id="loading">
+    <p>Dillinger</p>
+    <p>Preparing for greatness...</p>
+  </div>
+
+  <div id="main" class="bye">
+    {{template "dillinger-nav.html"}}
+    <div id="app_wrap" class="container-fluid">
+
+      <div id="filename-counter-container">
+        <div id="filename">
+          <span contenteditable="true">foo</span>
+        </div>
+        <div id="wordcounter"></div>
+
+      </div>
+
+      <div id="right-top-pane">
+        <iframe id="github-button" src="http://ghbtns.com/github-btn.html?user=joemccann&repo=dillinger&type=watch&count=true" allowtransparency="true" frameborder="0" scrolling="0" width="94" height="20"></iframe>
+      </div>
+
+      <div id="editor">{{.MarkdownText}}</div>
+      <div id="preview" class="shadowbox markdown"></div>
+
+    </div> <!-- end #app_wrap -->
+  </div> <!-- end #main -->
+
+  <iframe id="downloader" class="hide"></iframe>
+
+  <div id="modal-generic" class="modal hide fade in">
+    <div class="modal-header">
+      <a href="#" class="close" data-dismiss="modal">&times;</a>
+      <h3></h3>
+    </div>
+    <div class="modal-body">
+    </div>
+    <div class="modal-footer">
+    </div>
+  </div>
+
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js" type="text/javascript"></script>
+  <script src="{{urlPrefix}}/js/dependencies-0.6.5.min.js" type="text/javascript"></script>
+  <script src="{{urlPrefix}}/js/dillinger-0.6.5.js" type="text/javascript"></script>
+</body>
+</html>
