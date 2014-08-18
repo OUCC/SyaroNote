@@ -482,9 +482,19 @@ $(function() {
    * @return {Void}
    */
   function fetchTheme(th, cb) {
+    // get script path
+    // http://stackoverflow.com/questions/2161159/get-script-path
+    var scripts = document.getElementsByTagName('script')
+    var mypath = scripts[scripts.length-1].src
+
+    // get url prefix
+    // path = http://hostname/URL_PREFIX/js/dikkinger.js
+    var re = /^http:\/\/[^\/]+(\/[^\/]+)\/js\//
+    var urlPrefix = mypath.match(re)[1]
+
     var name = th.split('/').pop()
 
-    asyncLoad("/js/theme-"+ name +".js", function() {
+    asyncLoad(urlPrefix + "/js/theme-"+ name +".js", function() {
 
       editor.setTheme(th)
 
