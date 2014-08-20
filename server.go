@@ -3,7 +3,9 @@ package main
 import (
 	. "github.com/OUCC/syaro/logger"
 	"github.com/OUCC/syaro/setting"
+	"github.com/OUCC/syaro/wikiio"
 
+	"io/ioutil"
 	"net"
 	"net/http"
 	"net/http/fcgi"
@@ -73,15 +75,26 @@ func handler(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	var v View
-	var err error
-
 	switch requrl.Query().Get("view") {
 	case "":
 		switch requrl.Query().Get("action") {
 		case "":
 			LoggerM.Println("main.handler: Page requested")
-			v, err = LoadPage(wpath)
+			v, err := LoadPage(wpath)
+			if err != nil {
+				LoggerE.Println("Error: main.handler:", err)
+				errorHandler(res, http.StatusNotFound, wpath)
+				return
+			}
+
+			// render html
+			LoggerM.Println("main.handler: Rendering view...")
+			err = v.Render(res)
+			if err != nil {
+				LoggerE.Println("Error: main.handler: Rendering error!:", err)
+				errorHandler(res, http.StatusInternalServerError, err.Error())
+				return
+			}
 
 		case "new":
 			LoggerM.Println("main.handler: Create new page")
@@ -112,8 +125,46 @@ func handler(res http.ResponseWriter, req *http.Request) {
 		}
 
 	case "editor":
-		LoggerM.Println("main.handler: Editor requested")
-		v, err = NewEditor(wpath)
+		switch req.Method {
+		case "", "GET":
+			LoggerM.Println("main.handler: Editor requested")
+			v, err := NewEditor(wpath)
+			if err != nil {
+				LoggerE.Println("Error: main.handler:", err)
+				errorHandler(res, http.StatusNotFound, wpath)
+				return
+			}
+
+			// render html
+			LoggerM.Println("main.handler: Rendering view...")
+			err = v.Render(res)
+			if err != nil {
+				LoggerE.Println("Error: main.handler: Rendering error!:", err)
+				errorHandler(res, http.StatusInternalServerError, err.Error())
+				return
+			}
+
+		case "POST":
+			LoggerM.Println("main.handler: Save requested")
+			f, err := wikiio.Load(wpath)
+			if err != nil {
+				LoggerE.Println("Error: main.handler:", err)
+				errorHandler(res, http.StatusInternalServerError, wpath)
+				return
+			}
+
+			b, _ := ioutil.ReadAll(req.Body)
+			err = f.Save(b)
+			if err != nil {
+				LoggerE.Println("Error: main.handler: couldn't write:", err)
+				errorHandler(res, http.StatusInternalServerError, err.Error())
+				return
+			}
+			LoggerM.Println("main.handler: File saved")
+
+			// send success response
+			res.Write(nil)
+		}
 
 	case "history":
 		LoggerM.Println("main.handler: History view requested")
@@ -128,21 +179,6 @@ func handler(res http.ResponseWriter, req *http.Request) {
 		errorHandler(res, http.StatusNotFound, data)
 		return
 	}
-
-	if err != nil {
-		LoggerE.Println("Error: main.handler:", err)
-		errorHandler(res, http.StatusNotFound, wpath)
-		return
-	}
-
-	// render html
-	LoggerM.Println("main.handler: Rendering view...")
-	err = v.Render(res)
-	if err != nil {
-		LoggerE.Println("Error: main.handler: Rendering error!", err)
-		errorHandler(res, http.StatusInternalServerError, err.Error())
-		return
-	}
 }
 
 func errorHandler(res http.ResponseWriter, status int, data string) {
@@ -151,7 +187,8 @@ func errorHandler(res http.ResponseWriter, status int, data string) {
 
 	err := views.ExecuteTemplate(res, strconv.Itoa(status)+".html", data)
 	if err != nil {
+		// template not available
 		LoggerE.Println("Error: main.errorHandler:", err)
-		http.Error(res, err.Error(), http.StatusInternalServerError)
+		http.Error(res, data, status)
 	}
 }

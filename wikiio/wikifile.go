@@ -60,6 +60,10 @@ func (f *WikiFile) Raw() []byte {
 	return b
 }
 
+func (f *WikiFile) Save(b []byte) error {
+	return ioutil.WriteFile(f.FilePath(), b, 0644)
+}
+
 func (f *WikiFile) Remove() error {
 	if err := os.Remove(f.FilePath()); err != nil {
 		return err

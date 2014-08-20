@@ -5,13 +5,15 @@ $(function() {
     , autoInterval
     , githubUser
     , paperImgPath = '/img/notebook_paper_200x200.gif'
+    , urlPrefix = '' // for syaro
+    , wikiName = '' // for syaro
     , profile = {
-        theme: 'ace/theme/idle_fingers'
+        theme: 'ace/theme/crimson_editor'
       , showPaper: false
-      , currentMd: ''
+      // , currentMd: ''
       , autosave:
         {
-          enabled: true
+          enabled: false
         , interval: 3000 // might be too aggressive; don't want to block UI for large saves.
         }
       , wordcount: true
@@ -233,7 +235,7 @@ $(function() {
    * @return {String}
    */
   function setCurrentFilenameField(str) {
-    $('#filename > span[contenteditable="true"]').text(str || profile.current_filename || "Untitled Document")
+    $('#filename > span[contenteditable="true"]').text(str || wikiName || "Untitled Document")
   }
 
   /**
@@ -286,6 +288,9 @@ $(function() {
       // Attach to jQuery support object for later use.
       $.support.transitionEnd = normalizeTransitionEnd()
 
+      // for syaro
+      setupSyaro()
+
       getUserProfile()
 
       initAce()
@@ -311,7 +316,7 @@ $(function() {
 
       bindNav()
 
-      bindKeyboard()
+      // bindKeyboard()
 
       bindDelegation()
 
@@ -326,6 +331,40 @@ $(function() {
 
     }
 
+  }
+
+  function setupSyaro() {
+    // get script path
+    // http://stackoverflow.com/questions/2161159/get-script-path
+    var scripts = document.getElementsByTagName('script')
+    var mypath = scripts[scripts.length-1].src
+
+    // get url prefix
+    // path = http://hostname/URL_PREFIX/js/dikkinger.js
+    var re = /^http:\/\/[^\/]+\/([^\/]+)\/js\//
+    urlPrefix = mypath.match(re)[1]
+
+    re = new RegExp(urlPrefix + '(\/.+)$')
+    wikiName = location.href.match(re)[1].split('?')[0]
+
+    // bind save button
+    $('#save_syaro').
+      on('click', function() {
+        var req = new XMLHttpRequest()
+        req.open('POST', location.href, true) // send response async
+        req.onreadystatechange = function() {
+          if(req.readyState === 4) {
+            if(req.status === 200) {
+              Notifier.showMessage(Notifier.messages.docSavedSyaro)
+            } else {
+              window.alert("Failed to save document.")
+            }
+          }
+        }
+        req.send(editor.getSession().getValue())
+
+        return false
+      })
   }
 
   /**
@@ -355,7 +394,7 @@ $(function() {
 
       editor.getSession().setMode('ace/mode/markdown')
 
-      editor.getSession().setValue( profile.currentMd || editor.getSession().getValue())
+      // editor.getSession().setValue( profile.currentMd || editor.getSession().getValue())
 
       // Immediately populate the preview <div>
       previewMd()
@@ -482,19 +521,9 @@ $(function() {
    * @return {Void}
    */
   function fetchTheme(th, cb) {
-    // get script path
-    // http://stackoverflow.com/questions/2161159/get-script-path
-    var scripts = document.getElementsByTagName('script')
-    var mypath = scripts[scripts.length-1].src
-
-    // get url prefix
-    // path = http://hostname/URL_PREFIX/js/dikkinger.js
-    var re = /^http:\/\/[^\/]+(\/[^\/]+)\/js\//
-    var urlPrefix = mypath.match(re)[1]
-
     var name = th.split('/').pop()
 
-    asyncLoad(urlPrefix + "/js/theme-"+ name +".js", function() {
+    asyncLoad("/" + urlPrefix + "/js/theme-"+ name +".js", function() {
 
       editor.setTheme(th)
 
@@ -1177,6 +1206,7 @@ $(function() {
       messages: {
         profileUpdated: "Profile updated"
         , profileCleared: "Profile cleared"
+        , docSavedSyaro: "Document saved" // for syaro
         , docSavedLocal: "Document saved locally"
         , docDeletedLocal: "Document deleted from local storage"
         , docSavedServer: "Document saved on our server"
@@ -1193,7 +1223,8 @@ $(function() {
           .text(msg)
           .slideDown(250, function() {
             _el
-              .delay(delay || 1000)
+              // .delay(delay || 1000)
+              .delay(delay || 5000)
               .slideUp(250)
           })
 
