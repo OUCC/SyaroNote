@@ -73,7 +73,7 @@ func (page *Page) Title() string {
 	reader := strings.NewReader(string(page.MarkdownHTML()))
 	scanner := bufio.NewScanner(reader)
 
-	re := regexp.MustCompile("^<h1>([^<]*)</h1>$")
+	re := regexp.MustCompile("<h1>([^<]+)</h1>")
 	for scanner.Scan() {
 		submatch := re.FindStringSubmatch(scanner.Text())
 		if len(submatch) != 0 {
