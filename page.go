@@ -99,6 +99,7 @@ func (page *Page) raw() []byte {
 		}
 		if err != nil {
 			LoggerV.Println("main.Page.raw: main file not found")
+			return nil
 		}
 		return file.Raw()
 	} else { // page.filePath isn't dir
