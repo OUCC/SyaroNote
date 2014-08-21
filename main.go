@@ -35,6 +35,7 @@ func main() {
 		LoggerE.Fatalln("Error: Can't find system file directory.")
 	}
 
+	LoggerM.Println("WikiName:", setting.WikiName)
 	LoggerM.Println("WikiRoot:", setting.WikiRoot)
 	LoggerM.Println("Syaro dir:", setting.SyaroDir)
 	if setting.FCGI {
@@ -109,6 +110,7 @@ func setupViews() error {
 	// funcs for template
 	tmpl := template.New("").Funcs(template.FuncMap{
 		"add":       func(a, b int) int { return a + b },
+		"wikiName":  func() string { return setting.WikiName },
 		"urlPrefix": func() string { return setting.UrlPrefix },
 	})
 	tmpl, err := tmpl.ParseGlob(filepath.Join(setting.SyaroDir, VIEWS_DIR, "*.html"))

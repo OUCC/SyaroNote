@@ -5,6 +5,12 @@ import (
 )
 
 const (
+	WIKINAME_ARGNAME = "wikiname"
+	WIKINAME_USAGE   = "Name of wiki."
+	WIKINAME_DEFAULT = "Syaro Wiki"
+)
+
+const (
 	WIKIROOT_ARGNAME = "wikiroot"
 	WIKIROOT_USAGE   = "Root folder of wiki."
 	WIKIROOT_DEFAULT = "./"
@@ -34,6 +40,13 @@ const (
 	FCGI_DEFAULT = false
 )
 
+// TODO
+const (
+	READONLY_ARGNAME = "readonly"
+	READONLY_USAGE   = "Enable readonly mode."
+	READONLY_DEFAULT = false
+)
+
 const (
 	VERBOSE_ARGNAME  = "verbose"
 	VERBOSE_ARGNAMES = "v"
@@ -43,6 +56,7 @@ const (
 
 // TODO wikiname
 var (
+	WikiName  string
 	WikiRoot  string
 	SyaroDir  string
 	Port      int
@@ -52,6 +66,7 @@ var (
 )
 
 func init() {
+	flag.StringVar(&WikiName, WIKINAME_ARGNAME, WIKINAME_DEFAULT, WIKINAME_USAGE)
 	flag.StringVar(&WikiRoot, WIKIROOT_ARGNAME, WIKIROOT_DEFAULT, WIKIROOT_USAGE)
 	flag.StringVar(&SyaroDir, SYARO_DIR_ARGNAME, SYARO_DIR_DEFAULT, SYARO_DIR_USAGE)
 	flag.IntVar(&Port, PORT_ARGNAME, PORT_DEFAULT, PORT_USAGE)
