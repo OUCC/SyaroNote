@@ -9,6 +9,7 @@ import (
 	"net"
 	"net/http"
 	"net/http/fcgi"
+	"net/url"
 	"path/filepath"
 	"regexp"
 	"strconv"
@@ -95,6 +96,8 @@ func handler(res http.ResponseWriter, req *http.Request) {
 				return
 			}
 
+			LoggerV.Println("main.handler: Page rendered")
+
 		case "create":
 			LoggerM.Println("main.handler: Create new page")
 
@@ -105,15 +108,27 @@ func handler(res http.ResponseWriter, req *http.Request) {
 			}
 
 			res.Write(nil)
-			return
+			LoggerV.Println("main.handler: New page created")
 
 		case "rename":
 			LoggerM.Println("main.handler: Rename page")
 
-			// not implemented
-			status := http.StatusNotImplemented
-			http.Error(res, http.StatusText(status), status)
-			return
+			oldpath, err := url.QueryUnescape(requrl.Query().Get("oldpath"))
+			if err != nil {
+				LoggerE.Println("Error: main.handler: Unescape error:", err)
+				code := http.StatusBadRequest
+				http.Error(res, http.StatusText(code), code)
+				return
+			}
+
+			if err := wikiio.Rename(oldpath, wpath); err != nil {
+				LoggerE.Println("Error: main.handler: Rename file error:", err)
+				http.Error(res, "cannot rename file", http.StatusInternalServerError)
+				return
+			}
+
+			res.Write(nil)
+			LoggerV.Println("main.handler: Renamed")
 
 		case "delete":
 			LoggerM.Println("main.handler: Delete page")

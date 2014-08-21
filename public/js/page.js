@@ -27,8 +27,8 @@ $(function(){
   }
 
   function setupUi() {
-    // $('.alert').alert('close')
     $('.alert').hide()
+    $('#renameModalInput').val(wikiName)
   }
 
   function bindButtons() {
@@ -43,7 +43,7 @@ $(function(){
       if (name[0] !== '/') { name = '/' + name }
 
       var reqUrl = location.href.replace(wikiName,
-          '/' + encodeURIComponent(name.slice(1)).replace('%2F', '/'))
+          encodeURIComponent(name).replace(/%2F/g, '/'))
 
       var req = new XMLHttpRequest()
       req.open('GET', reqUrl + '?action=create')
@@ -70,6 +70,45 @@ $(function(){
       req.send()
       $('#createModalButton').button('loading')
     })
+
+    $('#renameModalButton').on('click', function() {
+      var name = $('#renameModalInput').val()
+      if (name === "") {
+        $('#renameErrorAlert').html('<strong>Error</strong> Please fill brank form.')
+        $('#renameErrorAlert').show()
+        return
+      }
+      if (name[0] !== '/') { name = '/' + name }
+
+      var reqUrl = location.href.replace(wikiName,
+          encodeURIComponent(name).replace(/%2F/g, '/'))
+
+      var req = new XMLHttpRequest()
+      req.open('GET', reqUrl + '?action=rename&oldpath=' + encodeURIComponent(wikiName))
+
+      req.onreadystatechange = function() {
+        if (req.readyState === 4) {
+          $('#renameModalButton').button('reset')
+
+          switch (req.status) {
+          case 200:
+            // redirect to page
+            location.href = reqUrl
+            break
+
+          default:
+            // show error alert
+            $('#renameErrorAlert').html('<strong>Error</strong> ' + req.statusText)
+            $('#renameErrorAlert').show()
+            break
+          }
+        }
+      }
+
+      req.send()
+      $('#renameModalButton').button('loading')
+    })
+
   }
 
   init()

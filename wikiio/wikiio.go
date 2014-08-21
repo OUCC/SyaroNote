@@ -132,19 +132,48 @@ func Search(name string) ([]*WikiFile, error) {
 }
 
 func Create(wpath string) error {
+	LoggerV.Printf("wikiio.Create(%s)", wpath)
+
 	const initialText = "New Page\n========\n"
 
 	if !util.IsMarkdown(wpath) {
 		wpath += ".md"
 	}
 
-	err := ioutil.WriteFile(filepath.Join(setting.WikiRoot, wpath), []byte(initialText), 0644)
+	path := filepath.Join(setting.WikiRoot, wpath)
+	os.MkdirAll(filepath.Dir(path), 0755)
+	err := ioutil.WriteFile(path, []byte(initialText), 0644)
 	if err != nil {
-		LoggerE.Fatalln("Error (os.Create):", err)
+		LoggerE.Println("Error: wikiio.Create:", err)
 		return err
 	}
 
 	// FIXME
+	BuildIndex()
+
+	return nil
+}
+
+func Rename(oldpath string, newpath string) error {
+	LoggerV.Printf("wikiio.Rename(%s, %s)", oldpath, newpath)
+
+	f, err := Load(oldpath)
+	if err != nil {
+		return err
+	}
+
+	if !util.IsMarkdown(newpath) {
+		newpath += ".md"
+	}
+
+	path := filepath.Join(setting.WikiRoot, newpath)
+	os.MkdirAll(filepath.Dir(path), 0755)
+	err = os.Rename(f.FilePath(), path)
+	if err != nil {
+		LoggerE.Println("Error: wikiio.Create: can't rename:", err)
+		return err
+	}
+
 	BuildIndex()
 
 	return nil
