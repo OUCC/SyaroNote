@@ -61,11 +61,10 @@ func startServer() {
 func handler(res http.ResponseWriter, req *http.Request) {
 	requrl := req.URL
 
-	LoggerM.Printf("main.handler: Request received (%s)\n", requrl.Path)
+	LoggerM.Printf("main.handler: Request received (%s)\n", requrl.RequestURI())
 	LoggerM.Printf("main.handler: Path: %s, Query: %s, Fragment: %s", requrl.Path,
 		requrl.RawQuery, requrl.Fragment)
 
-	// TODO url unescape
 	wpath := strings.TrimPrefix(requrl.Path, setting.UrlPrefix)
 
 	if re := regexp.MustCompile("^/error/\\d{3}$"); re.MatchString(wpath) {
@@ -96,31 +95,39 @@ func handler(res http.ResponseWriter, req *http.Request) {
 				return
 			}
 
-		case "new":
+		case "create":
 			LoggerM.Println("main.handler: Create new page")
 
-			// not implemented
-			errorHandler(res, http.StatusNotImplemented, "Editor")
+			if err := wikiio.Create(wpath); err != nil {
+				LoggerE.Println("Error: main.handler: Create file error:", err)
+				http.Error(res, "cannot create file", http.StatusInternalServerError)
+				return
+			}
+
+			res.Write(nil)
 			return
 
 		case "rename":
 			LoggerM.Println("main.handler: Rename page")
 
 			// not implemented
-			errorHandler(res, http.StatusNotImplemented, "Editor")
+			status := http.StatusNotImplemented
+			http.Error(res, http.StatusText(status), status)
 			return
 
 		case "delete":
 			LoggerM.Println("main.handler: Delete page")
 
 			// not implemented
-			errorHandler(res, http.StatusNotImplemented, "Editor")
+			status := http.StatusNotImplemented
+			http.Error(res, http.StatusText(status), status)
 			return
 
 		default:
 			data := requrl.Query().Get("action")
 			LoggerE.Printf("Error: main.handler: invalid URL query (action: %s)\n", data)
-			errorHandler(res, http.StatusNotFound, data)
+			status := http.StatusBadRequest
+			http.Error(res, http.StatusText(status), status)
 			return
 		}
 
@@ -149,7 +156,7 @@ func handler(res http.ResponseWriter, req *http.Request) {
 			f, err := wikiio.Load(wpath)
 			if err != nil {
 				LoggerE.Println("Error: main.handler:", err)
-				errorHandler(res, http.StatusInternalServerError, wpath)
+				http.Error(res, wpath+"not found", http.StatusNotFound)
 				return
 			}
 
@@ -157,7 +164,7 @@ func handler(res http.ResponseWriter, req *http.Request) {
 			err = f.Save(b)
 			if err != nil {
 				LoggerE.Println("Error: main.handler: couldn't write:", err)
-				errorHandler(res, http.StatusInternalServerError, err.Error())
+				http.Error(res, "cannot save document", http.StatusInternalServerError)
 				return
 			}
 			LoggerM.Println("main.handler: File saved")
@@ -189,6 +196,6 @@ func errorHandler(res http.ResponseWriter, status int, data string) {
 	if err != nil {
 		// template not available
 		LoggerE.Println("Error: main.errorHandler:", err)
-		http.Error(res, data, status)
+		http.Error(res, http.StatusText(status), status)
 	}
 }

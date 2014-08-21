@@ -131,13 +131,21 @@ func Search(name string) ([]*WikiFile, error) {
 	return files, nil
 }
 
-func Create(wpath string) *WikiFile {
-	_, err := os.Create(filepath.Join(setting.WikiRoot, wpath))
+func Create(wpath string) error {
+	const initialText = "New Page\n========\n"
+
+	if !util.IsMarkdown(wpath) {
+		wpath += ".md"
+	}
+
+	err := ioutil.WriteFile(filepath.Join(setting.WikiRoot, wpath), []byte(initialText), 0644)
 	if err != nil {
 		LoggerE.Fatalln("Error (os.Create):", err)
+		return err
 	}
 
 	// FIXME
 	BuildIndex()
+
 	return nil
 }

@@ -1,0 +1,74 @@
+<!-- create new page modal -->
+<div id="createModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="createModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+        <h4 class="modal-title" id="createModalLabel">Create New Page</h4>
+      </div>
+      <div class="modal-body">
+
+        <!-- error alert -->
+        <div id="createErrorAlert" class="alert alert-danger fade in" role="alert">
+        </div>
+
+        <input id="createModalInput" type="text" class="form-control" placeholder="Page Name">
+
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+        <button id="createModalButton" type="button" class="btn btn-primary" data-loading-text="Processing...">Create</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- rename page name modal -->
+<div id="renameModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="renameModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+        <h4 class="modal-title" id="renameModalLabel">Rename Page Name</h4>
+      </div>
+      <div class="modal-body">
+
+        <!-- error alert -->
+        <div id="renameModalAlert" class="alert alert-danger fade in" role="alert">
+        </div>
+
+        <input id="renameModalInput" type="text" class="form-control" placeholder="Page Name">
+
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+        <button id="renameModalButton" type="button" class="btn btn-primary" data-loading-text="Processing...">Rename</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- delete page modal -->
+<div id="deleteModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+        <h4 class="modal-title" id="deleteModalLabel">Delete Page</h4>
+      </div>
+      <div class="modal-body">
+
+        <!-- error alert -->
+        <div id="deleteErrorAlert" class="alert alert-danger fade in" role="alert">
+        </div>
+
+        <p>Are you sure?</p>
+
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+        <button id="deleteModalButton" type="button" class="btn btn-danger" data-loading-text="Processing...">Delete</button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -22,10 +22,10 @@
       <!-- right buttons -->
       <ul class="nav navbar-nav navbar-right">
         <li>
-          <a href="{{urlPrefix}}/error/501?data=Create+new+page" class="hover-orange"><span class="glyphicon glyphicon-plus"></span> New</a>
+          <a class="hover-orange" data-toggle="modal" href="#createModal"><span class="glyphicon glyphicon-plus"></span> New</a>
         </li>
         <li>
-          <a href="{{urlPrefix}}/error/501?data=Rename" class="hover-green"><span class="glyphicon glyphicon-asterisk"></span> Rename</a>
+          <a class="hover-green" data-toggle="modal" href="#renameModal"><span class="glyphicon glyphicon-asterisk"></span> Rename</a>
         </li>
         <li>
           <a href="?view=editor" class="hover-green"><span class="glyphicon glyphicon-pencil"></span> Edit</a>
@@ -34,7 +34,7 @@
           <a href="?view=history" class="hover-purple"><span class="glyphicon glyphicon-time"></span> History</a>
         </li>
         <li>
-          <a href="{{urlPrefix}}/error/501?data=Delete" class="hover-red"><span class="glyphicon glyphicon-trash"></span> Delete</a>
+          <a class="hover-red" data-toggle="modal" href="#deleteModal"><span class="glyphicon glyphicon-trash"></span> Delete</a>
         </li>
       </ul>
 
