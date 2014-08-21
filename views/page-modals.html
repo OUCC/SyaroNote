@@ -62,7 +62,12 @@
         <div id="deleteErrorAlert" class="alert alert-danger fade in" role="alert">
         </div>
 
-        <p>Are you sure?</p>
+        <!-- success alert -->
+        <div id="deleteSuccessAlert" class="alert alert-success fade in" role="alert">
+          <strong>Page was deleted.</strong>
+        </div>
+
+        <p>Are you sure you want to <strong>delete</strong> {{.WikiPath}}?</p>
 
       </div>
       <div class="modal-footer">

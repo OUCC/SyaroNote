@@ -107,6 +107,7 @@ func handler(res http.ResponseWriter, req *http.Request) {
 				return
 			}
 
+			// send success response
 			res.Write(nil)
 			LoggerV.Println("main.handler: New page created")
 
@@ -127,16 +128,30 @@ func handler(res http.ResponseWriter, req *http.Request) {
 				return
 			}
 
+			// send success response
 			res.Write(nil)
 			LoggerV.Println("main.handler: Renamed")
 
 		case "delete":
 			LoggerM.Println("main.handler: Delete page")
 
-			// not implemented
-			status := http.StatusNotImplemented
-			http.Error(res, http.StatusText(status), status)
-			return
+			f, err := wikiio.Load(wpath)
+			if err != nil {
+				LoggerE.Println("Error: main.handler: Load file error:", err)
+				code := http.StatusNotFound
+				http.Error(res, http.StatusText(code), code)
+				return
+			}
+
+			if err = f.Remove(); err != nil {
+				LoggerE.Println("Error: main.handler: Delete file error:", err)
+				http.Error(res, "cannot delete file", http.StatusInternalServerError)
+				return
+			}
+
+			// send success response
+			res.Write(nil)
+			LoggerV.Println("main.handler: deleted")
 
 		default:
 			data := requrl.Query().Get("action")

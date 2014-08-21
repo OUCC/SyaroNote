@@ -109,6 +109,35 @@ $(function(){
       $('#renameModalButton').button('loading')
     })
 
+    $('#deleteModalButton').on('click', function() {
+      var reqUrl = location.href
+
+      var req = new XMLHttpRequest()
+      req.open('GET', reqUrl + '?action=delete')
+
+      req.onreadystatechange = function() {
+        if (req.readyState === 4) {
+          $('#deleteModalButton').button('reset')
+
+          switch (req.status) {
+          case 200:
+            $('#deleteErrorAlert').hide()
+            // show success alert
+            $('#deleteSuccessAlert').show()
+            break
+
+          default:
+            // show error alert
+            $('#deleteErrorAlert').html('<strong>Error</strong> ' + req.statusText)
+            $('#deleteErrorAlert').show()
+            break
+          }
+        }
+      }
+
+      req.send()
+      $('#deleteModalButton').button('loading')
+    })
   }
 
   init()
