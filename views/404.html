@@ -12,7 +12,7 @@
 <body>
 
   <!-- navigation bar -->
-  {{template "page-navbar.html"}}
+  {{template "error-navbar.html"}}
 
   <div class="container error-container">
 
@@ -20,10 +20,40 @@
 
       <h1>404 Not found</h1>
       <p>{{.}} not found</p>
+      <br>
+      <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#createModal">Create new page</button>
 
     </div>
 
   </div>
+
+  <!-- create new page modal -->
+  <div id="createModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="createModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+          <h4 class="modal-title" id="createModalLabel">Create New Page</h4>
+        </div>
+        <div class="modal-body">
+
+          <!-- error alert -->
+          <div id="createErrorAlert" class="alert alert-danger fade in" role="alert">
+          </div>
+
+          <input id="createModalInput" type="text" class="form-control" placeholder="Page Name">
+
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+          <button id="createModalButton" type="button" class="btn btn-primary" data-loading-text="Processing...">Create</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- javascript -->
+  {{template "page-js.html"}}
 
 </body>
 </html>

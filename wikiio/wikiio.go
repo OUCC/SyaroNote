@@ -136,6 +136,13 @@ func Create(wpath string) error {
 
 	const initialText = "New Page\n========\n"
 
+	// check if file is already exists
+	file, _ := Load(wpath)
+	if file != nil {
+		// if exists, return error
+		return os.ErrExist
+	}
+
 	if !util.IsMarkdown(wpath) {
 		wpath += ".md"
 	}

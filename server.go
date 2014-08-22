@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/http/fcgi"
 	"net/url"
+	"os"
 	"path/filepath"
 	"regexp"
 	"strconv"
@@ -101,7 +102,13 @@ func handler(res http.ResponseWriter, req *http.Request) {
 		case "create":
 			LoggerM.Println("main.handler: Create new page")
 
-			if err := wikiio.Create(wpath); err != nil {
+			err := wikiio.Create(wpath)
+			if err == os.ErrExist {
+				LoggerE.Println("Error: main.handler: file already exists:", err)
+				http.Error(res, "file already exists", http.StatusBadRequest)
+				return
+			}
+			if err != nil {
 				LoggerE.Println("Error: main.handler: Create file error:", err)
 				http.Error(res, "cannot create file", http.StatusInternalServerError)
 				return

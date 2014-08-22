@@ -18,7 +18,7 @@ $(function(){
     var mypath = scripts[scripts.length-1].src
 
     // get url prefix
-    // path = http://hostname/URL_PREFIX/js/dikkinger.js
+    // path = http://hostname/URL_PREFIX/js/page.js
     var re = /^http:\/\/[^\/]+\/([^\/]+)\/js\//
     urlPrefix = mypath.match(re)[1]
 
@@ -28,6 +28,7 @@ $(function(){
 
   function setupUi() {
     $('.alert').hide()
+    $('#createModalInput').val(wikiName)
     $('#renameModalInput').val(wikiName)
   }
 
@@ -60,7 +61,7 @@ $(function(){
 
           default:
             // show error alert
-            $('#createErrorAlert').html('<strong>Error</strong> ' + req.statusText)
+            $('#createErrorAlert').html('<strong>Error</strong> ' + req.responseText)
             $('#createErrorAlert').show()
             break
           }
@@ -98,7 +99,7 @@ $(function(){
 
           default:
             // show error alert
-            $('#renameErrorAlert').html('<strong>Error</strong> ' + req.statusText)
+            $('#renameErrorAlert').html('<strong>Error</strong> ' + req.responseText)
             $('#renameErrorAlert').show()
             break
           }
@@ -128,7 +129,7 @@ $(function(){
 
           default:
             // show error alert
-            $('#deleteErrorAlert').html('<strong>Error</strong> ' + req.statusText)
+            $('#deleteErrorAlert').html('<strong>Error</strong> ' + req.responseText)
             $('#deleteErrorAlert').show()
             break
           }
