@@ -115,7 +115,15 @@ func (page *Page) MarkdownText() string {
 func (page *Page) MarkdownHTML() template.HTML {
 	if page.markdownHTML == "" {
 		html := blackfriday.MarkdownCommon(page.raw())
-		page.markdownHTML = template.HTML(processWikiLink(html, filepath.Dir(page.FilePath())))
+
+		var dir string
+		if page.IsDir() {
+			dir = page.WikiPath()
+		} else {
+			dir = filepath.Dir(page.WikiPath())
+		}
+
+		page.markdownHTML = template.HTML(processWikiLink(html, dir))
 	}
 
 	return page.markdownHTML
@@ -137,7 +145,7 @@ func (page *Page) SidebarHTML() template.HTML {
 	}
 
 	html := blackfriday.MarkdownCommon(b)
-	return template.HTML(processWikiLink(html, filepath.Dir(page.FilePath())))
+	return template.HTML(processWikiLink(html, "/"))
 }
 
 func (page *Page) Render(res http.ResponseWriter) error {

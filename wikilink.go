@@ -3,12 +3,16 @@ package main
 import (
 	. "github.com/OUCC/syaro/logger"
 	"github.com/OUCC/syaro/setting"
+	"github.com/OUCC/syaro/util"
 	"github.com/OUCC/syaro/wikiio"
 
 	"bufio"
 	"bytes"
+	"html"
 	"net/url"
+	"path/filepath"
 	"regexp"
+	"strings"
 )
 
 func processWikiLink(b []byte, currentDir string) []byte {
@@ -41,7 +45,6 @@ func processWikiLink(b []byte, currentDir string) []byte {
 
 				} else { // page not found
 					LoggerV.Println("processWikiLink: no page found")
-					// TODO invalid link
 					line = embedLinkTag(line, index, name, nil)
 				}
 
@@ -80,30 +83,50 @@ func embedLinkTag(line []byte, tagIndex []int, linkname []byte, file *wikiio.Wik
 	}, nil)
 }
 
-// TODO security check
 func searchPage(name string, currentDir string) []*wikiio.WikiFile {
 	if name == "" {
 		return nil
 	}
 
-	// TODO
-	// if filepath.IsAbs(name) {
-	// 	// search name as absolute path
-	// 	// example: /piyo /poyo/pyon.ext
-	// 	return searchPageByAbsPath(name, currentDir)
-	// } else if strings.Contains(name, "/") ||util.IsMarkdown(name) {
-	// 	// search name as relative path
-	// 	// example: ./hoge ../fuga.ext puyo.ext
-	// 	return  searchPageByRelPath(name, currentDir)
-	// } else {
-	// 	// search name as base name
-	// 	// example: abc
-	return searchPageByBaseName(name)
-	// }
+	// unescape for searching
+	name = html.UnescapeString(name)
+
+	if filepath.IsAbs(name) {
+		// search name as absolute path
+		// example: /piyo /poyo/pyon.ext
+		return searchPageByAbsPath(name)
+	} else if strings.Contains(name, "/") || util.IsMarkdown(name) {
+		// search name as relative path
+		// example: ./hoge ../fuga.ext puyo.ext
+		return searchPageByRelPath(name, currentDir)
+	} else {
+		// search name as base name
+		// example: abc
+		return searchPageByBaseName(name)
+	}
+}
+
+func searchPageByAbsPath(abspath string) []*wikiio.WikiFile {
+	LoggerV.Printf("main.searchPageByAbsPath(%s)", abspath)
+	file, _ := wikiio.Load(abspath)
+	if file == nil {
+		return nil
+	}
+	return []*wikiio.WikiFile{file}
+}
+
+func searchPageByRelPath(relpath, currentDir string) []*wikiio.WikiFile {
+	LoggerV.Printf("main.searchPageByRelPath(%s, %s)", relpath, currentDir)
+	wpath := filepath.Join(currentDir, relpath)
+	file, _ := wikiio.Load(wpath)
+	if file == nil {
+		return nil
+	}
+	return []*wikiio.WikiFile{file}
 }
 
 func searchPageByBaseName(baseName string) []*wikiio.WikiFile {
-	LoggerV.Printf("searchPageByBaseName(%s)", baseName)
+	LoggerV.Printf("main.searchPageByBaseName(%s)", baseName)
 	files, _ := wikiio.Search(baseName)
 	return files
 }
