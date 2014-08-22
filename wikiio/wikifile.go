@@ -6,8 +6,10 @@ import (
 	"github.com/OUCC/syaro/util"
 
 	"io/ioutil"
+	"net/url"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 type WikiFile struct {
@@ -33,10 +35,12 @@ func (f *WikiFile) FilePath() string {
 	return filepath.Join(setting.WikiRoot, f.wikiPath)
 }
 
-// FIXME url escape
 // URLPREFIX/a/b/c.md
 func (f *WikiFile) URLPath() string {
-	return filepath.Join(setting.UrlPrefix, f.wikiPath)
+	path := filepath.Join(setting.UrlPrefix, f.wikiPath)
+
+	// url escape and revert %2F -> /
+	return strings.Replace(url.QueryEscape(path), "%2F", "/", -1)
 }
 
 func (f *WikiFile) IsDir() bool { return f.fileInfo.IsDir() }
