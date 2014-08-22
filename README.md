@@ -6,7 +6,8 @@ Syaro is a simple and pretty wiki system.
 
 ## Features
 ### Markdown Viewer
-Syaro can handle markdown format files.
+Syaro can handle markdown format files. [blackfriday] is used to convert
+Markdown to HTML.
 
 ### [[WikiLink]]
 Texts surrounded by double bracket are interpreted as WikiLink. To link to
@@ -39,6 +40,9 @@ WIKIROOT/ - Home.md
 In this example, main page of `gochiusa/` is `gochiusa.md`, and file/folder list
 is appended when you see `gochiusa.md`.
 
+### Friendly Markdown editor
+Markdown editor with realtime preview. Powerd by [dillinger]
+
 ## Install
 ```bash
 git clone https://github.com/OUCC/syaro.git
@@ -56,5 +60,16 @@ your browser.
 This software is distributed under MIT License.
 
 Following software is used:
-* [Go](http://golang.org/)
-* [Blackfriday: a markdown processor for Go](https://github.com/russross/blackfriday)
+
+* [Go]
+* [Blackfriday]
+* [dillinger]
+* [Twitter Bootstrap]
+* [jQuery]
+
+
+[Go]: http://golang.org/
+[Blackfriday]: https://github.com/russross/blackfriday "a markdown processor for Go"
+[dillinger]: https://github.com/joemccann/dillinger/ "The last Markdown editor, ever."
+[Twitter Bootstrap]: http://getbootstrap.com
+[jQuery]: http://jquery.com
