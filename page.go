@@ -63,7 +63,7 @@ func (page *Page) WikiPathList() []*Page {
 
 	ret := make([]*Page, len(s))
 	for i := 0; i < len(ret); i++ {
-		ret[i], _ = LoadPage(filepath.Join(setting.WikiRoot, strings.Join(s[:i+1], "/")))
+		ret[i], _ = LoadPage("/" + strings.Join(s[:i+1], "/"))
 	}
 	return ret
 }
