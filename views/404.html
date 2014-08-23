@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>404 Not found</title>
+  <title>404 Not found - {{wikiName}}</title>
 
   {{template "meta.html"}}
 
-  {{template "page-css.html"}}
+  {{template "css.html"}}
 
   <link rel="favicon" href="{{urlPrefix}}/ico/favicon.ico">
 </head>
@@ -53,7 +53,11 @@
   </div>
 
   <!-- javascript -->
-  {{template "page-js.html"}}
+  {{template "syaro-js.html"}}
+
+  <script src="{{urlPrefix}}/lib/js/jquery.min.js" type="text/javascript"></script>
+  <script src="{{urlPrefix}}/lib/js/bootstrap.min.js" type="text/javascript"></script>
+  <script src="{{urlPrefix}}/js/page.js" type="text/javascript"></script>
 
 </body>
 </html>
