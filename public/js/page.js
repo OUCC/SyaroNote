@@ -1,38 +1,11 @@
 $(function(){
 
-  // url prefix (dosen't include /)
-  var urlPrefix
-  // wiki name of this page
-  var wikiName
-
   function init() {
-    getSyaroInfo()
-    setupUi()
-    bindButtons()
-  }
-
-  function getSyaroInfo() {
-    // get script path
-    // http://stackoverflow.com/questions/2161159/get-script-path
-    var scripts = document.getElementsByTagName('script')
-    var mypath = scripts[scripts.length-1].src
-
-    // get url prefix
-    // path = http://hostname/URL_PREFIX/js/page.js
-    var re = /^http:\/\/[^\/]+\/([^\/]+)\/js\//
-    urlPrefix = mypath.match(re)[1]
-
-    re = new RegExp(urlPrefix + '(\/.+)$')
-    wikiName = location.href.match(re)[1].split('?')[0].split('#')[0]
-  }
-
-  function setupUi() {
     $('.alert').hide()
-    $('#createModalInput').val(wikiName)
-    $('#renameModalInput').val(wikiName)
-  }
+    $('.modal').hide()
 
-  function bindButtons() {
+    $('#createModalInput').val(syaro.wikiPath)
+    $('#renameModalInput').val(syaro.wikiPath)
 
     $('#createModalButton').on('click', function() {
       var name = $('#createModalInput').val()
@@ -43,7 +16,7 @@ $(function(){
       }
       if (name[0] !== '/') { name = '/' + name }
 
-      var reqUrl = location.href.replace(wikiName,
+      var reqUrl = location.href.replace(syaro.wikiPath,
           encodeURIComponent(name).replace(/%2F/g, '/'))
 
       var req = new XMLHttpRequest()
@@ -81,7 +54,7 @@ $(function(){
       }
       if (name[0] !== '/') { name = '/' + name }
 
-      var reqUrl = location.href.replace(wikiName,
+      var reqUrl = location.href.replace(syaro.wikiPath,
           encodeURIComponent(name).replace(/%2F/g, '/'))
 
       var req = new XMLHttpRequest()

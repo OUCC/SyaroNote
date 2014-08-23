@@ -36,9 +36,7 @@ func startServer() {
 	rootDir := http.Dir(filepath.Join(setting.SyaroDir, PUBLIC_DIR))
 	fileServer := http.StripPrefix(setting.UrlPrefix, http.FileServer(rootDir))
 	mux.Handle(setting.UrlPrefix+"/css/", fileServer)
-	mux.Handle(setting.UrlPrefix+"/fonts/", fileServer)
 	mux.Handle(setting.UrlPrefix+"/ico/", fileServer)
-	mux.Handle(setting.UrlPrefix+"/img/", fileServer)
 	mux.Handle(setting.UrlPrefix+"/js/", fileServer)
 	mux.Handle(setting.UrlPrefix+"/lib/", fileServer)
 
