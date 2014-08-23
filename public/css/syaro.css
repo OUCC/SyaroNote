@@ -22,6 +22,38 @@
     color: #ff002e;
 }
 
+/* error page */
 .error-container {
     max-width: 750px;
+}
+
+/* editor */
+#app_wrap {
+    position: fixed;
+    top: 50px;
+    bottom: 0;
+    left: 0;
+    right: 0;
+}
+
+#editor {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 50%;
+    font-size: 14px;
+}
+
+#preview {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    right: 0;
+    padding: 20px;
+    overflow: auto;
+    background: rgb(250,250,250);
+    box-sizing: border-box;
+    box-flex: 1;
 }

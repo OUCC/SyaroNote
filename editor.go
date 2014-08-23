@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	EDITOR_VIEW = "dillinger.html"
+	EDITOR_VIEW = "editor.html"
 )
 
 type Editor struct {
@@ -34,5 +34,5 @@ func NewEditor(wpath string) (*Editor, error) {
 }
 
 func (editor *Editor) Render(res http.ResponseWriter) error {
-	return views.ExecuteTemplate(res, "dillinger.html", editor)
+	return views.ExecuteTemplate(res, EDITOR_VIEW, editor)
 }

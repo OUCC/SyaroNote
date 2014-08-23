@@ -1,0 +1,49 @@
+<!-- save modal -->
+<div id="saveModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="saveModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+        <h4 class="modal-title" id="saveModalLabel">Save document</h4>
+      </div>
+      <div class="modal-body">
+
+        <!-- saved alert -->
+        <div id="savedAlert" class="alert alert-success fade in" role="alert">
+          <strong>Document Saved</strong>
+        </div>
+        <!-- error alert -->
+        <div id="saveErrorAlert" class="alert alert-danger fade in" role="alert">
+        </div>
+
+        <!-- <input id="saveModalInput" type="text" class="form-control" placeholder="editor comment"> -->
+
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+        <button id="saveModalButton" type="button" class="btn btn-primary" data-loading-text="Processing...">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- close editor modal -->
+<div id="closeModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="closeModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+        <h4 class="modal-title" id="closeModalLabel">Close editor</h4>
+      </div>
+      <div class="modal-body">
+
+        <p>Document will not be saved. OK?</p>
+
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+        <button id="closeModalButton" type="button" class="btn btn-danger">Close</button>
+      </div>
+    </div>
+  </div>
+</div>

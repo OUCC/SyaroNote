@@ -40,6 +40,7 @@ func startServer() {
 	mux.Handle(setting.UrlPrefix+"/ico/", fileServer)
 	mux.Handle(setting.UrlPrefix+"/img/", fileServer)
 	mux.Handle(setting.UrlPrefix+"/js/", fileServer)
+	mux.Handle(setting.UrlPrefix+"/lib/", fileServer)
 
 	// for pages
 	mux.HandleFunc(setting.UrlPrefix+"/", handler)
