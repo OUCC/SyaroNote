@@ -95,3 +95,32 @@
     border: 0;
     border-top: 2px solid #ccc;
 }
+
+.markdown table {
+    width: auto;
+    border-spacing: 0;
+    border: 1px solid #aaa;
+}
+.markdown table th {
+  color: #000;
+  padding: 8px 15px;
+  background: #ddd;
+  font-weight: bold;
+  border-bottom:1px solid #aaa;
+  line-height: 120%;
+  text-align: center;
+  text-shadow:0 -1px 0 rgba(255,255,255,0.9);
+  box-shadow: 0 1px 1px rgba(255,255,255,0.3) inset;
+}
+.markdown table tr td {
+  padding: 8px 15px;
+}
+.markdown table tr {
+  background: #fff;
+}
+.markdown table tr:nth-child(2n+1) {
+  background: #f5f5f5;
+}
+.markdown table tr:last-child td {
+  box-shadow: 2px 2px 1px rgba(0,0,0,0.1);
+}
