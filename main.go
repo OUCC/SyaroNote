@@ -76,28 +76,18 @@ func findSyaroDir() {
 			return
 		}
 	} else { // directory isn't specified by user so search it by myself
-		// first, $GOROOT/src/...
-		path := filepath.Join(os.Getenv("GOPATH"), "src", SYARO_REPOSITORY)
-		_, err := os.Stat(filepath.Join(path, VIEWS_DIR))
-		if err == nil {
-			setting.SyaroDir = path
-			return
+		paths := []string{
+			".",
+			"/usr/local/share/syaro",
+			"/Program Files/Syaro",
 		}
 
-		// second, /usr/local/share/syaro
-		path = "/usr/local/share/syaro"
-		_, err = os.Stat(filepath.Join(path, VIEWS_DIR))
-		if err == nil {
-			setting.SyaroDir = path
-			return
-		}
-
-		// third, C:\Program Files\Syaro (Windows)
-		path = "/Program Files/Syaro"
-		_, err = os.Stat(filepath.Join(path, VIEWS_DIR))
-		if err == nil {
-			setting.SyaroDir = path
-			return
+		for _, path := range paths {
+			_, err := os.Stat(filepath.Join(path, VIEWS_DIR))
+			if err == nil {
+				setting.SyaroDir = path
+				return
+			}
 		}
 
 		// can't find syaro dir
