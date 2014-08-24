@@ -171,6 +171,23 @@ func handler(res http.ResponseWriter, req *http.Request) {
 		switch req.Method {
 		case "", "GET":
 			LoggerM.Println("main.handler: Editor requested")
+
+			// check main dir
+			f, _ := wikiio.Load(wpath)
+			if f != nil {
+				if f.DirMainPage() != nil {
+					LoggerM.Println("main.handler: Requested file is dir, let's redirect to main file")
+					http.Redirect(res, req,
+						f.DirMainPage().URLPath()+"?view=editor", http.StatusFound)
+					return
+				} else if f.IsDir() {
+					LoggerM.Println("main.handler: Requested file is dir, but main file dosen't exists.")
+					LoggerM.Println("main.handler: Return 404 page")
+					errorHandler(res, http.StatusNotFound, wpath)
+					return
+				}
+			}
+
 			v, err := NewEditor(wpath)
 			if err != nil {
 				LoggerE.Println("Error: main.handler:", err)

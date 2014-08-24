@@ -45,6 +45,28 @@ func (f *WikiFile) URLPath() string {
 
 func (f *WikiFile) IsDir() bool { return f.fileInfo.IsDir() }
 
+func (f *WikiFile) DirMainPage() *WikiFile {
+	if !f.IsDir() {
+		return nil
+	}
+
+	var name string
+	if f.WikiPath() == "/" {
+		name = "Home"
+	} else {
+		name = f.Name()
+	}
+
+	for _, file := range f.files {
+		if file.NameWithoutExt() == name {
+			return file
+		}
+	}
+
+	// not found
+	return nil
+}
+
 func (f *WikiFile) IsMarkdown() bool { return util.IsMarkdown(f.wikiPath) }
 
 func (f *WikiFile) Files() []*WikiFile { return f.files }

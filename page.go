@@ -88,20 +88,13 @@ func (page *Page) raw() []byte {
 	if page.IsDir() {
 		LoggerV.Println("main.Page.raw: requested page is dir, use main file of dir")
 
-		// wiki root. use Home
-		var file *wikiio.WikiFile
-		var err error
-		if page.WikiPath() == "/" {
-			file, err = wikiio.Load("/Home")
+		if page.DirMainPage() != nil {
+			LoggerV.Println("main.Page.raw: main file of dir found")
+			return page.DirMainPage().Raw()
 		} else {
-			wpath := filepath.Join(page.FilePath(), filepath.Base(page.FilePath()))
-			file, err = wikiio.Load(wpath)
-		}
-		if err != nil {
-			LoggerV.Println("main.Page.raw: main file not found")
+			LoggerV.Println("main.Page.raw: main file of dir not found")
 			return nil
 		}
-		return file.Raw()
 	} else { // page.filePath isn't dir
 		return page.Raw()
 	}
