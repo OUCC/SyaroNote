@@ -15,72 +15,73 @@ import (
 	"strings"
 )
 
-func processWikiLink(b []byte, currentDir string) []byte {
+func processWikiLink(s string, currentDir string) string {
 	const RE_DOUBLE_BRACKET = "\\[\\[[^\\]]+\\]\\]"
 
-	reader := bytes.NewReader(b)
+	reader := strings.NewReader(s)
 	scanner := bufio.NewScanner(reader)
 	var buffer bytes.Buffer
 
 	re := regexp.MustCompile(RE_DOUBLE_BRACKET)
 
 	for scanner.Scan() {
-		line := scanner.Bytes()
+		line := scanner.Text()
 
 		for {
-			index := re.FindIndex(line)
+			indices := re.FindStringIndex(line)
 
-			if len(index) != 0 { // tag found
+			if len(indices) != 0 { // tag found
 				LoggerV.Println("processWikiLink: bracket tag found:",
-					string(line[index[0]:index[1]]))
+					string(line[indices[0]:indices[1]]))
 
-				name := line[index[0]+2 : index[1]-2]
-				files := searchPage(string(name), currentDir)
+				name := line[indices[0]+2 : indices[1]-2] // [[name]]
+				files := searchPage(name, currentDir)
 
 				if len(files) != 0 { // page found
 					LoggerV.Println("processWikiLink:", len(files), "pages found")
 					LoggerV.Println("processWikiLink: select ", files[0].WikiPath())
 					// TODO avoid ambiguous page
-					line = embedLinkTag(line, index, name, files[0])
+					line = embedLinkTag(line, indices, name, files[0])
 
 				} else { // page not found
 					LoggerV.Println("processWikiLink: no page found")
-					line = embedLinkTag(line, index, name, nil)
+					line = embedLinkTag(line, indices, name, nil)
 				}
 
 			} else { // tag not found, so go next line
 				break
 			}
 		}
-		buffer.Write(line)
+		buffer.Write([]byte(line))
+		buffer.Write([]byte("\n"))
 	}
 
-	return buffer.Bytes()
+	return buffer.String()
 }
 
-func embedLinkTag(line []byte, tagIndex []int, linkname []byte, file *wikiio.WikiFile) []byte {
+func embedLinkTag(line string, tagIndex []int, linkname string, file *wikiio.WikiFile) string {
 	if file == nil {
-		return bytes.Join([][]byte{
+		return strings.Join([]string{
 			line[:tagIndex[0]],
-			[]byte("<a class=\"notfound\" href=\""),
-			[]byte(setting.UrlPrefix),
-			[]byte("/error/404?data="),
-			[]byte(url.QueryEscape(string(linkname))),
-			[]byte("\">"),
+			"<a class=\"notfound\" href=\"",
+			setting.UrlPrefix,
+			"/error/404?data=",
+			url.QueryEscape(string(linkname)),
+			"\">",
 			linkname,
-			[]byte("</a>"),
+			"</a>",
 			line[tagIndex[1]:],
-		}, nil)
+		}, "")
 	}
-	return bytes.Join([][]byte{
+	return strings.Join([]string{
 		line[:tagIndex[0]],
-		[]byte("<a href=\""),
-		[]byte(file.URLPath()),
-		[]byte("\">"),
+		"<a href=\"",
+		string(file.URLPath()),
+		"\">",
 		linkname,
-		[]byte("</a>"),
+		"</a>",
 		line[tagIndex[1]:],
-	}, nil)
+	}, "")
 }
 
 func searchPage(name string, currentDir string) []*wikiio.WikiFile {

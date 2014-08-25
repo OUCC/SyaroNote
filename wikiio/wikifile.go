@@ -5,6 +5,7 @@ import (
 	"github.com/OUCC/syaro/setting"
 	"github.com/OUCC/syaro/util"
 
+	"html/template"
 	"io/ioutil"
 	"net/url"
 	"os"
@@ -36,11 +37,11 @@ func (f *WikiFile) FilePath() string {
 }
 
 // URLPREFIX/a/b/c.md
-func (f *WikiFile) URLPath() string {
+func (f *WikiFile) URLPath() template.URL {
 	path := filepath.Join(setting.UrlPrefix, f.wikiPath)
 
 	// url escape and revert %2F -> /
-	return strings.Replace(url.QueryEscape(path), "%2F", "/", -1)
+	return template.URL(strings.Replace(url.QueryEscape(path), "%2F", "/", -1))
 }
 
 func (f *WikiFile) IsDir() bool { return f.fileInfo.IsDir() }

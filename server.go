@@ -178,7 +178,7 @@ func handler(res http.ResponseWriter, req *http.Request) {
 				if f.DirMainPage() != nil {
 					LoggerM.Println("main.handler: Requested file is dir, let's redirect to main file")
 					http.Redirect(res, req,
-						f.DirMainPage().URLPath()+"?view=editor", http.StatusFound)
+						string(f.DirMainPage().URLPath())+"?view=editor", http.StatusFound)
 					return
 				} else if f.IsDir() {
 					LoggerM.Println("main.handler: Requested file is dir, but main file dosen't exists.")

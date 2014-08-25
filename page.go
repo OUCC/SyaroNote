@@ -6,8 +6,6 @@ import (
 	"github.com/OUCC/syaro/util"
 	"github.com/OUCC/syaro/wikiio"
 
-	"github.com/russross/blackfriday"
-
 	"bufio"
 	"errors"
 	"html/template"
@@ -28,9 +26,14 @@ var (
 	ErrIsNotMarkdown = errors.New("requested file is not a markdown")
 )
 
+var (
+	reSetext = regexp.MustCompile("^={2,}")
+	reAtx    = regexp.MustCompile("^#\\s+([^#]+)")
+)
+
 type Page struct {
 	*wikiio.WikiFile
-	markdownHTML template.HTML
+	mdHTML template.HTML
 }
 
 // LoadPage returns new Page.
@@ -70,16 +73,22 @@ func (page *Page) WikiPathList() []*Page {
 
 // Title returns title of page.
 func (page *Page) Title() string {
-	reader := strings.NewReader(string(page.MarkdownHTML()))
+	reader := strings.NewReader(page.MdText())
 	scanner := bufio.NewScanner(reader)
 
-	re := regexp.MustCompile("<h1>([^<]+)</h1>")
+	var previous string
 	for scanner.Scan() {
-		submatch := re.FindStringSubmatch(scanner.Text())
-		if len(submatch) != 0 {
-			return submatch[1]
+		s := scanner.Text()
+		if reSetext.MatchString(s) {
+			return previous
 		}
+		if reAtx.MatchString(s) {
+			return reAtx.FindStringSubmatch(s)[1]
+		}
+
+		previous = s
 	}
+
 	return ""
 }
 
@@ -100,15 +109,12 @@ func (page *Page) raw() []byte {
 	}
 }
 
-func (page *Page) MarkdownText() string {
+func (page *Page) MdText() string {
 	return string(page.raw())
 }
 
-// MarkdownHTML converts markdown text (with wikilink) to html
-func (page *Page) MarkdownHTML() template.HTML {
-	if page.markdownHTML == "" {
-		html := blackfriday.MarkdownCommon(page.raw())
-
+func (page *Page) MdHTML() template.HTML {
+	if page.mdHTML == "" {
 		var dir string
 		if page.IsDir() {
 			dir = page.WikiPath()
@@ -116,13 +122,13 @@ func (page *Page) MarkdownHTML() template.HTML {
 			dir = filepath.Dir(page.WikiPath())
 		}
 
-		page.markdownHTML = template.HTML(processWikiLink(html, dir))
+		html := processWikiLink(page.MdText(), dir)
+		page.mdHTML = template.HTML(html)
 	}
-
-	return page.markdownHTML
+	return page.mdHTML
 }
 
-func (page *Page) SidebarHTML() template.HTML {
+func (page *Page) SidebarMdHTML() template.HTML {
 	path := filepath.Join(setting.WikiRoot, SIDEBAR_MD)
 	_, err := os.Stat(path)
 	if err != nil {
@@ -137,8 +143,8 @@ func (page *Page) SidebarHTML() template.HTML {
 		return template.HTML("")
 	}
 
-	html := blackfriday.MarkdownCommon(b)
-	return template.HTML(processWikiLink(html, "/"))
+	html := processWikiLink(string(b), "/")
+	return template.HTML(html)
 }
 
 func (page *Page) Render(res http.ResponseWriter) error {
