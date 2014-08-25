@@ -15,8 +15,13 @@ $(function() {
     $('.alert').hide()
     $('.modal').hide()
 
+    $('#saveModal').on('show.bs.modal', function() {
+      $('.alert').hide()
+      $('#saveModalButton').toggleClass('disabled', false)
+    })
+
     // button on navbar
-    $('#closeButton').on('click', function() {
+    $('a.close-button').on('click', function() {
       if (modified) {
         $('#closeModal').modal()
       } else {
@@ -29,18 +34,28 @@ $(function() {
     // button on modal
     $('#saveModalButton').on('click', function() {
       var req = new XMLHttpRequest()
-      req.open('POST', location.href, true) // send response async
+      req.open('POST', location.href)
+
       req.onreadystatechange = function() {
         if(req.readyState === 4) {
-          if(req.status === 200) {
-            $('#successAlert').show()
+          $('#saveModalButton').button('reset')
+          $('.alert').hide()
+
+          switch (req.status) {
+          case 200:
+            $('#savedAlert').show()
             modified = false
-          } else {
-            $('#errorAlert').html('<strong>Error</strong> ' + req.responseText)
-            $('#errorAlert').show()
+            $('#saveModalButton').toggleClass('disabled', true)
+            break
+
+          default:
+            $('#saveErrorAlert').html('<strong>Error</strong> ' + req.responseText)
+            $('#saveErrorAlert').show()
+            break
           }
         }
       }
+
       req.send(editor.getSession().getValue())
       $('#saveModalButton').button('loading')
     })
