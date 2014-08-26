@@ -96,10 +96,9 @@ $(function() {
       sanitize: false,
       smartLists: true,
       smartypants: false,
-      langPrefix: 'lang-'
-      // highlight: function (code) {
-      //   return hljs.highlightAuto(code).value
-      // }
+      langPrefix: 'lang-',
+      highlight: syaro.highlight ? function(code) { return hljs.highlightAuto(code).value; }
+                                 : undefined
     })
   }
 
@@ -108,6 +107,11 @@ $(function() {
     var mdhtml = marked(md)
 
     $('#preview').html(mdhtml)
+
+    if (syaro.mathjax) {
+      // update math
+      MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
+    }
   }
 
   function syncScroll() {

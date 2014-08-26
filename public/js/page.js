@@ -129,9 +129,6 @@ $(function(){
       smartLists: true,
       smartypants: false,
       langPrefix: 'lang-'
-      // highlight: function (code) {
-      //   return hljs.highlightAuto(code).value
-      // }
     })
   }
 
@@ -139,8 +136,8 @@ $(function(){
     var $mainMd = $('.syaro-main > .markdown')
     var $sidebarMd = $('.syaro-sidebar > .markdown')
 
-    $mainMd.html( marked($mainMd.html()) )
-    $sidebarMd.html( marked($sidebarMd.html()) )
+    $mainMd.html( marked($mainMd.text()) )
+    $sidebarMd.html( marked($sidebarMd.text()) )
   }
 
   init()

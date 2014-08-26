@@ -60,6 +60,7 @@
     padding: 0px 24px;
     max-width: 800px;
     white-space: pre-wrap;
+    background-color: #f8f8f8;
 }
 .markdown code {
     font-family: sans-serif;

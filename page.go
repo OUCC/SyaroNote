@@ -89,7 +89,8 @@ func (page *Page) Title() string {
 		previous = s
 	}
 
-	return ""
+	// h1 not found
+	return page.NameWithoutExt()
 }
 
 // row returns row file data.
@@ -113,38 +114,41 @@ func (page *Page) MdText() string {
 	return string(page.raw())
 }
 
-func (page *Page) MdHTML() template.HTML {
-	if page.mdHTML == "" {
-		var dir string
-		if page.IsDir() {
-			dir = page.WikiPath()
-		} else {
-			dir = filepath.Dir(page.WikiPath())
-		}
-
-		html := processWikiLink(page.MdText(), dir)
-		page.mdHTML = template.HTML(html)
+func (page *Page) MdHTML() string {
+	// if page.mdHTML == "" {
+	var dir string
+	if page.IsDir() {
+		dir = page.WikiPath()
+	} else {
+		dir = filepath.Dir(page.WikiPath())
 	}
-	return page.mdHTML
+
+	return processWikiLink(page.MdText(), dir)
+	// page.mdHTML = template.HTML(mdhtml)
+	// }
+	// return page.mdHTML
 }
 
-func (page *Page) SidebarMdHTML() template.HTML {
+func (page *Page) SidebarMdHTML() string {
 	path := filepath.Join(setting.WikiRoot, SIDEBAR_MD)
 	_, err := os.Stat(path)
 	if err != nil {
 		LoggerV.Println(SIDEBAR_MD, "not found")
-		return template.HTML("")
+		// return template.HTML("")
+		return ""
 	}
 
 	LoggerV.Println(SIDEBAR_MD, "found")
 	b, err := ioutil.ReadFile(path)
 	if err != nil {
 		LoggerE.Println("in SidebarHTML ioutil.ReadFile(", path, ") error", err)
-		return template.HTML("")
+		// return template.HTML("")
+		return ""
 	}
 
-	html := processWikiLink(string(b), "/")
-	return template.HTML(html)
+	return processWikiLink(string(b), "/")
+	// mdhtml := processWikiLink(html.EscapeString(string(b)), "/")
+	// return template.HTML(mdhtml)
 }
 
 func (page *Page) Render(res http.ResponseWriter) error {

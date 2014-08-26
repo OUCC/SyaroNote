@@ -39,12 +39,15 @@ func main() {
 	LoggerM.Println("WikiRoot:", setting.WikiRoot)
 	LoggerM.Println("Syaro dir:", setting.SyaroDir)
 	if setting.FCGI {
-		LoggerM.Println("Fast CGI mode: YES")
+		LoggerM.Println("Fast CGI mode: ON")
 	} else {
-		LoggerM.Println("Fast CGI mode: NO")
+		LoggerM.Println("Fast CGI mode: OFF")
 	}
 	LoggerM.Println("Port:", setting.Port)
 	LoggerM.Println("URL prefix:", setting.UrlPrefix)
+	LoggerM.Println("MathJax:", setting.MathJax)
+	LoggerM.Println("Highlight:", setting.Highlight)
+	LoggerM.Println("Verbose output:", setting.Verbose)
 	LoggerM.Println("")
 
 	LoggerM.Println("Parsing template...")
@@ -102,6 +105,8 @@ func setupViews() error {
 		"add":       func(a, b int) int { return a + b },
 		"wikiName":  func() string { return setting.WikiName },
 		"urlPrefix": func() string { return setting.UrlPrefix },
+		"mathjax":   func() bool { return setting.MathJax },
+		"highlight": func() bool { return setting.Highlight },
 	})
 	tmpl, err := tmpl.ParseGlob(filepath.Join(setting.SyaroDir, VIEWS_DIR, "*.html"))
 	if err != nil {

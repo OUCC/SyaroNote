@@ -40,6 +40,18 @@ const (
 	FCGI_DEFAULT = false
 )
 
+const (
+	MATHJAX_ARGNAME = "mathjax"
+	MATHJAX_USAGE   = "Enable MathJax (Internet connection is required)"
+	MATHJAX_DEFAULT = false
+)
+
+const (
+	HIGHLIGHT_ARGNAME = "highlight"
+	HIGHLIGHT_USAGE   = "Enable syntax highlighting in <code> (Internet connection is required)"
+	HIGHLIGHT_DEFAULT = false
+)
+
 // TODO
 const (
 	READONLY_ARGNAME = "readonly"
@@ -62,6 +74,8 @@ var (
 	Port      int
 	UrlPrefix string
 	FCGI      bool
+	MathJax   bool
+	Highlight bool
 	Verbose   bool
 )
 
@@ -72,6 +86,8 @@ func init() {
 	flag.IntVar(&Port, PORT_ARGNAME, PORT_DEFAULT, PORT_USAGE)
 	flag.StringVar(&UrlPrefix, URL_PREFIX_ARGNAME, URL_PREFIX_DEFAULT, URL_PREFIX_USAGE)
 	flag.BoolVar(&FCGI, FCGI_ARGNAME, FCGI_DEFAULT, FCGI_USAGE)
+	flag.BoolVar(&MathJax, MATHJAX_ARGNAME, MATHJAX_DEFAULT, MATHJAX_USAGE)
+	flag.BoolVar(&Highlight, HIGHLIGHT_ARGNAME, HIGHLIGHT_DEFAULT, HIGHLIGHT_USAGE)
 	flag.BoolVar(&Verbose, VERBOSE_ARGNAME, VERBOSE_DEFAULT, VERBOSE_USAGE)
 	flag.BoolVar(&Verbose, VERBOSE_ARGNAMES, VERBOSE_DEFAULT, VERBOSE_USAGE)
 }
