@@ -1,13 +1,23 @@
 Syaro Markdown Wiki Server
 ====
 
-## Description
+[![Build Status](https://drone.io/github.com/OUCC/syaro/status.png)](https://drone.io/github.com/OUCC/syaro/latest)
+
+Description
+----
 Syaro is a simple and pretty wiki system.
 
-## Features
+Features
+----
 ### Markdown Viewer
-Syaro can handle markdown format files. [blackfriday] is used to convert
+Syaro can handle markdown format files. [marked] is used to convert
 Markdown to HTML.
+
+Viewer supports MathJax. LaTeX text surrounded by `$` (inline math) or `$$` 
+(display math) is converted to beautiful mathematical expression.
+
+Viewer also supports code syntax highlighting. This feature is powered by
+[highlight.js].
 
 ### [[WikiLink]]
 Texts surrounded by double bracket are interpreted as WikiLink. To link to
@@ -40,36 +50,56 @@ WIKIROOT/ - Home.md
 In this example, main page of `gochiusa/` is `gochiusa.md`, and file/folder list
 is appended when you see `gochiusa.md`.
 
-### Friendly Markdown editor
-Markdown editor with realtime preview. Powerd by [dillinger]
+### Powerful Markdown editor
+* Realtime preview (including MathJax rendering and code highlighting)
+* Markdown syntax highlight
 
-## Install
+Build & Install
+----
+First, install go and bower.
+
 ```bash
-git clone https://github.com/OUCC/syaro.git
-cd syaro
-go install
+go install github.com/OUCC/syaro.git
+cd $GOPATH/src/github.com/OUCC/syaro
+# get jquery, bootstrap, etc...
+bower install
+./install_components.sh # copy files
 ```
 
-## Use
-`cd` to wiki root directory, then run `syaro`. Open `localhost:8080/Home` in
-your browser.
+Use
+---
+```bash
+syaro --wikiroot=/path/to/wiki
 
-`syaro -h` or `syaro --help` you can see options.
+# If you want to use MathJax or highlight.js,
+# syaro --mathjax --highlight --wikiroot=...
+```
 
-## About this software
-This software is distributed under MIT License.
+Then open `localhost:8080/Home` in your browser.
+
+`syaro -h` or `syaro --help` you can see more options.
+
+About this software
+----
+This software is released under MIT License.
 
 Following software is used:
 
-* [Go]
-* [Blackfriday]
-* [dillinger]
-* [Twitter Bootstrap]
-* [jQuery]
+* [Go]  (BSD)
+* [Twitter Bootstrap]  (MIT)
+* [jQuery]  (MIT)
+* [Ace]  (BSD)
+* [marked]  (MIT)
+* [MathJax]  (Apache)
+* [highlight.js]  (BSD)
+* ([dillinger])  (MIT)
 
 
 [Go]: http://golang.org/
-[Blackfriday]: https://github.com/russross/blackfriday "a markdown processor for Go"
-[dillinger]: https://github.com/joemccann/dillinger/ "The last Markdown editor, ever."
 [Twitter Bootstrap]: http://getbootstrap.com
 [jQuery]: http://jquery.com
+[Ace]: http://ace.c9.io
+[marked]: https://github.com/chjj/marked
+[Mathjax]: http://www.mathjax.org/
+[highlight.js]: https://highlightjs.org/
+[dillinger]: https://github.com/joemccann/dillinger/
