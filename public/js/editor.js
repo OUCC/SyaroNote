@@ -3,6 +3,8 @@ $(function() {
   var editor
   var modified = false
   var theme = 'ace/theme/chrome'
+  var preview = true
+  var mathjax = false
 
   function init() {
     initUi()
@@ -18,6 +20,25 @@ $(function() {
     $('#saveModal').on('show.bs.modal', function() {
       $('.alert').hide()
       $('#saveModalButton').toggleClass('disabled', false)
+    })
+
+    // option dropdown on navbar
+    $('#optionPreview > span').toggleClass('glyphicon-check', true)
+    $('#optionMathJax > span').toggleClass('glyphicon-unchecked', true);
+
+    $('#optionPreview').on('click', function() {
+      preview = !preview
+      $('#optionPreview > span').toggleClass('glyphicon-check')
+      $('#optionPreview > span').toggleClass('glyphicon-unchecked')
+      $('#optionMathJax').parent('li').toggleClass('disabled')
+      return false
+    })
+
+    $('#optionMathJax').on('click', function() {
+      mathjax = !mathjax
+      $('#optionMathJax > span').toggleClass('glyphicon-check')
+      $('#optionMathJax > span').toggleClass('glyphicon-unchecked')
+      return false
     })
 
     // button on navbar
@@ -45,7 +66,7 @@ $(function() {
           case 200:
             $('#savedAlert').show()
             modified = false
-            $('#saveModalButton').toggleClass('disabled', true)
+            $('#saveModalButton').toggleClass('disabled', true) // FIXME don't work!
             break
 
           default:
@@ -103,14 +124,16 @@ $(function() {
   }
 
   function updatePreview() {
+    if (!preview) { return }
+
     var md = editor.getSession().getValue()
     var mdhtml = marked(md)
 
     $('#preview').html(mdhtml)
 
-    if (syaro.mathjax) {
+    if (syaro.mathjax && mathjax) {
       // update math
-      MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
+      MathJax.Hub.Queue(["Typeset", MathJax.Hub])
     }
   }
 
