@@ -20,10 +20,9 @@ $(function(){
         $('#createErrorAlert').show()
         return
       }
-      if (name[0] !== '/') { name = '/' + name }
 
-      var reqUrl = location.href.replace(syaro.wikiPath,
-          encodeURIComponent(name).replace(/%2F/g, '/'))
+      if (name[0] !== '/') { name = '/' + name }
+      var reqUrl = syaro.urlPrefix + encodeURIComponent(name).replace(/%2F/g, '/')
 
       var req = new XMLHttpRequest()
       req.open('GET', reqUrl + '?action=create')
@@ -58,13 +57,13 @@ $(function(){
         $('#renameErrorAlert').show()
         return
       }
-      if (name[0] !== '/') { name = '/' + name }
 
-      var reqUrl = location.href.replace(syaro.wikiPath,
-          encodeURIComponent(name).replace(/%2F/g, '/'))
+      if (name[0] !== '/') { name = '/' + name }
+      var reqUrl = syaro.urlPrefix + encodeURIComponent(name).replace(/%2F/g, '/')
 
       var req = new XMLHttpRequest()
-      req.open('GET', reqUrl + '?action=rename&oldpath=' + encodeURIComponent(wikiName))
+      req.open('GET', reqUrl + '?action=rename&oldpath='
+        + encodeURIComponent(syaro.wikiPath).replace(/%2F/g, '/'))
 
       req.onreadystatechange = function() {
         if (req.readyState === 4) {
