@@ -132,8 +132,8 @@ $(function() {
     $('#preview').html(mdhtml)
 
     if (syaro.mathjax && mathjax) {
-      // update math
-      MathJax.Hub.Queue(["Typeset", MathJax.Hub])
+      // update math in #preview
+      MathJax.Hub.Queue(["Typeset", MathJax.Hub, "preview"])
     }
   }
 
