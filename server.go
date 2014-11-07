@@ -81,22 +81,34 @@ func handler(res http.ResponseWriter, req *http.Request) {
 		case "":
 			LoggerM.Println("main.handler: Page requested")
 			v, err := LoadPage(wpath)
-			if err != nil {
+			switch err {
+			case nil:
+				// render html
+				LoggerM.Println("main.handler: Rendering view...")
+				err = v.Render(res)
+				if err != nil {
+					LoggerE.Println("Error: main.handler: Rendering error!:", err)
+					errorHandler(res, http.StatusInternalServerError, err.Error())
+					return
+				}
+				LoggerM.Println("main.handler: Page rendered")
+
+			case ErrIsNotMarkdown:
+				LoggerM.Println("main.handler: File requested")
+				v, err := wikiio.Load(wpath)
+				if err != nil {
+					LoggerE.Println("Error: main.handler: ", err)
+					http.Error(res, err.Error(), http.StatusNotFound)
+					return
+				}
+				res.Write(v.Raw())
+				LoggerM.Println("main.handler: File sent")
+
+			default:
 				LoggerE.Println("Error: main.handler:", err)
 				errorHandler(res, http.StatusNotFound, wpath)
 				return
 			}
-
-			// render html
-			LoggerM.Println("main.handler: Rendering view...")
-			err = v.Render(res)
-			if err != nil {
-				LoggerE.Println("Error: main.handler: Rendering error!:", err)
-				errorHandler(res, http.StatusInternalServerError, err.Error())
-				return
-			}
-
-			LoggerV.Println("main.handler: Page rendered")
 
 		case "create":
 			LoggerM.Println("main.handler: Create new page")
