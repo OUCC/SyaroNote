@@ -31,6 +31,30 @@ func (f *WikiFile) NameWithoutExt() string {
 
 func (f *WikiFile) WikiPath() string { return f.wikiPath }
 
+// WikiPathList returns slice of each WikiFile in wikipath
+// (slice doesn't include urlPrefix)
+func (f *WikiFile) WikiPathList() []*WikiFile {
+	LoggerV.Println("wikiio.WikiFile.WikiPathList: building...")
+	s := strings.Split(util.RemoveExt(f.WikiPath()), "/")
+	if s[0] == "" {
+		s = s[1:]
+	}
+
+	ret := make([]*WikiFile, len(s))
+	for i := 0; i < len(ret); i++ {
+		path := "/" + strings.Join(s[:i+1], "/")
+		LoggerV.Println("wikiio.WikiFile.WikiPathList: load ", path)
+		//		p, err := LoadPage(path)
+		wfile, err := Load(path)
+		if err != nil {
+			LoggerV.Println("wikiio.WikiFile.WikiPathList: error in wikiio.Load(path): ", err)
+		}
+		ret[i] = wfile
+	}
+	LoggerV.Println("wikiio.WikiFile.WikiPathList: finish")
+	return ret
+}
+
 // WIKIROOT/a/b/c.md
 func (f *WikiFile) FilePath() string {
 	return filepath.Join(setting.WikiRoot, f.wikiPath)

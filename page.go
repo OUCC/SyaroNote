@@ -3,7 +3,6 @@ package main
 import (
 	. "github.com/OUCC/syaro/logger"
 	"github.com/OUCC/syaro/setting"
-	"github.com/OUCC/syaro/util"
 	"github.com/OUCC/syaro/wikiio"
 
 	"bufio"
@@ -54,21 +53,6 @@ func LoadPage(wpath string) (*Page, error) {
 
 	LoggerV.Println("main.LoadPage: ok")
 	return &Page{wfile, ""}, nil
-}
-
-// WikiPathList returns slice of each pages in wikipath
-// (slice dosen't include urlPrefix)
-func (page *Page) WikiPathList() []*Page {
-	s := strings.Split(util.RemoveExt(page.WikiPath()), "/")
-	if s[0] == "" {
-		s = s[1:]
-	}
-
-	ret := make([]*Page, len(s))
-	for i := 0; i < len(ret); i++ {
-		ret[i], _ = LoadPage("/" + strings.Join(s[:i+1], "/"))
-	}
-	return ret
 }
 
 // Title returns title of page.
