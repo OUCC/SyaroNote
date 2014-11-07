@@ -81,6 +81,7 @@ func findSyaroDir() {
 	} else { // directory isn't specified by user so search it by myself
 		paths := []string{
 			".",
+			"/usr/share/syaro",
 			"/usr/local/share/syaro",
 			"/Program Files/Syaro",
 		}
