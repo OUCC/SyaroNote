@@ -7,6 +7,8 @@ $(function(){
   }
 
   function initUI() {
+    $('.markdown').hide() // don't show ugly text
+
     $('.alert').hide()
     $('.modal').hide()
 
@@ -16,7 +18,7 @@ $(function(){
     $('#createModalButton').on('click', function() {
       var name = $('#createModalInput').val()
       if (name === "") {
-        $('#createErrorAlert').html('<strong>Error</strong> Please fill brank form.')
+        $('#createErrorAlert').html('<strong>Error</strong> Please fill blank form.')
         $('#createErrorAlert').show()
         return
       }
@@ -137,6 +139,8 @@ $(function(){
 
     $mainMd.html( marked($mainMd.text()) )
     $sidebarMd.html( marked($sidebarMd.text()) )
+
+    $('.markdown').show()
   }
 
   init()
