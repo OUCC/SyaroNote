@@ -1,0 +1,170 @@
+.markdown {
+    margin: 0 auto;
+    font-family: sans-serif;
+    font-size: 16px;
+    color: #444444;
+    line-height: 1;
+    max-width: 960px;
+    padding: 0 30px 30px 30px;
+}
+
+/* header */
+.markdown h1,
+.markdown h2,
+.markdown h3,
+.markdown h4,
+.markdown h5,
+.markdown h6 {
+    color: #111111;
+    font-weight: normal;
+    line-height: 1.5;
+    margin: 1em 0 .3em 0;
+    padding: 0;
+}
+.markdown h1:before,
+.markdown h2:before,
+.markdown h3:before,
+.markdown h4:before,
+.markdown h5:before,
+.markdown h6:before {
+    color: #666;
+    font-weight: normal;
+    font-stretch: ultra-condensed;
+    padding-right: .3em;
+}
+.markdown h1 {
+    font-size: 36px;
+    margin-top: .3em;
+    border-bottom: 4px double #b2b2b2
+}
+.markdown h1:before {
+    content: "#";
+}
+.markdown h2 {
+    font-size: 24px;
+    border-bottom: 2px solid #b2b2b2;
+}
+.markdown h2:before {
+    content: "##";
+}
+.markdown h3 {
+    font-size: 21px;
+    border-bottom: 2px dotted #b2b2b2;
+}
+.markdown h3:before {
+    content: "###";
+}
+.markdown h4 { 
+    font-size: 18px;
+    border-bottom: 2px dashed #b2b2b2;
+}
+.markdown h4:before {
+    content: "####";
+}
+.markdown h5 { 
+    font-size: 16px;
+}
+.markdown h5:before {
+    content: "#####";
+}
+.markdown h6 {
+    font-size: 14px;
+}
+.markdown h6:before {
+    content: "######";
+}
+
+/* link */
+.markdown a.notfound { 
+    color: #ba0000;
+}
+
+.markdown p {
+    line-height: 1.5em;
+    margin: 0 0 1em 0;
+}
+
+/* list */
+.markdown ul,
+.markdown ul ul,
+.markdown ol,
+.markdown ol ol {
+    line-height: 1.5em;
+    margin: 0;
+}
+.markdown > ul,
+.markdown > ol {
+    margin-bottom: 1em;
+}
+
+/* code */
+.markdown code {
+    font-family: monospace;
+}
+.markdown p > code {
+    padding: 2px 5px;
+    line-height: 1;
+    vertical-align: middle;
+    display: inline-block;
+}
+.markdown pre {
+    margin: 0 0 1em 0;
+    white-space: pre;
+    border: none;
+    border-radius: 0;
+}
+.markdown pre > code {
+    white-space: pre;
+}
+
+.markdown aside {
+    display: block;
+    float: right;
+    width: 390px;
+}
+
+.markdown blockquote {
+    border-left: .5em solid #eee;
+    padding: 0 2em;
+    margin-left: 0;
+    max-width: 476px;
+}
+.markdown blockquote  cite {
+    font-size: 14px;
+    line-height: 20px;
+    color: #bfbfbf;
+}
+.markdown blockquote cite:before { content: '\2014 \00A0' }
+.markdown blockquote p {
+    color: #666;
+    max-width: 460px;
+}
+
+.markdown hr {
+    margin: 20px 0 20px 0;
+    border: 0;
+    border-top: 2px dashed #444;
+}
+
+.markdown table {
+    border: none;
+    border-collapse: collapse;
+    border-spacing: 0;
+    margin: 0 0 1em 0;
+}
+.markdown table th,
+.markdown table td {
+    text-align: left;
+    padding: 8px 20px;
+}
+.markdown table th {
+    color: #000;
+    background: #eee;
+    font-size: 80%;
+    font-weight: bold;
+    border-bottom: 2px solid #666;
+    line-height: 120%;
+}
+.markdown table td {
+    border-bottom: 1px solid #888;
+}
