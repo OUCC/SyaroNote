@@ -3,9 +3,7 @@ Syaro Markdown Wiki Server
 
 [![Build Status](https://drone.io/github.com/OUCC/syaro/status.png)](https://drone.io/github.com/OUCC/syaro/latest)
 
-Description
-----
-Syaro is a simple and pretty wiki system.
+Syaro is a simple and pretty wiki system supporting markdown.
 
 Features
 ----
@@ -21,6 +19,7 @@ Viewer also supports code syntax highlighting. This feature is powered by
 
 ### [[WikiLink]]
 Texts surrounded by double bracket are interpreted as WikiLink. To link to
+another wiki page, you can use WikiLink. 
 another wiki page, you can use WikiLink. For example,
 
 ```
@@ -54,6 +53,13 @@ is appended when you see `gochiusa.md`.
 * Realtime preview (including MathJax rendering and code highlighting)
 * Markdown syntax highlight
 
+### Supports MathJax and code highlighting
+
+VS. [Gollum](https://github.com/gollum/gollum)
+----
+* Syaro supports CJK filename and text.
+* File list on wiki page
+
 Build & Install
 ----
 First, install go and bower.
@@ -66,10 +72,16 @@ bower install
 ./install_components.sh # copy files
 ```
 
-Use
----
+Usage
+----
 ```bash
 syaro --wikiroot=/path/to/wiki
+
+# or
+sudo mkdir /usr/local/share/syaro
+sudo cp public views /usr/local/share/syaro/ # place template html etc in your system
+cd path/to/wiki
+syaro
 
 # If you want to use MathJax or highlight.js,
 # syaro --mathjax --highlight --wikiroot=...
@@ -79,11 +91,18 @@ Then open `localhost:8080/Home` in your browser.
 
 `syaro -h` or `syaro --help` you can see more options.
 
-About this software
+Contribution
 ----
+Fork and pull requests welcome. I hadn't receive any pullreq ever so please give
+me your first pullreq!
+
+About
+----
+Author: [yuntan](https://github.com/yuntan)
+
 This software is released under MIT License.
 
-Following software is used:
+Following softwares are used:
 
 * [Go]  (BSD)
 * [Twitter Bootstrap]  (MIT)
@@ -92,7 +111,6 @@ Following software is used:
 * [marked]  (MIT)
 * [MathJax]  (Apache)
 * [highlight.js]  (BSD)
-* ([dillinger])  (MIT)
 
 
 [Go]: http://golang.org/
