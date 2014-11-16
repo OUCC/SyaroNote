@@ -32,7 +32,6 @@ var (
 
 type Page struct {
 	*wikiio.WikiFile
-	mdHTML template.HTML
 }
 
 // LoadPage returns new Page.
@@ -52,7 +51,7 @@ func LoadPage(wpath string) (*Page, error) {
 	}
 
 	LoggerV.Println("main.LoadPage: ok")
-	return &Page{wfile, ""}, nil
+	return &Page{wfile}, nil
 }
 
 // Title returns title of page.
@@ -98,8 +97,7 @@ func (page *Page) MdText() string {
 	return string(page.raw())
 }
 
-func (page *Page) MdHTML() string {
-	// if page.mdHTML == "" {
+func (page *Page) MdHTML() template.HTML {
 	var dir string
 	if page.IsDir() {
 		dir = page.WikiPath()
@@ -107,13 +105,10 @@ func (page *Page) MdHTML() string {
 		dir = filepath.Dir(page.WikiPath())
 	}
 
-	return processWikiLink(page.MdText(), dir)
-	// page.mdHTML = template.HTML(mdhtml)
-	// }
-	// return page.mdHTML
+	return template.HTML(parseMarkdown([]byte(page.MdText()), dir))
 }
 
-func (page *Page) SidebarMdHTML() string {
+func (page *Page) SidebarMdHTML() template.HTML {
 	path := filepath.Join(setting.WikiRoot, SIDEBAR_MD)
 	_, err := os.Stat(path)
 	if err != nil {
@@ -130,9 +125,7 @@ func (page *Page) SidebarMdHTML() string {
 		return ""
 	}
 
-	return processWikiLink(string(b), "/")
-	// mdhtml := processWikiLink(html.EscapeString(string(b)), "/")
-	// return template.HTML(mdhtml)
+	return template.HTML(parseMarkdown(b, "/"))
 }
 
 func (page *Page) Render(res http.ResponseWriter) error {

@@ -6,82 +6,88 @@ import (
 	"github.com/OUCC/syaro/util"
 	"github.com/OUCC/syaro/wikiio"
 
-	"bufio"
-	"bytes"
-	"html"
+	"code.google.com/p/go.net/html"
+
 	"net/url"
 	"path/filepath"
 	"regexp"
 	"strings"
 )
 
-func processWikiLink(s string, currentDir string) string {
-	const RE_DOUBLE_BRACKET = "\\[\\[[^\\]]+\\]\\]"
+func processWikiLink(n *html.Node, currentDir string) {
+	const RE_DOUBLE_BRACKET = "\\[\\[.+\\]\\]"
 
-	reader := strings.NewReader(s)
-	scanner := bufio.NewScanner(reader)
-	var buffer bytes.Buffer
+	if n.Type != html.TextNode {
+		return
+	}
 
 	re := regexp.MustCompile(RE_DOUBLE_BRACKET)
 
-	for scanner.Scan() {
-		line := scanner.Text()
+	p := n.Parent
+	nx := n.NextSibling
 
-		for {
-			indices := re.FindStringIndex(line)
+	for {
+		s := n.Data
+		indices := re.FindStringIndex(s)
 
-			if len(indices) != 0 { // tag found
-				LoggerV.Println("processWikiLink: bracket tag found:",
-					string(line[indices[0]:indices[1]]))
+		if len(indices) != 0 { // double bracket fount
+			LoggerV.Println("processWikiLink: bracket tag found:",
+				s[indices[0]:indices[1]])
 
-				name := line[indices[0]+2 : indices[1]-2] // [[name]]
-				files := searchPage(name, currentDir)
+			// text before <a> tag
+			n.Data = s[:indices[0]]
 
-				if len(files) != 0 { // page found
-					LoggerV.Println("processWikiLink:", len(files), "pages found")
-					LoggerV.Println("processWikiLink: select ", files[0].WikiPath())
-					// TODO avoid ambiguous page
-					line = embedLinkTag(line, indices, name, files[0])
-
-				} else { // page not found
-					LoggerV.Println("processWikiLink: no page found")
-					line = embedLinkTag(line, indices, name, nil)
-				}
-
-			} else { // tag not found, so go next line
-				break
+			// <a> tag
+			a := html.Node{
+				Type: html.ElementNode,
+				Data: "a",
 			}
+
+			name := s[indices[0]+2 : indices[1]-2]                      // [[name]]
+			if files := searchPage(name, currentDir); len(files) != 0 { // page found
+				// TODO avoid ambiguous page
+				LoggerV.Println("processWikiLink:", len(files), "pages found")
+				LoggerV.Println("processWikiLink: select ", files[0].WikiPath())
+				a.Attr = []html.Attribute{html.Attribute{
+					Key: "href",
+					Val: string(files[0].URLPath()),
+				},
+				}
+			} else { // page not found
+				LoggerV.Println("processWikiLink: no page found")
+				a.Attr = []html.Attribute{
+					html.Attribute{
+						Key: "class",
+						Val: "notfound",
+					},
+					html.Attribute{
+						Key: "href",
+						Val: setting.UrlPrefix + "/error/404?data=" + url.QueryEscape(name),
+					},
+				}
+			}
+
+			// text in <a> tag
+			a.AppendChild(&html.Node{
+				Type: html.TextNode,
+				Data: name,
+			})
+
+			p.InsertBefore(&a, nx)
+
+			// text after <a> tag
+			p.InsertBefore(&html.Node{
+				Type: html.TextNode,
+				Data: s[indices[1]:],
+			}, nx)
+
+			if nx != nil {
+				n = nx.PrevSibling
+			}
+		} else {
+			break
 		}
-		buffer.Write([]byte(line))
-		buffer.Write([]byte("\n"))
 	}
-
-	return buffer.String()
-}
-
-func embedLinkTag(line string, tagIndex []int, linkname string, file *wikiio.WikiFile) string {
-	if file == nil {
-		return strings.Join([]string{
-			line[:tagIndex[0]],
-			"<a class=\"notfound\" href=\"",
-			setting.UrlPrefix,
-			"/error/404?data=",
-			url.QueryEscape(string(linkname)),
-			"\">",
-			linkname,
-			"</a>",
-			line[tagIndex[1]:],
-		}, "")
-	}
-	return strings.Join([]string{
-		line[:tagIndex[0]],
-		"<a href=\"",
-		string(file.URLPath()),
-		"\">",
-		linkname,
-		"</a>",
-		line[tagIndex[1]:],
-	}, "")
 }
 
 func searchPage(name string, currentDir string) []*wikiio.WikiFile {

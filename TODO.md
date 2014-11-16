@@ -4,10 +4,13 @@ TODO
 * [ ] readonly mode
 * [ ] git integration
   - [ ] auto git commit and git rebase when user save file
-* [ ] html pipeline
-* [ ] fragment(auto header ID)
-* [ ] table of contents
+* [x] html pipeline
+* [x] fragment(auto header ID)
+  - [ ] link anchor
+* [x] table of contents
 * [ ] emoji (https://github.com/twitter/twemoji)
+* [ ] checkbox
 * [ ] preview on server
 * [ ] comment field (DISQUS?)
 * [ ] setup github page
+* [ ] print preview
