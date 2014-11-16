@@ -63,6 +63,10 @@ func handler(res http.ResponseWriter, req *http.Request) {
 	requrl := req.URL
 
 	LoggerM.Printf("main.handler: Request received (%s)\n", requrl.RequestURI())
+
+	// url unescape (+ -> <Space>)
+	requrl.Path = strings.Replace(requrl.Path, "+", " ", -1)
+
 	LoggerM.Printf("main.handler: Path: %s, Query: %s, Fragment: %s", requrl.Path,
 		requrl.RawQuery, requrl.Fragment)
 

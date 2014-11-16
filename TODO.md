@@ -1,6 +1,6 @@
 TODO
 ====
-* [ ] fix wiki link bug (wiki link including space is not valid)
+* [x] fix wiki link bug (wiki link including space is not valid)
 * [ ] readonly mode
 * [ ] git integration
   - [ ] auto git commit and git rebase when user save file
