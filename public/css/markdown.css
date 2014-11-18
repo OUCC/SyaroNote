@@ -119,6 +119,15 @@
     margin-bottom: 1em;
 }
 
+/* task list */
+.markdown .task-list-item {
+    list-style-type: none;
+}
+.markdown .task-list-item-checkbox[disabled] {
+    cursor: default;
+    margin: .4em .5em 0 -1.3em;
+}
+
 /* code */
 .markdown code {
     font-family: monospace;
