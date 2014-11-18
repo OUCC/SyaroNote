@@ -8,6 +8,28 @@
     padding: 0 30px 30px 30px;
 }
 
+/* TOC */
+.markdown nav {
+    padding: 20px 0;
+    max-width: 300px;
+    min-width: 70px;
+    max-height: 500px;
+    border-top-right-radius: 3px;
+    border-top-left-radius: 3px;
+    border-bottom-right-radius: 3px;
+    border-bottom-left-radius: 3px;
+    position: relative;
+    float: right;
+    z-index: 1;
+    background-color: #fff;
+    border: solid 1px #ccc;
+    margin-bottom: 20px;
+    margin-left: 15px;
+}
+.syaro-sidebar .markdown nav {
+    display: none;
+}
+
 /* header */
 .markdown h1,
 .markdown h2,
