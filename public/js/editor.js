@@ -140,6 +140,8 @@ $(function() {
           // update math in #preview
           MathJax.Hub.Queue(["Typeset", MathJax.Hub, "preview"]);
         }
+
+        syncScroll();
       }
     }
 
@@ -147,18 +149,20 @@ $(function() {
   }
 
   function syncScroll() {
-    var $prev = $('#preview')
+    var $preview = $('#preview');
 
-    var editorHeight = editor.getSession().getLength()
-    var previewHeight = $prev[0].scrollHeight
+    var previewHeight  = $preview[0].scrollHeight,
+        previewVisible = $preview.height(),
+        previewTop     = $preview[0].scrollTop,
+        editorHeight   = editor.getSession().getLength(),
+        editorVisible  = editor.getLastVisibleRow() - editor.getFirstVisibleRow(),
+        editorTop      = editor.getFirstVisibleRow();
 
-    // Find how far along the editor is (0 means it is scrolled to the top, 1
-    // means it is at the bottom).
-    var scrollFactor = editor.getFirstVisibleRow() / editorHeight
+    // editorTop / (editorHeight - editorVisible)
+    //   = previewTop / (previewHeight - previewVisible)
+    var top = editorTop * (previewHeight - previewVisible) / (editorHeight - editorVisible);
 
-    // Set the scroll position of the preview pane to match.  jQuery will
-    // gracefully handle out-of-bounds values.
-    $prev.scrollTop(scrollFactor * previewHeight)
+    $preview.scrollTop(top);
   }
 
   init()

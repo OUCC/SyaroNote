@@ -12,7 +12,7 @@ TODO
 * [ ] emoji (https://github.com/twitter/twemoji)
 * [x] checkbox
 * [x] preview on server
-* [ ] fix sync scroll
+* [x] fix sync scroll
 * [ ] auto save
 * [ ] table editor
 * [ ] comment field (DISQUS?)
