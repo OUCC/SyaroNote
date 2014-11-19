@@ -12,7 +12,6 @@
   "dependencies": {
     "jquery": "2",
     "ace-builds": "1",
-    "marked": "~0.3.2",
     "bootstrap": "3"
   }
 }

@@ -8,7 +8,7 @@ Syaro is a simple and pretty wiki system supporting markdown.
 Features
 ----
 ### Markdown Viewer
-Syaro can handle markdown format files. [marked] is used to convert
+Syaro can handle markdown format files. [blackfriday] is used to convert
 Markdown to HTML.
 
 Viewer supports MathJax. LaTeX text surrounded by `$` (inline math) or `$$` 
@@ -105,19 +105,18 @@ This software is released under MIT License.
 Following softwares are used:
 
 * [Go]  (BSD)
+* [blackfriday] (BSD)
 * [Twitter Bootstrap]  (MIT)
 * [jQuery]  (MIT)
 * [Ace]  (BSD)
-* [marked]  (MIT)
 * [MathJax]  (Apache)
 * [highlight.js]  (BSD)
 
 
 [Go]: http://golang.org/
+[blackfriday]: https://github.com/russross/blackfriday
 [Twitter Bootstrap]: http://getbootstrap.com
 [jQuery]: http://jquery.com
 [Ace]: http://ace.c9.io
-[marked]: https://github.com/chjj/marked
 [Mathjax]: http://www.mathjax.org/
 [highlight.js]: https://highlightjs.org/
-[dillinger]: https://github.com/joemccann/dillinger/

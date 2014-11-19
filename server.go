@@ -40,6 +40,8 @@ func startServer() {
 	mux.Handle(setting.UrlPrefix+"/js/", fileServer)
 	mux.Handle(setting.UrlPrefix+"/lib/", fileServer)
 
+	// for editor preview
+	mux.HandleFunc(setting.UrlPrefix+"/preview", previewHandler)
 	// for pages
 	mux.HandleFunc(setting.UrlPrefix+"/", handler)
 
@@ -255,6 +257,22 @@ func handler(res http.ResponseWriter, req *http.Request) {
 		errorHandler(res, http.StatusNotFound, data)
 		return
 	}
+}
+
+// previewHandler for markdown preview in editor
+func previewHandler(res http.ResponseWriter, req *http.Request) {
+	LoggerM.Printf("main.previewHandler: Request received ReuqestURI: %s\n", req.RequestURI)
+
+	path := req.URL.Query().Get("path")
+	dir := filepath.Dir(path)
+	LoggerV.Printf("main.previewHandler: dir: %s\n", dir)
+
+	// raw markdown
+	text, _ := ioutil.ReadAll(req.Body)
+
+	// return generated html
+	res.Write(parseMarkdown(text, dir))
+	LoggerM.Println("main.previewHandler: response sent")
 }
 
 func errorHandler(res http.ResponseWriter, status int, data string) {

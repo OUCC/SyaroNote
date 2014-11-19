@@ -11,7 +11,9 @@ TODO
 * [x] table of contents
 * [ ] emoji (https://github.com/twitter/twemoji)
 * [x] checkbox
-* [ ] preview on server
+* [x] preview on server
+* [ ] fix sync scroll
+* [ ] auto save
 * [ ] table editor
 * [ ] comment field (DISQUS?)
 * [ ] setup github page

@@ -5,11 +5,11 @@ $(function() {
   var theme = 'ace/theme/chrome'
   var preview = true
   var mathjax = false
+  var timeoutId = ""
 
   function init() {
     initUi()
     initAce()
-    initMarked()
     updatePreview()
   }
 
@@ -101,40 +101,49 @@ $(function() {
     editor.setOption('scrollPastEnd', true)
 
     editor.getSession().on('change', function(e) {
-      modified = true
-      updatePreview()
+      modified = true;
+      if(timeoutId !== "") { clearTimeout(timeoutId); }
+
+      timeoutId = setTimeout(function() {
+        updatePreview();
+      }, 5000);
     })
 
     // sync scroll
     editor.getSession().on('changeScrollTop', syncScroll)
   }
 
-  function initMarked() {
-    marked.setOptions({
-      gfm: true,
-      tables: true,
-      pedantic: false,
-      sanitize: false,
-      smartLists: true,
-      smartypants: false,
-      langPrefix: 'lang-',
-      highlight: syaro.highlight ? function(code) { return hljs.highlightAuto(code).value; }
-                                 : undefined
-    })
-  }
-
   function updatePreview() {
-    if (!preview) { return }
+    if (!preview) { return; }
 
-    var md = editor.getSession().getValue()
-    var mdhtml = marked(md)
+    var url = document.createElement('a');
+    url.href = location.href;
 
-    $('#preview').html(mdhtml)
+    var reqUrl = url.protocol + '//' + url.host +
+        syaro.urlPrefix === '' ? '/' + syaro.urlPrefix : '' +
+        '/preview?path=' + encodeURIComponent(syaro.wikiPath).replace(/%2F/g, '/');
 
-    if (syaro.mathjax && mathjax) {
-      // update math in #preview
-      MathJax.Hub.Queue(["Typeset", MathJax.Hub, "preview"])
+    var req = new XMLHttpRequest();
+    req.open('POST', reqUrl);
+
+    req.onreadystatechange = function() {
+      if(req.readyState === 4 && req.status === 200) {
+        $('#preview').html(req.responseText);
+
+        if (syaro.highlight) {
+          $('#preview pre code').each(function(i, block) {
+            hljs.highlightBlock(block);
+          });
+        }
+
+        if (syaro.mathjax && mathjax) {
+          // update math in #preview
+          MathJax.Hub.Queue(["Typeset", MathJax.Hub, "preview"]);
+        }
+      }
     }
+
+    req.send(editor.getSession().getValue());
   }
 
   function syncScroll() {
