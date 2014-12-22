@@ -26,40 +26,40 @@ func main() {
 	SetupLogger()
 
 	// print welcome message
-	LoggerM.Println("===== Syaro Wiki Server =====")
-	LoggerM.Println("Starting...")
-	LoggerM.Println("")
+	Log.Notice("===== Syaro Wiki Server =====")
+	Log.Notice("Starting...")
+	Log.Notice("")
 
 	findSyaroDir()
 	if setting.SyaroDir == "" {
-		LoggerE.Fatalln("Error: Can't find system file directory.")
+		Log.Fatal("Error: Can't find system file directory.")
 	}
 
-	LoggerM.Println("WikiName:", setting.WikiName)
-	LoggerM.Println("WikiRoot:", setting.WikiRoot)
-	LoggerM.Println("Syaro dir:", setting.SyaroDir)
+	Log.Notice("WikiName: %s", setting.WikiName)
+	Log.Notice("WikiRoot: %s", setting.WikiRoot)
+	Log.Notice("Syaro dir: %s", setting.SyaroDir)
 	if setting.FCGI {
-		LoggerM.Println("Fast CGI mode: ON")
+		Log.Notice("Fast CGI mode: ON")
 	} else {
-		LoggerM.Println("Fast CGI mode: OFF")
+		Log.Notice("Fast CGI mode: OFF")
 	}
-	LoggerM.Println("Port:", setting.Port)
-	LoggerM.Println("URL prefix:", setting.UrlPrefix)
-	LoggerM.Println("MathJax:", setting.MathJax)
-	LoggerM.Println("Highlight:", setting.Highlight)
-	LoggerM.Println("Verbose output:", setting.Verbose)
-	LoggerM.Println("")
+	Log.Notice("Port: %d", setting.Port)
+	Log.Notice("URL prefix: %s", setting.UrlPrefix)
+	Log.Notice("MathJax: %t", setting.MathJax)
+	Log.Notice("Highlight: %t", setting.Highlight)
+	Log.Notice("Verbose output: %t", setting.Verbose)
+	Log.Notice("")
 
-	LoggerM.Println("Parsing template...")
+	Log.Info("Parsing template...")
 	err := setupViews()
 	if err != nil {
-		LoggerE.Fatalln("Failed to parse template:", err)
+		Log.Fatalf("Failed to parse template: %s", err)
 	}
-	LoggerM.Println("Template parsed")
+	Log.Info("Template parsed")
 
-	LoggerM.Println("Building index...")
+	Log.Info("Building index...")
 	wikiio.BuildIndex()
-	LoggerM.Println("Index built")
+	Log.Info("Index built")
 
 	startServer()
 }
@@ -74,7 +74,7 @@ func findSyaroDir() {
 		_, err := os.Stat(filepath.Join(setting.SyaroDir, VIEWS_DIR))
 		// if directory isn't exist
 		if err != nil {
-			LoggerE.Println("Error: Can't find template file dir specified in argument")
+			Log.Error("Can't find template file dir specified in argument")
 			setting.SyaroDir = ""
 			return
 		}

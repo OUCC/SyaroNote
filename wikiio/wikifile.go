@@ -34,7 +34,7 @@ func (f *WikiFile) WikiPath() string { return f.wikiPath }
 // WikiPathList returns slice of each WikiFile in wikipath
 // (slice doesn't include urlPrefix)
 func (f *WikiFile) WikiPathList() []*WikiFile {
-	LoggerV.Println("wikiio.WikiFile.WikiPathList: building...")
+	Log.Debug("building...")
 	s := strings.Split(util.RemoveExt(f.WikiPath()), "/")
 	if s[0] == "" {
 		s = s[1:]
@@ -43,15 +43,15 @@ func (f *WikiFile) WikiPathList() []*WikiFile {
 	ret := make([]*WikiFile, len(s))
 	for i := 0; i < len(ret); i++ {
 		path := "/" + strings.Join(s[:i+1], "/")
-		LoggerV.Println("wikiio.WikiFile.WikiPathList: load ", path)
+		Log.Debug("load %s", path)
 		//		p, err := LoadPage(path)
 		wfile, err := Load(path)
 		if err != nil {
-			LoggerV.Println("wikiio.WikiFile.WikiPathList: error in wikiio.Load(path): ", err)
+			Log.Debug("error in wikiio.Load(path): %s", err)
 		}
 		ret[i] = wfile
 	}
-	LoggerV.Println("wikiio.WikiFile.WikiPathList: finish")
+	Log.Debug("finish")
 	return ret
 }
 
@@ -105,7 +105,7 @@ func (f *WikiFile) Raw() []byte {
 
 	b, err := ioutil.ReadFile(f.FilePath())
 	if err != nil {
-		LoggerE.Fatalln(err)
+		Log.Fatal(err)
 	}
 
 	return b

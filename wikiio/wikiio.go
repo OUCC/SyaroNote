@@ -24,11 +24,11 @@ var (
 
 // must be called after setting.WikiRoot is set
 func BuildIndex() {
-	LoggerV.Println("wikiio.BuildIndex(): Start")
+	Log.Debug("Building start")
 
 	info, err := os.Stat(setting.WikiRoot)
 	if err != nil {
-		LoggerE.Fatalln("Error:", err)
+		Log.Fatal(err)
 	}
 
 	WikiRoot = &WikiFile{
@@ -39,7 +39,7 @@ func BuildIndex() {
 
 	walkfunc(WikiRoot)
 
-	LoggerV.Println("wikiio.BuildIndex(): End")
+	Log.Debug("Building end")
 }
 
 // func for rescursive
@@ -82,7 +82,7 @@ func walkfunc(dir *WikiFile) {
 }
 
 func Load(wpath string) (*WikiFile, error) {
-	LoggerV.Printf("wikiio.Load(%s)", wpath)
+	Log.Debug("wikiio.Load(%s)", wpath)
 
 	// wiki root
 	if wpath == "/" || wpath == "." || wpath == "" {
@@ -105,7 +105,7 @@ func Load(wpath string) (*WikiFile, error) {
 		}
 		// not found
 		if ret == tmp {
-			LoggerV.Printf("wikiio.Load: not exist")
+			Log.Debug("wikiio.Load: not exist")
 			return nil, ErrNotExist
 		}
 	}
@@ -114,10 +114,10 @@ func Load(wpath string) (*WikiFile, error) {
 }
 
 func Search(name string) ([]*WikiFile, error) {
-	LoggerV.Printf("wikiio.Search(%s)", name)
+	Log.Debug("wikiio.Search(%s)", name)
 	files, present := searchIndex[name]
 	if !present {
-		LoggerV.Println("wikiio.Search: not found")
+		Log.Debug("not found")
 		return nil, ErrNotFound
 	}
 
@@ -126,13 +126,13 @@ func Search(name string) ([]*WikiFile, error) {
 	for i := 0; i < len(found); i++ {
 		found[i] = files[i].WikiPath()
 	}
-	LoggerV.Println("wikiio.Search: found", found)
+	Log.Debug("found %v", found)
 
 	return files, nil
 }
 
 func Create(wpath string) error {
-	LoggerV.Printf("wikiio.Create(%s)", wpath)
+	Log.Debug("wikiio.Create(%s)", wpath)
 
 	const initialText = "New Page\n========\n"
 
@@ -151,7 +151,7 @@ func Create(wpath string) error {
 	os.MkdirAll(filepath.Dir(path), 0755)
 	err := ioutil.WriteFile(path, []byte(initialText), 0644)
 	if err != nil {
-		LoggerE.Println("Error: wikiio.Create:", err)
+		Log.Debug(err.Error())
 		return err
 	}
 
@@ -162,7 +162,7 @@ func Create(wpath string) error {
 }
 
 func Rename(oldpath string, newpath string) error {
-	LoggerV.Printf("wikiio.Rename(%s, %s)", oldpath, newpath)
+	Log.Debug("wikiio.Rename(%s, %s)", oldpath, newpath)
 
 	f, err := Load(oldpath)
 	if err != nil {
@@ -177,7 +177,7 @@ func Rename(oldpath string, newpath string) error {
 	os.MkdirAll(filepath.Dir(path), 0755)
 	err = os.Rename(f.FilePath(), path)
 	if err != nil {
-		LoggerE.Println("Error: wikiio.Create: can't rename:", err)
+		Log.Debug("can't rename: %s", err)
 		return err
 	}
 

@@ -15,21 +15,21 @@ type Editor struct {
 }
 
 func NewEditor(wpath string) (*Editor, error) {
-	LoggerV.Printf("main.NewEditor(%s)\n", wpath)
+	Log.Debug("wpath: %s", wpath)
 
 	page, err := LoadPage(wpath)
 	if err != nil {
-		LoggerV.Println("Error: main.NewEditor:", err)
+		Log.Error(err.Error())
 		return nil, err
 	}
 
 	// check if is dir
 	if page.IsDir() {
-		LoggerV.Println("Error: main.NewEditor: this is dir")
+		Log.Error("this is dir")
 		return nil, ErrIsNotMarkdown
 	}
 
-	LoggerV.Println("main.NewEditor: ok")
+	Log.Debug("ok")
 	return &Editor{page}, nil
 }
 

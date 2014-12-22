@@ -3,28 +3,26 @@ package logger
 import (
 	"github.com/OUCC/syaro/setting"
 
-	"io/ioutil"
-	"log"
+	logging "github.com/op/go-logging"
+
 	"os"
 )
 
 var (
-	LoggerM *log.Logger
-	LoggerV *log.Logger
-	LoggerE *log.Logger
+	Log    = logging.MustGetLogger("syaro")
+	format = logging.MustStringFormatter(
+		"%{time:2006/01/02 15:04:05} %{shortpkg:-6.6s} %{shortfunc:-12.12s} | %{color:bold}%{level:.4s}%{color:reset} %{color}%{message}%{color:reset}",
+	)
 )
 
 func SetupLogger() {
-	prefix := "syaro: "
-	flag := log.Ldate | log.Ltime | log.Lshortfile
-
-	LoggerM = log.New(os.Stdout, prefix, flag)
-
+	backend := logging.NewLogBackend(os.Stdout, "", 0)
+	backendFormatter := logging.NewBackendFormatter(backend, format)
+	backendLeveled := logging.AddModuleLevel(backendFormatter)
 	if setting.Verbose {
-		LoggerV = log.New(os.Stdout, prefix, flag)
+		backendLeveled.SetLevel(logging.DEBUG, "")
 	} else {
-		LoggerV = log.New(ioutil.Discard, prefix, flag)
+		backendLeveled.SetLevel(logging.INFO, "")
 	}
-
-	LoggerE = log.New(os.Stderr, prefix, flag)
+	Log.SetBackend(backendLeveled)
 }

@@ -31,8 +31,7 @@ func processWikiLink(n *html.Node, currentDir string) {
 		indices := re.FindStringIndex(s)
 
 		if len(indices) != 0 { // double bracket fount
-			LoggerV.Println("processWikiLink: bracket tag found:",
-				s[indices[0]:indices[1]])
+			Log.Debug("bracket tag found: %s", s[indices[0]:indices[1]])
 
 			// text before <a> tag
 			n.Data = s[:indices[0]]
@@ -46,15 +45,15 @@ func processWikiLink(n *html.Node, currentDir string) {
 			name := s[indices[0]+2 : indices[1]-2]                      // [[name]]
 			if files := searchPage(name, currentDir); len(files) != 0 { // page found
 				// TODO avoid ambiguous page
-				LoggerV.Println("processWikiLink:", len(files), "pages found")
-				LoggerV.Println("processWikiLink: select ", files[0].WikiPath())
+				Log.Debug("%d pages found", len(files))
+				Log.Debug("select %s", files[0].WikiPath())
 				a.Attr = []html.Attribute{html.Attribute{
 					Key: "href",
 					Val: string(files[0].URLPath()),
 				},
 				}
 			} else { // page not found
-				LoggerV.Println("processWikiLink: no page found")
+				Log.Debug("no page found")
 				a.Attr = []html.Attribute{
 					html.Attribute{
 						Key: "class",
@@ -114,7 +113,7 @@ func searchPage(name string, currentDir string) []*wikiio.WikiFile {
 }
 
 func searchPageByAbsPath(abspath string) []*wikiio.WikiFile {
-	LoggerV.Printf("main.searchPageByAbsPath(%s)", abspath)
+	Log.Debug("main.searchPageByAbsPath(%s)", abspath)
 	file, _ := wikiio.Load(abspath)
 	if file == nil {
 		return nil
@@ -123,7 +122,7 @@ func searchPageByAbsPath(abspath string) []*wikiio.WikiFile {
 }
 
 func searchPageByRelPath(relpath, currentDir string) []*wikiio.WikiFile {
-	LoggerV.Printf("main.searchPageByRelPath(%s, %s)", relpath, currentDir)
+	Log.Debug("main.searchPageByRelPath(%s, %s)", relpath, currentDir)
 	wpath := filepath.Join(currentDir, relpath)
 	file, _ := wikiio.Load(wpath)
 	if file == nil {
@@ -133,7 +132,7 @@ func searchPageByRelPath(relpath, currentDir string) []*wikiio.WikiFile {
 }
 
 func searchPageByBaseName(baseName string) []*wikiio.WikiFile {
-	LoggerV.Printf("main.searchPageByBaseName(%s)", baseName)
+	Log.Debug("main.searchPageByBaseName(%s)", baseName)
 	files, _ := wikiio.Search(baseName)
 	return files
 }

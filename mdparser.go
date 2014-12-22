@@ -32,17 +32,17 @@ func parseMarkdown(input []byte, dir string) []byte {
 		EXTENSION_HEADER_IDS |
 		EXTENSION_AUTO_HEADER_IDS
 
-	LoggerV.Println("main.parseMarkdown: setting up the HTML renderer")
+	Log.Debug("setting up the HTML renderer")
 	renderer := HtmlRenderer(htmlFlags, "", "")
 
-	LoggerV.Println("main.parseMarkdown: rendering html with blackfriday")
+	Log.Debug("rendering html with blackfriday")
 	mdHtml := Markdown(input, renderer, extensions)
 
-	LoggerV.Println("main.parseMarkdown: parsing html")
+	Log.Debug("parsing html")
 	r := bytes.NewReader(mdHtml) // byte reader
 	tree, err := html.Parse(r)
 	if err != nil {
-		LoggerE.Panicln("main.ParseMarkdown: Error!", err)
+		Log.Panic(err)
 	}
 
 	var treeManip func(*html.Node)
@@ -69,7 +69,7 @@ func parseMarkdown(input []byte, dir string) []byte {
 
 	treeManip(tree)
 
-	LoggerV.Println("main.ParseMarkdown: re-rendering html from tree")
+	Log.Debug("re-rendering html from tree")
 	var w bytes.Buffer
 	html.Render(&w, tree) // re-render html
 	b := w.Bytes()

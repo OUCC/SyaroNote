@@ -21,7 +21,7 @@ func startServer() {
 	// listen port
 	l, err := net.Listen("tcp", ":"+strconv.Itoa(setting.Port))
 	if err != nil {
-		LoggerE.Fatalln("Error: main.startServer:", err)
+		Log.Fatal(err)
 	}
 
 	mux := http.NewServeMux()
@@ -46,9 +46,8 @@ func startServer() {
 	// for pages
 	mux.HandleFunc(setting.UrlPrefix+"/", handler)
 
-	LoggerM.Printf("main.startServer: Server started. Waiting connection localhost:%d%s\n",
+	Log.Notice("Server started. Waiting connection localhost:%d%s\n",
 		setting.Port, setting.UrlPrefix)
-	LoggerM.Println()
 
 	if setting.FCGI {
 		err = fcgi.Serve(l, mux)
@@ -57,7 +56,7 @@ func startServer() {
 	}
 
 	if err != nil {
-		LoggerE.Fatal("Error: main.startServer:", err)
+		Log.Fatalf("main.startServer: %s", err)
 	}
 }
 
@@ -65,18 +64,18 @@ func startServer() {
 func handler(res http.ResponseWriter, req *http.Request) {
 	requrl := req.URL
 
-	LoggerM.Printf("main.handler: Request received (%s)\n", requrl.RequestURI())
+	Log.Info("Request received (%s)", requrl.RequestURI())
 
 	// url unescape (+ -> <Space>)
 	requrl.Path = strings.Replace(requrl.Path, "+", " ", -1)
 
-	LoggerM.Printf("main.handler: Path: %s, Query: %s, Fragment: %s", requrl.Path,
+	Log.Info("Path: %s, Query: %s, Fragment: %s", requrl.Path,
 		requrl.RawQuery, requrl.Fragment)
 
 	wpath := strings.TrimPrefix(requrl.Path, setting.UrlPrefix)
 
 	if re := regexp.MustCompile("^/error/\\d{3}$"); re.MatchString(wpath) {
-		LoggerM.Println("main.handler: Error view requested")
+		Log.Info("Error view requested")
 		status, _ := strconv.Atoi(wpath[7:10])
 		errorHandler(res, status, requrl.Query().Get("data"))
 		return
@@ -86,101 +85,101 @@ func handler(res http.ResponseWriter, req *http.Request) {
 	case "":
 		switch requrl.Query().Get("action") {
 		case "":
-			LoggerM.Println("main.handler: Page requested")
+			Log.Info("Page requested")
 			v, err := LoadPage(wpath)
 			switch err {
 			case nil:
 				// render html
-				LoggerM.Println("main.handler: Rendering view...")
+				Log.Info("Rendering view...")
 				err = v.Render(res)
 				if err != nil {
-					LoggerE.Println("Error: main.handler: Rendering error!:", err)
+					Log.Error("Rendering error!: %s", err)
 					errorHandler(res, http.StatusInternalServerError, err.Error())
 					return
 				}
-				LoggerM.Println("main.handler: Page rendered")
+				Log.Info("Page rendered")
 
 			case ErrIsNotMarkdown:
-				LoggerM.Println("main.handler: File requested")
+				Log.Info("File requested")
 				v, err := wikiio.Load(wpath)
 				if err != nil {
-					LoggerE.Println("Error: main.handler: ", err)
+					Log.Error(err.Error())
 					http.Error(res, err.Error(), http.StatusNotFound)
 					return
 				}
 				res.Write(v.Raw())
-				LoggerM.Println("main.handler: File sent")
+				Log.Info("File sent")
 
 			default:
-				LoggerE.Println("Error: main.handler:", err)
+				Log.Error(err.Error())
 				errorHandler(res, http.StatusNotFound, wpath)
 				return
 			}
 
 		case "create":
-			LoggerM.Println("main.handler: Create new page")
+			Log.Info("Create new page")
 
 			err := wikiio.Create(wpath)
 			if err == os.ErrExist {
-				LoggerE.Println("Error: main.handler: file already exists:", err)
+				Log.Error("file already exists (%s)", err)
 				http.Error(res, "file already exists", http.StatusBadRequest)
 				return
 			}
 			if err != nil {
-				LoggerE.Println("Error: main.handler: Create file error:", err)
+				Log.Error("Create file error: %s", err)
 				http.Error(res, "cannot create file", http.StatusInternalServerError)
 				return
 			}
 
 			// send success response
 			res.Write(nil)
-			LoggerV.Println("main.handler: New page created")
+			Log.Info("New page created")
 
 		case "rename":
-			LoggerM.Println("main.handler: Rename page")
+			Log.Info("Rename page")
 
 			oldpath, err := url.QueryUnescape(requrl.Query().Get("oldpath"))
 			if err != nil {
-				LoggerE.Println("Error: main.handler: Unescape error:", err)
+				Log.Error("Unescape error: %s", err)
 				code := http.StatusBadRequest
 				http.Error(res, http.StatusText(code), code)
 				return
 			}
 
 			if err := wikiio.Rename(oldpath, wpath); err != nil {
-				LoggerE.Println("Error: main.handler: Rename file error:", err)
+				Log.Error("Rename file error: %s", err)
 				http.Error(res, "cannot rename file", http.StatusInternalServerError)
 				return
 			}
 
 			// send success response
 			res.Write(nil)
-			LoggerV.Println("main.handler: Renamed")
+			Log.Info("Renamed")
 
 		case "delete":
-			LoggerM.Println("main.handler: Delete page")
+			Log.Info("Delete page")
 
 			f, err := wikiio.Load(wpath)
 			if err != nil {
-				LoggerE.Println("Error: main.handler: Load file error:", err)
+				Log.Error("Load file error: %s", err)
 				code := http.StatusNotFound
 				http.Error(res, http.StatusText(code), code)
 				return
 			}
 
 			if err = f.Remove(); err != nil {
-				LoggerE.Println("Error: main.handler: Delete file error:", err)
+				Log.Error("Delete file error: %s", err)
 				http.Error(res, "cannot delete file", http.StatusInternalServerError)
 				return
 			}
 
 			// send success response
 			res.Write(nil)
-			LoggerV.Println("main.handler: deleted")
+			Log.Info("Deleted")
 
 		default:
 			data := requrl.Query().Get("action")
-			LoggerE.Printf("Error: main.handler: invalid URL query (action: %s)\n", data)
+			Log.Error("Error: main.handler: invalid URL query (action: %s)", data)
 			status := http.StatusBadRequest
 			http.Error(res, http.StatusText(status), status)
 			return
@@ -189,19 +188,19 @@ func handler(res http.ResponseWriter, req *http.Request) {
 	case "editor":
 		switch req.Method {
 		case "", "GET":
-			LoggerM.Println("main.handler: Editor requested")
+			Log.Info("Editor requested")
 
 			// check main dir
 			f, _ := wikiio.Load(wpath)
 			if f != nil {
 				if f.DirMainPage() != nil {
-					LoggerM.Println("main.handler: Requested file is dir, let's redirect to main file")
+					Log.Info("Requested file is dir, let's redirect to main file")
 					http.Redirect(res, req,
 						string(f.DirMainPage().URLPath())+"?view=editor", http.StatusFound)
 					return
 				} else if f.IsDir() {
-					LoggerM.Println("main.handler: Requested file is dir, but main file dosen't exists.")
-					LoggerM.Println("main.handler: Return 404 page")
+					Log.Info("Requested file is dir, but main file dosen't exists.")
+					Log.Info("Return 404 page")
 					errorHandler(res, http.StatusNotFound, wpath)
 					return
 				}
@@ -209,25 +208,25 @@ func handler(res http.ResponseWriter, req *http.Request) {
 
 			v, err := NewEditor(wpath)
 			if err != nil {
-				LoggerE.Println("Error: main.handler:", err)
+				Log.Error(err.Error())
 				errorHandler(res, http.StatusNotFound, wpath)
 				return
 			}
 
 			// render html
-			LoggerM.Println("main.handler: Rendering view...")
+			Log.Info("Rendering view...")
 			err = v.Render(res)
 			if err != nil {
-				LoggerE.Println("Error: main.handler: Rendering error!:", err)
+				Log.Error("Rendering error!: %s", err)
 				errorHandler(res, http.StatusInternalServerError, err.Error())
 				return
 			}
 
 		case "POST":
-			LoggerM.Println("main.handler: Save requested")
+			Log.Info("Save requested")
 			f, err := wikiio.Load(wpath)
 			if err != nil {
-				LoggerE.Println("Error: main.handler:", err)
+				Log.Error(err.Error())
 				http.Error(res, wpath+"not found", http.StatusNotFound)
 				return
 			}
@@ -235,18 +234,18 @@ func handler(res http.ResponseWriter, req *http.Request) {
 			b, _ := ioutil.ReadAll(req.Body)
 			err = f.Save(b)
 			if err != nil {
-				LoggerE.Println("Error: main.handler: couldn't write:", err)
+				Log.Error("couldn't write: %s", err)
 				http.Error(res, "cannot save document", http.StatusInternalServerError)
 				return
 			}
-			LoggerM.Println("main.handler: File saved")
+			Log.Info("File saved")
 
 			// send success response
 			res.Write(nil)
 		}
 
 	case "history":
-		LoggerM.Println("main.handler: History view requested")
+		Log.Info("History view requested")
 
 		// not implemented
 		errorHandler(res, http.StatusNotImplemented, "History")
@@ -254,7 +253,7 @@ func handler(res http.ResponseWriter, req *http.Request) {
 
 	default:
 		data := requrl.Query().Get("view")
-		LoggerE.Printf("Error: main.handler: invalid URL query (view: %s)\n", data)
+		Log.Error("Error: main.handler: invalid URL query (view: %s)", data)
 		errorHandler(res, http.StatusNotFound, data)
 		return
 	}
@@ -262,28 +261,27 @@ func handler(res http.ResponseWriter, req *http.Request) {
 
 // previewHandler for markdown preview in editor
 func previewHandler(res http.ResponseWriter, req *http.Request) {
-	LoggerM.Printf("main.previewHandler: Request received ReuqestURI: %s\n", req.RequestURI)
+	Log.Info("Request received ReuqestURI: %s\n", req.RequestURI)
 
 	path := req.URL.Query().Get("path")
 	dir := filepath.Dir(path)
-	LoggerV.Printf("main.previewHandler: dir: %s\n", dir)
+	Log.Info("dir: %s", dir)
 
 	// raw markdown
 	text, _ := ioutil.ReadAll(req.Body)
 
 	// return generated html
 	res.Write(parseMarkdown(text, dir))
-	LoggerM.Println("main.previewHandler: response sent")
+	Log.Info("response sent")
 }
 
 func errorHandler(res http.ResponseWriter, status int, data string) {
-	LoggerV.Println("main.errorHandler: Rendering error view... ",
-		"(status:", status, ", data:", data, ")")
+	Log.Info("Rendering error view... (status: %d, data: %s)", status, data)
 
 	err := views.ExecuteTemplate(res, strconv.Itoa(status)+".html", data)
 	if err != nil {
 		// template not available
-		LoggerE.Println("Error: main.errorHandler:", err)
+		Log.Error(err.Error())
 		http.Error(res, http.StatusText(status), status)
 	}
 }

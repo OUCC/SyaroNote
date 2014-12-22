@@ -36,21 +36,21 @@ type Page struct {
 
 // LoadPage returns new Page.
 func LoadPage(wpath string) (*Page, error) {
-	LoggerV.Printf("main.LoadPage(%s)\n", wpath)
+	Log.Debug("wpath: %s", wpath)
 
 	wfile, err := wikiio.Load(wpath)
 	if err != nil {
-		LoggerV.Println("Error: main.LoadPage:", err)
+		Log.Error(err.Error())
 		return nil, err
 	}
 
 	// check if file isn't markdown
 	if !(wfile.IsDir() || wfile.IsMarkdown()) {
-		LoggerV.Println("Error: main.LoadPage: file isn't markdown")
+		Log.Error("file isn't markdown")
 		return nil, ErrIsNotMarkdown
 	}
 
-	LoggerV.Println("main.LoadPage: ok")
+	Log.Debug("ok")
 	return &Page{wfile}, nil
 }
 
@@ -79,13 +79,13 @@ func (page *Page) Title() string {
 // row returns row file data.
 func (page *Page) raw() []byte {
 	if page.IsDir() {
-		LoggerV.Println("main.Page.raw: requested page is dir, use main file of dir")
+		Log.Debug("requested page is dir, use main file of dir")
 
 		if page.DirMainPage() != nil {
-			LoggerV.Println("main.Page.raw: main file of dir found")
+			Log.Debug("main file of dir found")
 			return page.DirMainPage().Raw()
 		} else {
-			LoggerV.Println("main.Page.raw: main file of dir not found")
+			Log.Debug("main file of dir not found")
 			return nil
 		}
 	} else { // page.filePath isn't dir
@@ -112,15 +112,15 @@ func (page *Page) SidebarMdHTML() template.HTML {
 	path := filepath.Join(setting.WikiRoot, SIDEBAR_MD)
 	_, err := os.Stat(path)
 	if err != nil {
-		LoggerV.Println(SIDEBAR_MD, "not found")
+		Log.Debug("%s not found", SIDEBAR_MD)
 		// return template.HTML("")
 		return ""
 	}
 
-	LoggerV.Println(SIDEBAR_MD, "found")
+	Log.Debug("%s found", SIDEBAR_MD)
 	b, err := ioutil.ReadFile(path)
 	if err != nil {
-		LoggerE.Println("in SidebarHTML ioutil.ReadFile(", path, ") error", err)
+		Log.Error("in SidebarHTML ioutil.ReadFile(%s) %s", path, err)
 		// return template.HTML("")
 		return ""
 	}
