@@ -15,7 +15,8 @@ TODO
 * [x] fix sync scroll
 * [ ] auto save
 * [ ] table editor
+* [ ] file upload
 * [ ] comment field (DISQUS?)
 * [ ] setup github page
-* [ ] print preview
+* [x] print ready page
 * [ ] search

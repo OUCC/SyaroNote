@@ -12,6 +12,5 @@
   "dependencies": {
     "jquery": "2",
     "ace-builds": "1",
-    "bootstrap": "3"
   }
 }

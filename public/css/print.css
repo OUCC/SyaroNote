@@ -1,0 +1,82 @@
+*,
+*:before,
+*:after {
+    background: transparent!important;
+    box-shadow: none!important;
+    text-shadow: none!important;
+}
+
+.navbar,
+.breadcrumb,
+.syaro-sidebar,
+.syaro-filelist,
+nav {
+    display: none;
+}
+
+.container,
+.syaro-main,
+.markdown {
+    width: auto;
+    max-width: unset;
+    float: unset;
+}
+
+.markdown pre {
+    border: solid 1px #ccc;
+}
+
+/* font size */
+.markdown, .markdown * { font-size: 11pt; }
+.markdown h1 { font-size: 20pt; }
+.markdown h2 { font-size: 16.5pt; }
+.markdown h3 { font-size: 14pt; }
+.markdown h4 { font-size: 12pt; }
+.markdown h5 { font-size: 11pt; }
+.markdown h6 { font-size: 10pt; }
+.markdown blockquote cite { font-size: 10pt; }
+
+/* page break */
+.markdown p,
+.markdown h2,
+.markdown h3 {
+    orphans: 3;
+    widows: 3;
+}
+.markdown h2,
+.markdown h3 {
+    page-break-after: none;
+}
+.markdown pre {
+    page-break-before: avoid;
+    page-break-inside: auto;
+}
+.markdown table,
+.markdown tr,
+.markdown img,
+.markdown blockquote {
+    page-break-inside: avoid;
+}
+
+/* link */
+.markdown a,
+.markdown a:visited {
+    text-decoration: underline;
+}
+.markdown a[href]:after {
+    content: " (" attr(href) ")";
+}
+.markdown abbr[title]:after {
+    content: " (" attr(title) ")";
+}
+/* Don't show links that are fragment identifiers,
+ or use the `javascript:` pseudo protocol */
+.markdown a[href^="#"]:after,
+.markdown a[href^="javascript:"]:after {
+    content: "";
+}
+
+/* table header */
+.markdown thead {
+    display: table-header-group;
+}
