@@ -17,7 +17,7 @@ Viewer supports MathJax. LaTeX text surrounded by `$` (inline math) or `$$`
 Viewer also supports code syntax highlighting. This feature is powered by
 [highlight.js].
 
-### [[WikiLink]]
+### `[[WikiLink]]`
 Texts surrounded by double bracket are interpreted as WikiLink. To link to
 another wiki page, you can use WikiLink. 
 another wiki page, you can use WikiLink. For example,
@@ -54,6 +54,7 @@ is appended when you see `gochiusa.md`.
 * Markdown syntax highlight
 
 ### Supports MathJax and code highlighting
+See [[Sample Page]]
 
 VS. [Gollum](https://github.com/gollum/gollum)
 ----
@@ -95,6 +96,11 @@ Contribution
 ----
 Fork and pull requests welcome. I hadn't receive any pullreq ever so please give
 me your first pullreq!
+
+Donate
+----
+* [Donate $3](https://gumroad.com/l/Jwtx)
+* [誰かに買って欲しいものリスト](http://www.amazon.co.jp/registry/wishlist/1MVMC2QBIJYY)
 
 About
 ----
