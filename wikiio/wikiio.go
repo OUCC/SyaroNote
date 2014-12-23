@@ -5,6 +5,8 @@ import (
 	"github.com/OUCC/syaro/setting"
 	"github.com/OUCC/syaro/util"
 
+	"gopkg.in/fsnotify.v1"
+
 	"errors"
 	"io/ioutil"
 	"os"
@@ -14,7 +16,8 @@ import (
 
 var (
 	WikiRoot    *WikiFile
-	searchIndex = make(map[string][]*WikiFile)
+	searchIndex map[string][]*WikiFile
+	watcher     fsnotify.Watcher
 )
 
 var (
@@ -22,9 +25,57 @@ var (
 	ErrNotFound = errors.New("file not found")
 )
 
+func InitWatcher() {
+	watcher, err := fsnotify.NewWatcher()
+	if err != nil {
+		Log.Fatal(err)
+	}
+
+	// event loop for watcher
+	go func() {
+		for {
+			select {
+			case event := <-watcher.Events:
+				Log.Debug("%s", event)
+				switch {
+				case event.Op&fsnotify.Create != 0:
+					Log.Info("New file Created (%s)", event.Name)
+					BuildIndex()
+					Log.Info("File index refreshed")
+
+				case event.Op&fsnotify.Remove != 0:
+					Log.Info("File removed (%s)", event.Name)
+					BuildIndex()
+					Log.Info("File index refreshed")
+				}
+
+			case err := <-watcher.Errors:
+				Log.Fatal(err)
+			}
+		}
+	}()
+
+	filepath.Walk(setting.WikiRoot, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			Log.Error(err.Error())
+		}
+
+		if info.IsDir() {
+			Log.Debug("%s added to watcher", path)
+			watcher.Add(path)
+		}
+
+		return nil
+	})
+}
+
+func CloseWatcher() {
+	watcher.Close()
+}
+
 // must be called after setting.WikiRoot is set
 func BuildIndex() {
-	Log.Debug("Building start")
+	Log.Debug("Index building start")
 
 	info, err := os.Stat(setting.WikiRoot)
 	if err != nil {
@@ -36,14 +87,18 @@ func BuildIndex() {
 		wikiPath:  "/",
 		fileInfo:  info,
 	}
+	searchIndex = make(map[string][]*WikiFile)
 
 	walkfunc(WikiRoot)
 
-	Log.Debug("Building end")
+	Log.Debug("Index building end")
 }
 
-// func for rescursive
+// func for recursive
 func walkfunc(dir *WikiFile) {
+	// watch this dir
+	watcher.Add(dir.FilePath())
+
 	infos, _ := ioutil.ReadDir(filepath.Join(setting.WikiRoot, dir.WikiPath()))
 
 	dir.files = make([]*WikiFile, 0, len(infos))
@@ -155,9 +210,6 @@ func Create(wpath string) error {
 		return err
 	}
 
-	// FIXME
-	BuildIndex()
-
 	return nil
 }
 
@@ -180,8 +232,6 @@ func Rename(oldpath string, newpath string) error {
 		Log.Debug("can't rename: %s", err)
 		return err
 	}
-
-	BuildIndex()
 
 	return nil
 }
