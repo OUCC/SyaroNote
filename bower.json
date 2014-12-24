@@ -11,6 +11,6 @@
   "private": true,
   "dependencies": {
     "jquery": "2",
-    "ace-builds": "1",
+    "ace-builds": "1"
   }
 }

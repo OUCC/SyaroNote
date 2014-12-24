@@ -97,9 +97,6 @@ func BuildIndex() {
 
 // func for recursive
 func walkfunc(dir *WikiFile) {
-	// watch this dir
-	watcher.Add(dir.FilePath())
-
 	infos, _ := ioutil.ReadDir(filepath.Join(setting.WikiRoot, dir.WikiPath()))
 
 	dir.files = make([]*WikiFile, 0, len(infos))
