@@ -25,7 +25,7 @@
                     // allow other ace commands to handle event
                     return false;
                 }
-            }
+            },
         }]);
     }
 
@@ -33,7 +33,7 @@
         var lines = [];
 
         var lineNum, line, cleanedLine;
-        
+
         var tableHeadLineNum = currentLineNum;
 
         for (lineNum = currentLineNum - 1; lineNum >= minLineNum; lineNum--) {
@@ -95,13 +95,14 @@
     var TableAlign = Object.freeze({
         LEFT  : "left",
         RIGHT : "right",
-        CENTER: "center"
+        CENTER: "center",
+        DEFAULT: "default",
     });
 
     function format(table) {
         var maxRowNum    = table.length;
         var maxColumnNum = 0;
-        
+
         var rowNum, row, columnNum, cell;
 
         var pipeRowNum  = -1;
@@ -119,7 +120,7 @@
         // initialize columWidth and columnAlign
         for (columnNum = 0; columnNum < maxColumnNum; columnNum++){
             columnWidth[columnNum] = 0;
-            columnAlign[columnNum] = TableAlign.CENTER;
+            columnAlign[columnNum] = TableAlign.DEFAULT;
         }
         // compute columnWidth
         for (rowNum = 0; rowNum < maxRowNum; rowNum++) {
@@ -148,7 +149,7 @@
                     columnAlign[columnNum] = TableAlign.RIGHT;
                 }
                 else {
-                    columnAlign[columnNum] = TableAlign.CENTER;
+                    columnAlign[columnNum] = TableAlign.DEFAULT;
                 }
             }
         }
@@ -191,8 +192,10 @@
             case TableAlign.RIGHT:
                 return "-" + repeatStr(width, "-") + ":";
             case TableAlign.CENTER:
-            default:
                 return ":" + repeatStr(width, "-") + ":";
+            case TableAlign.DEFAULT:
+            default:
+                return " " + repeatStr(width, "-") + " ";
         }
     }
 
@@ -220,14 +223,15 @@
         else {
             var spaceWidth = width - str.length;
             switch (align) {
-                case TableAlign.LEFT:
-                    return str + repeatStr(spaceWidth, " ");
                 case TableAlign.RIGHT:
                     return repeatStr(spaceWidth, " ") + str;
                 case TableAlign.CENTER:
-                default:
                     return repeatStr(Math.floor((spaceWidth) / 2), " ") + str
                         + repeatStr(Math.ceil((spaceWidth) / 2), " ");
+                case TableAlign.LEFT:
+                case TableAlign.DEFAULT:
+                default:
+                    return str + repeatStr(spaceWidth, " ");
             }
         }
     }
