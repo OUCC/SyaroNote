@@ -10,14 +10,46 @@
             bindKey: "Tab",
             descr  : "Format markdown table",
             exec   : function (editor) {
-                var session        = editor.getSession();
-                var cursorPos      = editor.getCursorPosition();
-                var currentLine    = session.getLine(cursorPos.row);
+                var session     = editor.getSession();
+                var cursorPos   = editor.getCursorPosition();
+                var currentLine = session.getLine(cursorPos.row);
+                var newLine     = session.getNewLineMode() === "windows" ? "\r\n" : "\n";
                 if (currentLine[0] === "|") {
-                    var tableInfo      = getTable(session, cursorPos.row, 0, session.getLength());
-                    var formattedTable = format(tableInfo.table);
-                    session.replace(tableInfo.range, formattedTable);
+                    var tableInfo  = getTable(session, cursorPos, 0, session.getLength());
+                    var formatInfo = format(tableInfo.table, newLine);
+                    session.replace(tableInfo.range, formatInfo.text);
 
+                    var newCursorRow, newCursorColumn;
+                    if (tableInfo.focusPos.row === 0) {
+                        newCursorRow    = tableInfo.range.start.row + tableInfo.focusPos.row;
+                        if (tableInfo.focusPos.column < formatInfo.numColumns) {
+                            newCursorColumn = tableInfo.focusPos.column + 2;
+                            for (var i = 0; i <= tableInfo.focusPos.column; i++) {
+                                newCursorColumn += formatInfo.columnWidth[i] + 2;
+                            }
+                            editor.clearSelection();
+                            editor.moveCursorTo(newCursorRow, newCursorColumn);
+                        }
+                    }
+                    else if (tableInfo.focusPos.column < formatInfo.numColumns - 1) {
+                        newCursorRow    = tableInfo.range.start.row + tableInfo.focusPos.row;
+                        newCursorColumn = tableInfo.focusPos.column + 2;
+                        for (var i = 0; i <= tableInfo.focusPos.column; i++) {
+                            newCursorColumn += formatInfo.columnWidth[i] + 2;
+                        }
+                        editor.clearSelection();
+                        editor.moveCursorTo(newCursorRow, newCursorColumn);
+                    }
+                    else {
+                        newCursorRow    = tableInfo.range.start.row + tableInfo.focusPos.row + 1;
+                        newCursorColumn = 1;
+                        if (session.getLine(newCursorRow)[0] !== "|") {
+                            session.insert({ row: newCursorRow - 1, column: session.getLine(newCursorRow - 1).length },
+                                newLine + "|");
+                        }
+                        editor.clearSelection();
+                        editor.moveCursorTo(newCursorRow, newCursorColumn);
+                    }
                     // avoid insert \t or 4 space
                     return true;
                 }
@@ -29,18 +61,19 @@
         }]);
     }
 
-    function getTable(session, currentLineNum, minLineNum, maxLineNum) {
+    function getTable(session, cursorPos, minLineNum, maxLineNum) {
         var lines = [];
 
         var lineNum, line, cleanedLine;
-
+        
+        var currentLineNum   = cursorPos.row;
         var tableHeadLineNum = currentLineNum;
 
         for (lineNum = currentLineNum - 1; lineNum >= minLineNum; lineNum--) {
             line        = session.getLine(lineNum);
             cleanedLine = removeSpaces(line);
             if (cleanedLine[0] === "|") {
-                if (cleanedLine[cleanedLine.length - 1] === "|") {
+                if (cleanedLine.length > 1 && cleanedLine[cleanedLine.length - 1] === "|") {
                     lines.push(cleanedLine.substring(1, cleanedLine.length - 1));
                 }
                 else {
@@ -62,7 +95,7 @@
             line        = session.getLine(lineNum);
             cleanedLine = removeSpaces(line);
             if (cleanedLine[0] === "|") {
-                if (cleanedLine[cleanedLine.length - 1] === "|") {
+                if (cleanedLine.length > 1 && cleanedLine[cleanedLine.length - 1] === "|") {
                     lines.push(cleanedLine.substring(1, cleanedLine.length - 1));
                 }
                 else {
@@ -77,19 +110,17 @@
         }
 
         return {
-            table: lines.map(function (line) { return line.split("|"); }),
-            range: new Range(tableHeadLineNum, 0, tableFootLineNum, tableFootLineLength)
+            table   : lines.map(function (line) { return line.split("|"); }),
+            range   : new Range(tableHeadLineNum, 0, tableFootLineNum, tableFootLineLength),
+            focusPos: {
+                row   : currentLineNum - tableHeadLineNum,
+                column: session.getLine(currentLineNum).substring(0, cursorPos.column).split("|").length - 2
+            }
         };
     }
 
     function removeSpaces(line) {
-        var result = "";
-        for (var i = 0; i < line.length; i++) {
-            if (" \t\n\r\f\v".indexOf(line[i]) < 0) {
-                result += line[i];
-            }
-        }
-        return result;
+        return line.split("|").map(function (cell) { return cell.replace(/^\s*(.*?)\s*$/, "$1"); }).join("|");
     }
 
     var TableAlign = Object.freeze({
@@ -99,17 +130,17 @@
         DEFAULT: "default",
     });
 
-    function format(table) {
-        var maxRowNum    = table.length;
+    function format(table, newLine) {
+        var maxRowNum    = table.length - 1;
         var maxColumnNum = 0;
 
         var rowNum, row, columnNum, cell;
 
         var pipeRowNum  = -1;
         // compute maxColumnNum and pipeRowNum
-        for (rowNum = 0; rowNum < maxRowNum; rowNum++) {
+        for (rowNum = 0; rowNum <= maxRowNum; rowNum++) {
             row          = table[rowNum];
-            maxColumnNum = Math.max(maxColumnNum, row.length);
+            maxColumnNum = Math.max(maxColumnNum, row.length - 1);
             if (pipeRowNum < 0 && row.every(isPipeCell)) {
                 pipeRowNum = rowNum;
             }
@@ -118,12 +149,12 @@
         var columnWidth = [];
         var columnAlign = [];
         // initialize columWidth and columnAlign
-        for (columnNum = 0; columnNum < maxColumnNum; columnNum++){
+        for (columnNum = 0; columnNum <= maxColumnNum; columnNum++){
             columnWidth[columnNum] = 0;
             columnAlign[columnNum] = TableAlign.DEFAULT;
         }
         // compute columnWidth
-        for (rowNum = 0; rowNum < maxRowNum; rowNum++) {
+        for (rowNum = 0; rowNum <= maxRowNum; rowNum++) {
             row = table[rowNum];
             if (rowNum !== pipeRowNum) {
                 for (columnNum = 0; columnNum < row.length; columnNum++) {
@@ -156,16 +187,16 @@
 
         var formattedRowStrs = [];
         // make formatted table string
-        for (rowNum = 0; rowNum < maxRowNum; rowNum++) {
+        for (rowNum = 0; rowNum <= maxRowNum; rowNum++) {
             row = table[rowNum];
             var formattedRowStr = "|";
             if (rowNum === pipeRowNum) {
-                for (columnNum = 0; columnNum < maxColumnNum; columnNum++) {
+                for (columnNum = 0; columnNum <= maxColumnNum; columnNum++) {
                     formattedRowStr += formatPipeCell(columnAlign[columnNum], columnWidth[columnNum]) + "|";
                 }
             }
             else {
-                for (columnNum = 0; columnNum < maxColumnNum; columnNum++) {
+                for (columnNum = 0; columnNum <= maxColumnNum; columnNum++) {
                     formattedRowStr += " "
                         + formatCell(columnAlign[columnNum], columnWidth[columnNum], row[columnNum]) + " |";
                 }
@@ -173,7 +204,13 @@
             formattedRowStrs.push(formattedRowStr);
         }
 
-        return formattedRowStrs.join("\n");
+        return {
+            text       : formattedRowStrs.join(newLine),
+            numRows    : maxRowNum + 1,
+            numColumns : maxColumnNum + 1,
+            columnAlign: columnAlign.slice(),
+            columnWidth: columnWidth.slice()
+        };
     }
 
     function isPipeCell(cell) {
