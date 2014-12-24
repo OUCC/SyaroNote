@@ -65,7 +65,7 @@
         var lines = [];
 
         var lineNum, line, cleanedLine;
-        
+
         var currentLineNum   = cursorPos.row;
         var tableHeadLineNum = currentLineNum;
 
@@ -225,9 +225,9 @@
     function formatPipeCell(align, width) {
         switch (align) {
             case TableAlign.LEFT:
-                return ":" + repeatStr(width, "-") + "-";
+                return ":" + repeatStr(width, "-") + " ";
             case TableAlign.RIGHT:
-                return "-" + repeatStr(width, "-") + ":";
+                return " " + repeatStr(width, "-") + ":";
             case TableAlign.CENTER:
                 return ":" + repeatStr(width, "-") + ":";
             case TableAlign.DEFAULT:
