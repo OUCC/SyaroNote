@@ -186,7 +186,6 @@
 }
 .markdown table th,
 .markdown table td {
-    text-align: left;
     padding: 8px 20px;
 }
 .markdown table th {
