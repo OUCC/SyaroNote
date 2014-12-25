@@ -5,32 +5,43 @@
     var Range = ace.require("ace/range").Range;
 
     function TableFormatter() {
-        return new HashHandler([{
+        return new HashHandler([
+        {
             bindKey: "Tab",
-            descr  : "Format markdown table",
-            exec   : function (editor) {
-                var session     = editor.getSession();
-                var cursorPos   = editor.getCursorPosition();
-                var currentLine = session.getLine(cursorPos.row);
-                var newLine     = session.getNewLineMode() === "windows" ? "\r\n" : "\n";
-                if (currentLine[0] === "|") {
-                    var tableInfo     = getTableInfo(session, cursorPos, 0, session.getLength());
-                    var formattedText = format(tableInfo, newLine);
-                    session.replace(tableInfo.range, formattedText);
-                    var newTableInfo = getTableInfo(
-                        session, { row: tableInfo.range.start.row, column: 0}, 0, session.getLength()
-                    );
-                    newTableInfo.focusPos = tableInfo.focusPos;
-                    moveCursor(editor, session, newTableInfo, newLine);
-                    // avoid insert \t or 4 space
-                    return true;
-                }
-                else {
-                    // allow other ace commands to handle event
-                    return false;
-                }
+            descr  : "Format markdown table and move cursor to next cell",
+            exec   : HashHandler_exec(true)
+        },
+        {
+            bindKey: "Shift+Tab",
+            descr  : "Format markdown table and move cursor to previous cell",
+            exec   : HashHandler_exec(false)
+        }
+        ]);
+    }
+
+    function HashHandler_exec(forward) {
+        return function(editor) {
+            var session     = editor.getSession();
+            var cursorPos   = editor.getCursorPosition();
+            var currentLine = session.getLine(cursorPos.row);
+            var newLine     = session.getNewLineMode() === "windows" ? "\r\n" : "\n";
+            if (currentLine[0] === "|") {
+                var tableInfo     = getTableInfo(session, cursorPos, 0, session.getLength());
+                var formattedText = format(tableInfo, newLine);
+                session.replace(tableInfo.range, formattedText);
+                var newTableInfo = getTableInfo(
+                    session, { row: tableInfo.range.start.row, column: 0}, 0, session.getLength()
+                );
+                newTableInfo.focusPos = tableInfo.focusPos;
+                moveCursor(editor, session, newTableInfo, newLine, forward);
+                // avoid insert \t or 4 space
+                return true;
             }
-        }]);
+            else {
+                // allow other ace commands to handle event
+                return false;
+            }
+        }
     }
 
     var CellAlign = Object.freeze({
@@ -262,11 +273,13 @@
         }
     }
 
-    function moveCursor(editor, session, tableInfo, newLine) {
+    function moveCursor(editor, session, tableInfo, newLine, forward) {
         var focusPos = tableInfo.focusPos;
         var nextCell;
         var newCursorRow, newCursorColumn;
-        if (focusPos.column < tableInfo.numColumns - 1) {
+
+        if (forward && focusPos.column < tableInfo.numColumns - 1) {
+            // move to same row next column
             newCursorRow    = tableInfo.range.start.row + focusPos.row;
             nextCell        = tableInfo.table[focusPos.row][focusPos.column + 1];
             if (nextCell === undefined || nextCell.cleaned === "") {
@@ -280,7 +293,23 @@
                 newCursorColumn += tableInfo.columnWidth[i] + 2;
             }
         }
-        else if (focusPos.row === 0 && focusPos.column == tableInfo.numColumns - 1) {
+        else if (!forward && focusPos.column > 0) {
+            // move to same row previous column
+            newCursorRow = tableInfo.range.start.row + focusPos.row;
+            previousCell = tableInfo.table[focusPos.row][focusPos.column - 1];
+            if (previousCell === undefined || previousCell.cleaned === "") {
+                newCursorColumn = focusPos.column + 1;
+            }
+            else {
+                newCursorColumn = focusPos.column
+                    + previousCell.raw.indexOf(previousCell.cleaned) + previousCell.cleaned.length;
+            }
+            for (var i = 0; i < focusPos.column - 1; i++) {
+                newCursorColumn += tableInfo.columnWidth[i] + 2;
+            }
+        }
+        else if (forward && focusPos.row === 0 && focusPos.column == tableInfo.numColumns - 1) {
+            // move to header low last pipe column + 2
             newCursorRow = tableInfo.range.start.row + focusPos.row;
             newCursorColumn = focusPos.column + 3;
             for (var i = 0; i <= focusPos.column; i++) {
@@ -292,28 +321,70 @@
             );
         }
         else {
+            // move to next/previous row
             var nextRowNum;
-            if (focusPos.row === 0 && focusPos.row + 1 === tableInfo.alignRowNum) {
-                nextRowNum = focusPos.row + 2;
+            if (forward) {
+                // move to next row
+                if (focusPos.row === 0 && focusPos.row + 1 === tableInfo.alignRowNum) {
+                    // skip alignment row
+                    nextRowNum = focusPos.row + 2;
+                }
+                else {
+                    nextRowNum = focusPos.row + 1;
+                }
             }
             else {
-                nextRowNum = focusPos.row + 1;
+                // move to previous row
+                if (focusPos.row - 1 === tableInfo.alignRowNum) {
+                    // skip alignment row
+                    nextRowNum = focusPos.row - 2;
+                }
+                else {
+                    nextRowNum = focusPos.row - 1;
+                }
             }
             newCursorRow = tableInfo.range.start.row + nextRowNum;
-            if (nextRowNum > tableInfo.numRows - 1) {
+            if (forward && nextRowNum > tableInfo.numRows - 1) {
+                // insert new row
                 newCursorColumn = 2;
                 session.insert(
                     { row: newCursorRow - 1, column: session.getLine(newCursorRow - 1).length },
                     newLine + "| "
                 );
             }
-            else {
+            else if (!forward && nextRowNum < 0) {
+                // don't move
+                newCursorRow++;
+                nextCell = tableInfo.table[0][0];
+                if (nextCell === undefined || nextCell.cleaned === "") {
+                    newCursorColumn = 2;
+                }
+                else {
+                    newCursorColumn = 1 + nextCell.raw.indexOf(nextCell.cleaned) + nextCell.cleaned.length;
+                }
+            }
+            else if (forward) {
+                // move to column 0
                 nextCell = tableInfo.table[nextRowNum][0];
                 if (nextCell === undefined || nextCell.cleaned === "") {
                     newCursorColumn = 2;
                 }
                 else {
                     newCursorColumn = 1 + nextCell.raw.indexOf(nextCell.cleaned) + nextCell.cleaned.length;
+                }
+            }
+            else {
+                // move to last column
+                var lastColumnNum = tableInfo.numColumns - 1;
+                nextCell = tableInfo.table[nextRowNum][lastColumnNum];
+                if (nextCell === undefined || nextCell.cleaned === "") {
+                    newCursorColumn = lastColumnNum + 2;
+                }
+                else {
+                    newCursorColumn = lastColumnNum + 1 + nextCell.raw.indexOf(nextCell.cleaned) + nextCell.cleaned.length;
+                }
+                for (var i = 0; i < lastColumnNum; i++) {
+                    newCursorColumn += tableInfo.columnWidth[i] + 2;
                 }
             }
         }
