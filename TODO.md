@@ -15,9 +15,10 @@ TODO
 * [x] fix sync scroll
 * [ ] auto save
 * [x] table editor
-* [ ] file upload
+* [ ] drag and drop file upload
 * [ ] picture viewer
 * [ ] comment field (DISQUS?)
 * [ ] setup github page
 * [x] print ready page
 * [ ] search
+* [x] change filelist show rule

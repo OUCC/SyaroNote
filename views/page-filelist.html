@@ -1,0 +1,32 @@
+<!-- file list -->
+<div class="syaro-filelist">
+  <div class="panel panel-info">
+    <div class="panel-heading">Files under {{.WikiPath}}</div>
+
+    <!-- Table -->
+    <table class="table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Page name</th>
+          <th>WikiPath</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{range $index, $file:= .Files}}
+        <tr>
+          <td>{{add $index 1}}</td>
+          {{if $file.IsDir}}
+          <td><a href="{{urlPrefix}}{{$file.WikiPath}}/">{{$file.NameWithoutExt}}/</a></td>
+          <td>{{$file.WikiPath}}/</td>
+          {{else}}
+          <td><a href="{{urlPrefix}}{{$file.WikiPath}}">{{$file.NameWithoutExt}}</a></td>
+          <td>{{$file.WikiPath}}</td>
+          {{end}}
+        </tr>
+        {{end}}
+      </tbody>
+    </table>
+
+  </div>
+</div>
