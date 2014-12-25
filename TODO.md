@@ -14,8 +14,9 @@ TODO
 * [x] preview on server
 * [x] fix sync scroll
 * [ ] auto save
-* [ ] table editor
+* [x] table editor
 * [ ] file upload
+* [ ] picture viewer
 * [ ] comment field (DISQUS?)
 * [ ] setup github page
 * [x] print ready page

@@ -1,4 +1,4 @@
-$(function() {
+(function(global) {
 
   var editor
   var modified = false
@@ -10,6 +10,7 @@ $(function() {
   function init() {
     initUi()
     initAce()
+    initTableFormatter();
     updatePreview()
   }
 
@@ -113,6 +114,14 @@ $(function() {
     editor.getSession().on('changeScrollTop', syncScroll)
   }
 
+  function initTableFormatter() {
+    // http://stackoverflow.com/questions/14042926/keydown-event-not-fired-on-ace-editor
+    HashHandler = ace.require('ace/keyboard/hash_handler').HashHandler;
+    TableFormatter = global['TableFormatter'];
+
+    editor.keyBinding.addKeyboardHandler(new TableFormatter());
+  }
+
   function updatePreview() {
     if (!preview) { return; }
 
@@ -166,4 +175,4 @@ $(function() {
   }
 
   init()
-})
+})((this || 0).self || global);
