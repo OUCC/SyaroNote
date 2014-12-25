@@ -5,6 +5,7 @@ import (
 	"github.com/OUCC/syaro/setting"
 	"github.com/OUCC/syaro/util"
 
+	"github.com/libgit2/git2go"
 	"gopkg.in/fsnotify.v1"
 
 	"errors"
@@ -18,12 +19,24 @@ var (
 	WikiRoot    *WikiFile
 	searchIndex map[string][]*WikiFile
 	watcher     *fsnotify.Watcher
+	repository  *git.Repository
 )
 
 var (
 	ErrNotExist = errors.New("file not exist")
 	ErrNotFound = errors.New("file not found")
 )
+
+func OpenRepository() bool {
+	var err error
+	repository, err = git.OpenRepository(setting.WikiRoot)
+	if err != nil {
+		Log.Debug(err.Error())
+		return false
+	} else {
+		return true
+	}
+}
 
 func InitWatcher() {
 	const HIDDEN_DIR = "/."

@@ -45,6 +45,12 @@ func main() {
 	}
 	Log.Notice("Port: %d", setting.Port)
 	Log.Notice("URL prefix: %s", setting.UrlPrefix)
+	setting.GitMode = wikiio.OpenRepository()
+	if setting.GitMode {
+		Log.Notice("Git mode: ON")
+	} else {
+		Log.Notice("Git mode: OFF")
+	}
 	Log.Notice("MathJax: %t", setting.MathJax)
 	Log.Notice("Highlight: %t", setting.Highlight)
 	Log.Notice("Verbose output: %t", setting.Verbose)
