@@ -17,7 +17,7 @@ import (
 var (
 	WikiRoot    *WikiFile
 	searchIndex map[string][]*WikiFile
-	watcher     fsnotify.Watcher
+	watcher     *fsnotify.Watcher
 )
 
 var (
@@ -26,7 +26,8 @@ var (
 )
 
 func InitWatcher() {
-	watcher, err := fsnotify.NewWatcher()
+	var err error
+	watcher, err = fsnotify.NewWatcher()
 	if err != nil {
 		Log.Fatal(err)
 	}
