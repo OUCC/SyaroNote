@@ -92,48 +92,48 @@ func BuildIndex() {
 	}
 	searchIndex = make(map[string][]*WikiFile)
 
+	// anonymous recursive function
+	var walkfunc func(*WikiFile)
+	walkfunc = func(dir *WikiFile) {
+		infos, _ := ioutil.ReadDir(filepath.Join(setting.WikiRoot, dir.WikiPath()))
+
+		dir.files = make([]*WikiFile, 0, len(infos))
+		for _, info := range infos {
+			// skip hidden file
+			if info.Name()[:1] == "." {
+				continue
+			}
+
+			file := &WikiFile{
+				parentDir: dir,
+				wikiPath:  filepath.Join(dir.WikiPath(), info.Name()),
+				fileInfo:  info,
+			}
+			dir.files = append(dir.files, file)
+
+			// register to searchIndex
+			elem, present := searchIndex[file.Name()]
+			if present {
+				searchIndex[file.Name()] = append(elem, file)
+			} else {
+				searchIndex[file.Name()] = []*WikiFile{file}
+			}
+
+			elem, present = searchIndex[file.NameWithoutExt()]
+			if present {
+				searchIndex[file.NameWithoutExt()] = append(elem, file)
+			} else {
+				searchIndex[file.NameWithoutExt()] = []*WikiFile{file}
+			}
+
+			if info.IsDir() {
+				walkfunc(file)
+			}
+		}
+	}
 	walkfunc(WikiRoot)
 
 	Log.Debug("Index building end")
-}
-
-// func for recursive
-func walkfunc(dir *WikiFile) {
-	infos, _ := ioutil.ReadDir(filepath.Join(setting.WikiRoot, dir.WikiPath()))
-
-	dir.files = make([]*WikiFile, 0, len(infos))
-	for _, info := range infos {
-		// skip hidden file
-		if info.Name()[:1] == "." {
-			continue
-		}
-
-		file := &WikiFile{
-			parentDir: dir,
-			wikiPath:  filepath.Join(dir.WikiPath(), info.Name()),
-			fileInfo:  info,
-		}
-		dir.files = append(dir.files, file)
-
-		// register to searchIndex
-		elem, present := searchIndex[file.Name()]
-		if present {
-			searchIndex[file.Name()] = append(elem, file)
-		} else {
-			searchIndex[file.Name()] = []*WikiFile{file}
-		}
-
-		elem, present = searchIndex[file.NameWithoutExt()]
-		if present {
-			searchIndex[file.NameWithoutExt()] = append(elem, file)
-		} else {
-			searchIndex[file.NameWithoutExt()] = []*WikiFile{file}
-		}
-
-		if info.IsDir() {
-			walkfunc(file)
-		}
-	}
 }
 
 func Load(wpath string) (*WikiFile, error) {
