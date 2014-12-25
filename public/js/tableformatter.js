@@ -5,7 +5,6 @@
     var Range = ace.require("ace/range").Range;
 
     function TableFormatter() {
-
         return new HashHandler([{
             bindKey: "Tab",
             descr  : "Format markdown table",
@@ -15,41 +14,14 @@
                 var currentLine = session.getLine(cursorPos.row);
                 var newLine     = session.getNewLineMode() === "windows" ? "\r\n" : "\n";
                 if (currentLine[0] === "|") {
-                    var tableInfo  = getTable(session, cursorPos, 0, session.getLength());
-                    var formatInfo = format(tableInfo.table, newLine);
-                    session.replace(tableInfo.range, formatInfo.text);
-
-                    var newCursorRow, newCursorColumn;
-                    if (tableInfo.focusPos.row === 0) {
-                        newCursorRow    = tableInfo.range.start.row + tableInfo.focusPos.row;
-                        if (tableInfo.focusPos.column < formatInfo.numColumns) {
-                            newCursorColumn = tableInfo.focusPos.column + 2;
-                            for (var i = 0; i <= tableInfo.focusPos.column; i++) {
-                                newCursorColumn += formatInfo.columnWidth[i] + 2;
-                            }
-                            editor.clearSelection();
-                            editor.moveCursorTo(newCursorRow, newCursorColumn);
-                        }
-                    }
-                    else if (tableInfo.focusPos.column < formatInfo.numColumns - 1) {
-                        newCursorRow    = tableInfo.range.start.row + tableInfo.focusPos.row;
-                        newCursorColumn = tableInfo.focusPos.column + 2;
-                        for (var i = 0; i <= tableInfo.focusPos.column; i++) {
-                            newCursorColumn += formatInfo.columnWidth[i] + 2;
-                        }
-                        editor.clearSelection();
-                        editor.moveCursorTo(newCursorRow, newCursorColumn);
-                    }
-                    else {
-                        newCursorRow    = tableInfo.range.start.row + tableInfo.focusPos.row + 1;
-                        newCursorColumn = 1;
-                        if (session.getLine(newCursorRow)[0] !== "|") {
-                            session.insert({ row: newCursorRow - 1, column: session.getLine(newCursorRow - 1).length },
-                                newLine + "|");
-                        }
-                        editor.clearSelection();
-                        editor.moveCursorTo(newCursorRow, newCursorColumn);
-                    }
+                    var tableInfo     = getTableInfo(session, cursorPos, 0, session.getLength());
+                    var formattedText = format(tableInfo, newLine);
+                    session.replace(tableInfo.range, formattedText);
+                    var newTableInfo = getTableInfo(
+                        session, { row: tableInfo.range.start.row, column: 0}, 0, session.getLength()
+                    );
+                    newTableInfo.focusPos = tableInfo.focusPos;
+                    moveCursor(editor, session, newTableInfo, newLine);
                     // avoid insert \t or 4 space
                     return true;
                 }
@@ -57,27 +29,42 @@
                     // allow other ace commands to handle event
                     return false;
                 }
-            },
+            }
         }]);
     }
 
-    function getTable(session, cursorPos, minLineNum, maxLineNum) {
-        var lines = [];
+    var CellAlign = Object.freeze({
+        LEFT  : "left",
+        RIGHT : "right",
+        CENTER: "center",
+        DEFAULT: "default"
+    });
 
-        var lineNum, line, cleanedLine;
+    function getTableInfo(session, cursorPos, minLineNum, maxLineNum) {
+        var table = [];
 
-        var currentLineNum   = cursorPos.row;
-        var tableHeadLineNum = currentLineNum;
+        var lineNum, line, row;
 
+        var currentLineNum      = cursorPos.row;
+        var tableHeadLineNum    = currentLineNum;
+        var tableFootLineNum    = currentLineNum;
+        var tableFootLineLength = 0;
+
+        // get table head
         for (lineNum = currentLineNum - 1; lineNum >= minLineNum; lineNum--) {
-            line        = session.getLine(lineNum);
-            cleanedLine = removeSpaces(line);
-            if (cleanedLine[0] === "|") {
-                if (cleanedLine.length > 1 && cleanedLine[cleanedLine.length - 1] === "|") {
-                    lines.push(cleanedLine.substring(1, cleanedLine.length - 1));
+            line = session.getLine(lineNum);
+            if (line[0] === "|") {
+                row = line.split("|").map(function (cell) {
+                    return {
+                        raw    : cell,
+                        cleaned: cell.replace(/^\s*(.*?)\s*$/, "$1")
+                    };
+                });
+                if (row[row.length - 1].cleaned === "") {
+                    table.push(row.slice(1, row.length - 1));
                 }
                 else {
-                    lines.push(cleanedLine.substring(1));
+                    table.push(row.slice(1));
                 }
                 tableHeadLineNum = lineNum;
             }
@@ -86,20 +73,23 @@
             }
         }
 
-        lines.reverse();
+        table.reverse();
 
-        var tableFootLineNum    = currentLineNum;
-        var tableFootLineLength = 0;
-
+        // get table foot
         for (lineNum = currentLineNum; lineNum <= maxLineNum; lineNum++) {
-            line        = session.getLine(lineNum);
-            cleanedLine = removeSpaces(line);
-            if (cleanedLine[0] === "|") {
-                if (cleanedLine.length > 1 && cleanedLine[cleanedLine.length - 1] === "|") {
-                    lines.push(cleanedLine.substring(1, cleanedLine.length - 1));
+            line = session.getLine(lineNum);
+            if (line[0] === "|") {
+                row = line.split("|").map(function (rawCell) {
+                    return {
+                        raw    : rawCell,
+                        cleaned: rawCell.replace(/^\s*(.*?)\s*$/, "$1")
+                    };
+                });
+                if (row[row.length - 1].cleaned === "") {
+                    table.push(row.slice(1, row.length - 1));
                 }
                 else {
-                    lines.push(cleanedLine.substring(1));
+                    table.push(row.slice(1));
                 }
                 tableFootLineNum    = lineNum;
                 tableFootLineLength = line.length;
@@ -109,128 +99,127 @@
             }
         }
 
-        return {
-            table   : lines.map(function (line) { return line.split("|"); }),
-            range   : new Range(tableHeadLineNum, 0, tableFootLineNum, tableFootLineLength),
-            focusPos: {
-                row   : currentLineNum - tableHeadLineNum,
-                column: session.getLine(currentLineNum).substring(0, cursorPos.column).split("|").length - 2
-            }
-        };
-    }
-
-    function removeSpaces(line) {
-        return line.split("|").map(function (cell) { return cell.replace(/^\s*(.*?)\s*$/, "$1"); }).join("|");
-    }
-
-    var TableAlign = Object.freeze({
-        LEFT  : "left",
-        RIGHT : "right",
-        CENTER: "center",
-        DEFAULT: "default",
-    });
-
-    function format(table, newLine) {
-        var maxRowNum    = table.length - 1;
-        var maxColumnNum = 0;
+        var numRows    = table.length;
+        var numColumns = 0;
 
         var rowNum, row, columnNum, cell;
 
-        var pipeRowNum  = -1;
-        // compute maxColumnNum and pipeRowNum
-        for (rowNum = 0; rowNum <= maxRowNum; rowNum++) {
-            row          = table[rowNum];
-            maxColumnNum = Math.max(maxColumnNum, row.length - 1);
-            if (pipeRowNum < 0 && row.every(isPipeCell)) {
-                pipeRowNum = rowNum;
+        var alignRowNum  = -1;
+
+        // compute numColumns and alignRowNum
+        for (rowNum = 0; rowNum < numRows; rowNum++) {
+            row        = table[rowNum];
+            numColumns = Math.max(numColumns, row.length);
+            if (rowNum === 1 && alignRowNum < 0 && row.every(isAlignCell)) {
+                alignRowNum = rowNum;
             }
         }
 
         var columnWidth = [];
         var columnAlign = [];
         // initialize columWidth and columnAlign
-        for (columnNum = 0; columnNum <= maxColumnNum; columnNum++){
+        for (columnNum = 0; columnNum < numColumns; columnNum++){
             columnWidth[columnNum] = 0;
-            columnAlign[columnNum] = TableAlign.DEFAULT;
+            columnAlign[columnNum] = CellAlign.DEFAULT;
         }
         // compute columnWidth
-        for (rowNum = 0; rowNum <= maxRowNum; rowNum++) {
-            row = table[rowNum];
-            if (rowNum !== pipeRowNum) {
+        for (rowNum = 0; rowNum < numRows; rowNum++) {
+            if (rowNum !== alignRowNum) {
+                row = table[rowNum];
                 for (columnNum = 0; columnNum < row.length; columnNum++) {
-                    cell = row[columnNum];
-                    columnWidth[columnNum] = Math.max(columnWidth[columnNum], cell.length);
+                    cell                   = row[columnNum];
+                    columnWidth[columnNum] = Math.max(columnWidth[columnNum], cell.cleaned.length);
                 }
             }
         }
         // compute columnAlign
-        if (pipeRowNum >= 0) {
-            row = table[pipeRowNum];
+        if (alignRowNum >= 0) {
+            row = table[alignRowNum];
             for (columnNum = 0; columnNum < row.length; columnNum++) {
                 cell = row[columnNum];
-                var alignLeft  = cell[0] === ":";
-                var alignRight = cell[cell.length - 1] === ":";
+                var alignLeft  = cell.cleaned[0] === ":";
+                var alignRight = cell.cleaned[cell.cleaned.length - 1] === ":";
                 if (alignLeft && alignRight) {
-                    columnAlign[columnNum] = TableAlign.CENTER;
+                    columnAlign[columnNum] = CellAlign.CENTER;
                 }
                 else if (alignLeft) {
-                    columnAlign[columnNum] = TableAlign.LEFT;
+                    columnAlign[columnNum] = CellAlign.LEFT;
                 }
                 else if (alignRight) {
-                    columnAlign[columnNum] = TableAlign.RIGHT;
+                    columnAlign[columnNum] = CellAlign.RIGHT;
                 }
                 else {
-                    columnAlign[columnNum] = TableAlign.DEFAULT;
+                    columnAlign[columnNum] = CellAlign.DEFAULT;
                 }
             }
-        }
-
-        var formattedRowStrs = [];
-        // make formatted table string
-        for (rowNum = 0; rowNum <= maxRowNum; rowNum++) {
-            row = table[rowNum];
-            var formattedRowStr = "|";
-            if (rowNum === pipeRowNum) {
-                for (columnNum = 0; columnNum <= maxColumnNum; columnNum++) {
-                    formattedRowStr += formatPipeCell(columnAlign[columnNum], columnWidth[columnNum]) + "|";
-                }
-            }
-            else {
-                for (columnNum = 0; columnNum <= maxColumnNum; columnNum++) {
-                    formattedRowStr += " "
-                        + formatCell(columnAlign[columnNum], columnWidth[columnNum], row[columnNum]) + " |";
-                }
-            }
-            formattedRowStrs.push(formattedRowStr);
         }
 
         return {
-            text       : formattedRowStrs.join(newLine),
-            numRows    : maxRowNum + 1,
-            numColumns : maxColumnNum + 1,
+            table      : table,
+            range      : new Range(tableHeadLineNum, 0, tableFootLineNum, tableFootLineLength),
+            focusPos   : {
+                row   : currentLineNum - tableHeadLineNum,
+                column: session.getLine(currentLineNum).substring(0, cursorPos.column).split("|").length - 2
+            },
+            numRows    : numRows,
+            numColumns : numColumns,
+            alignRowNum: alignRowNum,
             columnAlign: columnAlign.slice(),
             columnWidth: columnWidth.slice()
         };
     }
 
-    function isPipeCell(cell) {
-        for (var i = 0; i < cell.length; i++) {
-            if (cell[i] !== "-" && cell[i] !== ":") {
+    function format(tableInfo, newLine) {
+        var table       = tableInfo.table.map(function (row) { return row.slice(); });
+        var numRows     = tableInfo.numRows;
+        var alignRowNum = tableInfo.alignRowNum;
+        if (tableInfo.numRows === 1 && alignRowNum < 0) {
+            table.push([]);
+            numRows++;
+            alignRowNum = 1;
+        }
+        var rowTexts = [];
+        for (var rowNum = 0; rowNum < numRows; rowNum++) {
+            row = table[rowNum];
+            var columnNum;
+            var rowText = "|";
+            if (rowNum === alignRowNum) {
+                for (columnNum = 0; columnNum < tableInfo.numColumns; columnNum++) {
+                    rowText += formatAlignCell(
+                            tableInfo.columnAlign[columnNum], tableInfo.columnWidth[columnNum]
+                        ) + "|";
+                }
+            }
+            else {
+                for (columnNum = 0; columnNum < tableInfo.numColumns; columnNum++) {
+                    rowText += " " + formatCell(
+                            tableInfo.columnAlign[columnNum], tableInfo.columnWidth[columnNum], row[columnNum]
+                        ) + " |";
+                }
+            }
+            rowTexts.push(rowText);
+        }
+        return rowTexts.join(newLine);
+    }
+
+    function isAlignCell(cell) {
+        for (var i = 0; i < cell.cleaned.length; i++) {
+            if (cell.cleaned[i] !== "-" && cell.cleaned[i] !== ":") {
                 return false;
             }
         }
         return true;
     }
 
-    function formatPipeCell(align, width) {
+    function formatAlignCell(align, width) {
         switch (align) {
-            case TableAlign.LEFT:
+            case CellAlign.LEFT:
                 return ":" + repeatStr(width, "-") + " ";
-            case TableAlign.RIGHT:
+            case CellAlign.RIGHT:
                 return " " + repeatStr(width, "-") + ":";
-            case TableAlign.CENTER:
+            case CellAlign.CENTER:
                 return ":" + repeatStr(width, "-") + ":";
-            case TableAlign.DEFAULT:
+            case CellAlign.DEFAULT:
             default:
                 return " " + repeatStr(width, "-") + " ";
         }
@@ -241,7 +230,7 @@
             return repeatStr(width, " ");
         }
         else {
-            return alignStr(align, width, cell);
+            return alignText(align, width, cell.cleaned);
         }
     }
 
@@ -253,24 +242,83 @@
         return result;
     }
 
-    function alignStr(align, width, str) {
-        if (str.length > width) {
-            return str;
+    function alignText(align, width, text) {
+        if (text.length > width) {
+            return text;
         }
         else {
-            var spaceWidth = width - str.length;
+            var spaceWidth = width - text.length;
             switch (align) {
-                case TableAlign.RIGHT:
-                    return repeatStr(spaceWidth, " ") + str;
-                case TableAlign.CENTER:
-                    return repeatStr(Math.floor((spaceWidth) / 2), " ") + str
+                case CellAlign.RIGHT:
+                    return repeatStr(spaceWidth, " ") + text;
+                case CellAlign.CENTER:
+                    return repeatStr(Math.floor((spaceWidth) / 2), " ") + text
                         + repeatStr(Math.ceil((spaceWidth) / 2), " ");
-                case TableAlign.LEFT:
-                case TableAlign.DEFAULT:
+                case CellAlign.LEFT:
+                case CellAlign.DEFAULT:
                 default:
-                    return str + repeatStr(spaceWidth, " ");
+                    return text + repeatStr(spaceWidth, " ");
             }
         }
+    }
+
+    function moveCursor(editor, session, tableInfo, newLine) {
+        var focusPos = tableInfo.focusPos;
+        var nextCell;
+        var newCursorRow, newCursorColumn;
+        if (focusPos.column < tableInfo.numColumns - 1) {
+            newCursorRow    = tableInfo.range.start.row + focusPos.row;
+            nextCell        = tableInfo.table[focusPos.row][focusPos.column + 1];
+            if (nextCell === undefined || nextCell.cleaned === "") {
+                newCursorColumn = focusPos.column + 3;
+            }
+            else {
+                newCursorColumn = focusPos.column + 2
+                    + nextCell.raw.indexOf(nextCell.cleaned) + nextCell.cleaned.length;
+            }
+            for (var i = 0; i <= focusPos.column; i++) {
+                newCursorColumn += tableInfo.columnWidth[i] + 2;
+            }
+        }
+        else if (focusPos.row === 0 && focusPos.column == tableInfo.numColumns - 1) {
+            newCursorRow = tableInfo.range.start.row + focusPos.row;
+            newCursorColumn = focusPos.column + 3;
+            for (var i = 0; i <= focusPos.column; i++) {
+                newCursorColumn += tableInfo.columnWidth[i] + 2;
+            }
+            session.insert(
+                { row: newCursorRow, column: session.getLine(newCursorRow).length },
+                " "
+            );
+        }
+        else {
+            var nextRowNum;
+            if (focusPos.row === 0 && focusPos.row + 1 === tableInfo.alignRowNum) {
+                nextRowNum = focusPos.row + 2;
+            }
+            else {
+                nextRowNum = focusPos.row + 1;
+            }
+            newCursorRow = tableInfo.range.start.row + nextRowNum;
+            if (nextRowNum > tableInfo.numRows - 1) {
+                newCursorColumn = 2;
+                session.insert(
+                    { row: newCursorRow - 1, column: session.getLine(newCursorRow - 1).length },
+                    newLine + "| "
+                );
+            }
+            else {
+                nextCell = tableInfo.table[nextRowNum][0];
+                if (nextCell === undefined || nextCell.cleaned === "") {
+                    newCursorColumn = 2;
+                }
+                else {
+                    newCursorColumn = 1 + nextCell.raw.indexOf(nextCell.cleaned) + nextCell.cleaned.length;
+                }
+            }
+        }
+        editor.clearSelection();
+        editor.moveCursorTo(newCursorRow, newCursorColumn);
     }
 
     // export
