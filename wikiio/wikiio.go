@@ -187,9 +187,9 @@ func Search(name string) ([]*WikiFile, error) {
 }
 
 func Create(wpath string) error {
-	Log.Debug("wikiio.Create(%s)", wpath)
+	Log.Debug("wpath: %s", wpath)
 
-	const initialText = "New Page\n========\n"
+	initialText := util.RemoveExt(filepath.Base(wpath)) + "\n====\n"
 
 	// check if file is already exists
 	file, _ := Load(wpath)
