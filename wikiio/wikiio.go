@@ -26,6 +26,8 @@ var (
 )
 
 func InitWatcher() {
+	const HIDDEN_DIR = "/."
+
 	var err error
 	watcher, err = fsnotify.NewWatcher()
 	if err != nil {
@@ -61,9 +63,9 @@ func InitWatcher() {
 			Log.Error(err.Error())
 		}
 
-		if info.IsDir() {
-			Log.Debug("%s added to watcher", path)
+		if info.IsDir() && !strings.Contains(path, HIDDEN_DIR) {
 			watcher.Add(path)
+			Log.Debug("%s added to watcher", path)
 		}
 
 		return nil
