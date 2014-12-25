@@ -15,7 +15,7 @@ TODO
 * [x] fix sync scroll
 * [ ] auto save
 * [x] table editor
-  - [ ] CJK support
+  - [x] CJK support
 * [ ] drag and drop file upload
 * [ ] picture viewer
 * [ ] comment field (DISQUS?)

@@ -139,7 +139,7 @@
                 row = table[rowNum];
                 for (columnNum = 0; columnNum < row.length; columnNum++) {
                     cell                   = row[columnNum];
-                    columnWidth[columnNum] = Math.max(columnWidth[columnNum], cell.cleaned.length);
+                    columnWidth[columnNum] = Math.max(columnWidth[columnNum], eaw.length(cell.cleaned));
                 }
             }
         }
@@ -254,11 +254,11 @@
     }
 
     function alignText(align, width, text) {
-        if (text.length > width) {
+        if (eaw.length(text) > width) {
             return text;
         }
         else {
-            var spaceWidth = width - text.length;
+            var spaceWidth = width - eaw.length(text);
             switch (align) {
                 case CellAlign.RIGHT:
                     return repeatStr(spaceWidth, " ") + text;
@@ -369,7 +369,15 @@
             newCursorColumn = column + 1 + nextCell.raw.indexOf(nextCell.cleaned) + nextCell.cleaned.length;
         }
         for (i = 0; i < column; i++) {
-            newCursorColumn += tableInfo.columnWidth[i] + 2;
+            var cell = tableInfo.table[row] === undefined ? undefined : tableInfo.table[row][i];
+            var columnWidth;
+            if (cell === undefined) {
+                columnWidth = tableInfo.columnWidth[i];
+            }
+            else {
+                columnWidth = tableInfo.columnWidth[i] + cell.cleaned.length - eaw.length(cell.cleaned);
+            }
+            newCursorColumn += columnWidth + 2;
         }
         editor.clearSelection();
         editor.moveCursorTo(newCursorRow, newCursorColumn);
