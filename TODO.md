@@ -24,3 +24,8 @@ TODO
   - [ ] print button
 * [ ] search
 * [x] change filelist show rule
+* [ ] fix TOC
+    - [ ] collapse
+    - [ ] remove h1
+* [ ] fix code highlighting
+* [ ] alert before leaving page

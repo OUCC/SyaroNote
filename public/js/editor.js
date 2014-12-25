@@ -128,8 +128,7 @@
     var url = document.createElement('a');
     url.href = location.href;
 
-    var reqUrl = url.protocol + '//' + url.host +
-        syaro.urlPrefix === '' ? '/' + syaro.urlPrefix : '' +
+    var reqUrl = url.protocol + '//' + url.host + syaro.urlPrefix +
         '/preview?path=' + encodeURIComponent(syaro.wikiPath).replace(/%2F/g, '/');
 
     var req = new XMLHttpRequest();

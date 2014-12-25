@@ -261,7 +261,7 @@ func handler(res http.ResponseWriter, req *http.Request) {
 
 // previewHandler for markdown preview in editor
 func previewHandler(res http.ResponseWriter, req *http.Request) {
-	Log.Info("Request received ReuqestURI: %s\n", req.RequestURI)
+	Log.Info("Request received ReuqestURI: %s", req.RequestURI)
 
 	path := req.URL.Query().Get("path")
 	dir := filepath.Dir(path)
@@ -272,7 +272,7 @@ func previewHandler(res http.ResponseWriter, req *http.Request) {
 
 	// return generated html
 	res.Write(parseMarkdown(text, dir))
-	Log.Info("response sent")
+	Log.Info("Response sent")
 }
 
 func errorHandler(res http.ResponseWriter, status int, data string) {
