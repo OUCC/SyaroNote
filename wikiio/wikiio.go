@@ -223,6 +223,35 @@ func Create(wpath string) error {
 		return err
 	}
 
+	// git commit
+	if repository != nil {
+		status, err := repository.StatusFile(wpath[1:])
+		if err != nil {
+			Log.Error("Git error: %s", err)
+			return nil
+		}
+		Log.Debug("status: %d", status)
+		if status != git.StatusWtNew {
+			Log.Error("Git error: Invalid status")
+			return nil
+		}
+		oid, err := repository.CreateCommit("HEAD", nil, nil, "Created "+
+			filepath.Base(wpath), nil)
+		if err != nil {
+			Log.Error("Git error: %s", err)
+			return nil
+		}
+		commit, err := repository.LookupCommit(oid)
+		if err != nil {
+			Log.Error("Git error: %s", err)
+			return nil
+		}
+		Log.Notice("Git commit created")
+		Log.Info("Message: %s", commit.Message())
+		Log.Info("Author: %s <%s>", commit.Author().Name, commit.Author().Email)
+		Log.Info("Committer: %s <%s>", commit.Committer().Name, commit.Committer().Email)
+	}
+
 	return nil
 }
 
