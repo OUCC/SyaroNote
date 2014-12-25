@@ -71,9 +71,9 @@ func (f *WikiFile) URLPath() template.URL {
 func (f *WikiFile) IsDir() bool { return f.fileInfo.IsDir() }
 
 func (f *WikiFile) IsDirMainPage() bool {
-	return !f.IsDir() ||
-		strings.HasPrefix(f.WikiPath(), "/Home.") ||
-		f.NameWithoutExt() == f.ParentDir().Name()
+	return !f.IsDir() &&
+		(strings.HasPrefix(f.WikiPath(), "/Home.") ||
+			f.NameWithoutExt() == f.ParentDir().Name())
 }
 
 func (f *WikiFile) DirMainPage() *WikiFile {
