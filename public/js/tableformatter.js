@@ -6,20 +6,20 @@
 
     function TableFormatter() {
         return new HashHandler([
-        {
-            bindKey: "Tab",
-            descr  : "Format markdown table and move cursor to next cell",
-            exec   : HashHandler_exec(true)
-        },
-        {
-            bindKey: "Shift+Tab",
-            descr  : "Format markdown table and move cursor to previous cell",
-            exec   : HashHandler_exec(false)
-        }
+            {
+                bindKey: "Tab",
+                descr  : "Format markdown table and move cursor to next cell",
+                exec   : execHashHandler(true)
+            },
+            {
+                bindKey: "Shift+Tab",
+                descr  : "Format markdown table and move cursor to previous cell",
+                exec   : execHashHandler(false)
+            }
         ]);
     }
 
-    function HashHandler_exec(forward) {
+    function execHashHandler(forward) {
         return function(editor) {
             var session     = editor.getSession();
             var cursorPos   = editor.getCursorPosition();
@@ -274,119 +274,102 @@
     }
 
     function moveCursor(editor, session, tableInfo, newLine, forward) {
-        var focusPos = tableInfo.focusPos;
-        var nextCell;
-        var newCursorRow, newCursorColumn;
-
-        if (forward && focusPos.column < tableInfo.numColumns - 1) {
-            // move to same row next column
-            newCursorRow    = tableInfo.range.start.row + focusPos.row;
-            nextCell        = tableInfo.table[focusPos.row][focusPos.column + 1];
-            if (nextCell === undefined || nextCell.cleaned === "") {
-                newCursorColumn = focusPos.column + 3;
-            }
-            else {
-                newCursorColumn = focusPos.column + 2
-                    + nextCell.raw.indexOf(nextCell.cleaned) + nextCell.cleaned.length;
-            }
-            for (var i = 0; i <= focusPos.column; i++) {
-                newCursorColumn += tableInfo.columnWidth[i] + 2;
-            }
-        }
-        else if (!forward && focusPos.column > 0) {
-            // move to same row previous column
-            newCursorRow = tableInfo.range.start.row + focusPos.row;
-            previousCell = tableInfo.table[focusPos.row][focusPos.column - 1];
-            if (previousCell === undefined || previousCell.cleaned === "") {
-                newCursorColumn = focusPos.column + 1;
-            }
-            else {
-                newCursorColumn = focusPos.column
-                    + previousCell.raw.indexOf(previousCell.cleaned) + previousCell.cleaned.length;
-            }
-            for (var i = 0; i < focusPos.column - 1; i++) {
-                newCursorColumn += tableInfo.columnWidth[i] + 2;
-            }
-        }
-        else if (forward && focusPos.row === 0 && focusPos.column == tableInfo.numColumns - 1) {
-            // move to header low last pipe column + 2
-            newCursorRow = tableInfo.range.start.row + focusPos.row;
-            newCursorColumn = focusPos.column + 3;
-            for (var i = 0; i <= focusPos.column; i++) {
-                newCursorColumn += tableInfo.columnWidth[i] + 2;
-            }
-            session.insert(
-                { row: newCursorRow, column: session.getLine(newCursorRow).length },
-                " "
-            );
+        if (forward) {
+            moveCursorForward(editor, session, tableInfo, newLine);
         }
         else {
-            // move to next/previous row
+            moveCursorBack(editor, session, tableInfo, newLine);
+        }
+    }
+
+    function moveCursorForward(editor, session, tableInfo, newLine) {
+        var focusPos = tableInfo.focusPos;
+        if (focusPos.column < tableInfo.numColumns - 1) {
+            // move to the next column in the same row
+            moveCursorToCell(editor, tableInfo, focusPos.row, focusPos.column + 1);
+        }
+        else if (focusPos.row === 0 && focusPos.column == tableInfo.numColumns - 1) {
+            // move to the last of the header row
+            session.insert(
+                {
+                    row   : tableInfo.range.start.row + focusPos.row,
+                    column: session.getLine(tableInfo.range.start.row + focusPos.row).length
+                },
+                " "
+            );
+            moveCursorToCell(editor, tableInfo, focusPos.row, focusPos.column + 1);
+        }
+        else {
+            // move to the first column in the lower row
             var nextRowNum;
-            if (forward) {
-                // move to next row
-                if (focusPos.row === 0 && focusPos.row + 1 === tableInfo.alignRowNum) {
-                    // skip alignment row
-                    nextRowNum = focusPos.row + 2;
-                }
-                else {
-                    nextRowNum = focusPos.row + 1;
-                }
+            if (focusPos.row === 0 && focusPos.row + 1 === tableInfo.alignRowNum) {
+                // skip the alignment row
+                nextRowNum = focusPos.row + 2;
             }
             else {
-                // move to previous row
-                if (focusPos.row - 1 === tableInfo.alignRowNum) {
-                    // skip alignment row
-                    nextRowNum = focusPos.row - 2;
-                }
-                else {
-                    nextRowNum = focusPos.row - 1;
-                }
+                nextRowNum = focusPos.row + 1;
             }
-            newCursorRow = tableInfo.range.start.row + nextRowNum;
-            if (forward && nextRowNum > tableInfo.numRows - 1) {
-                // insert new row
-                newCursorColumn = 2;
+
+            if (nextRowNum > tableInfo.numRows - 1) {
                 session.insert(
-                    { row: newCursorRow - 1, column: session.getLine(newCursorRow - 1).length },
+                    {
+                        row   : tableInfo.range.start.row + nextRowNum - 1,
+                        column: session.getLine(tableInfo.range.start.row + nextRowNum - 1).length
+                    },
                     newLine + "| "
                 );
             }
-            else if (!forward && nextRowNum < 0) {
-                // don't move
-                newCursorRow++;
-                nextCell = tableInfo.table[0][0];
-                if (nextCell === undefined || nextCell.cleaned === "") {
-                    newCursorColumn = 2;
-                }
-                else {
-                    newCursorColumn = 1 + nextCell.raw.indexOf(nextCell.cleaned) + nextCell.cleaned.length;
-                }
-            }
-            else if (forward) {
-                // move to column 0
-                nextCell = tableInfo.table[nextRowNum][0];
-                if (nextCell === undefined || nextCell.cleaned === "") {
-                    newCursorColumn = 2;
-                }
-                else {
-                    newCursorColumn = 1 + nextCell.raw.indexOf(nextCell.cleaned) + nextCell.cleaned.length;
-                }
+            moveCursorToCell(editor, tableInfo, nextRowNum, 0);
+        }
+    }
+
+    function moveCursorBack(editor, session, tableInfo, newLine) {
+        var focusPos = tableInfo.focusPos;
+        if (focusPos.column > 0) {
+            // move to the next column in the same row
+            moveCursorToCell(editor, tableInfo, focusPos.row, focusPos.column - 1);
+        }
+        else if (focusPos.row > 0) {
+            // move to the last column in the upper row
+            var nextRowNum;
+            if (focusPos.row - 1 === tableInfo.alignRowNum) {
+                // skip the alignment row
+                nextRowNum = focusPos.row - 2;
             }
             else {
-                // move to last column
-                var lastColumnNum = tableInfo.numColumns - 1;
-                nextCell = tableInfo.table[nextRowNum][lastColumnNum];
-                if (nextCell === undefined || nextCell.cleaned === "") {
-                    newCursorColumn = lastColumnNum + 2;
-                }
-                else {
-                    newCursorColumn = lastColumnNum + 1 + nextCell.raw.indexOf(nextCell.cleaned) + nextCell.cleaned.length;
-                }
-                for (var i = 0; i < lastColumnNum; i++) {
-                    newCursorColumn += tableInfo.columnWidth[i] + 2;
-                }
+                nextRowNum = focusPos.row - 1;
             }
+            moveCursorToCell(editor, tableInfo, nextRowNum, tableInfo.numColumns - 1);
+        }
+        else {
+            // don't move
+            moveCursorToCell(editor, tableInfo, focusPos.row, focusPos.column);
+        }
+    }
+
+    function moveCursorToCell(editor, tableInfo, row, column) {
+        if (row < 0 || column < 0) {
+            return;
+        }
+        else if (row >= tableInfo.numRows) {
+            row    = tableInfo.numRows;
+            column = 0;
+        }
+        else if (column >= tableInfo.numColumns) {
+            row    = 0;
+            column = tableInfo.numColumns;
+        }
+        var newCursorRow = tableInfo.range.start.row + row;
+        var newCursorColumn;
+        var nextCell = tableInfo.table[row] === undefined ? undefined : tableInfo.table[row][column];
+        if (nextCell === undefined || nextCell.cleaned === "") {
+            newCursorColumn = column + 2;
+        }
+        else {
+            newCursorColumn = column + 1 + nextCell.raw.indexOf(nextCell.cleaned) + nextCell.cleaned.length;
+        }
+        for (i = 0; i < column; i++) {
+            newCursorColumn += tableInfo.columnWidth[i] + 2;
         }
         editor.clearSelection();
         editor.moveCursorTo(newCursorRow, newCursorColumn);
