@@ -5,6 +5,8 @@ Syaro Markdown Wiki Server
 
 Syaro is a simple and pretty wiki system supporting markdown.
 
+![Markdown Viewer](syaro.png)
+
 Features
 ----
 ### Markdown Viewer
@@ -49,9 +51,20 @@ WIKIROOT/ - Home.md
 In this example, main page of `gochiusa/` is `gochiusa.md`, and file/folder list
 is appended when you see `gochiusa.md`.
 
+### Print ready
+![Print preview](printing.png)
+
 ### Powerful Markdown editor
 * Realtime preview (including MathJax rendering and code highlighting)
 * Markdown syntax highlight
+* User fiendly table editor (inspired by 
+[Sublime Table Editor](https://sublime.wbond.net/packages/Table%20Editor))
+  - auto format (alignment, cell size) table
+  - move cursor by tab/shift-tab
+
+![Editor](editor.png)
+
+![Table editor](table.gif)
 
 ### Supports MathJax and code highlighting
 See [[Sample Page]]
@@ -60,6 +73,8 @@ VS. [Gollum](https://github.com/gollum/gollum)
 ----
 * Syaro supports CJK filename and text.
 * File list on wiki page
+* User friendly Markdown editor
+* Table editor
 
 Build & Install
 ----
@@ -104,14 +119,17 @@ Donate
 
 About
 ----
-Author: [yuntan](https://github.com/yuntan)
+### Author
+* @yuntan
+* @susisu (Table editor)
 
 This software is released under MIT License.
 
 Following softwares are used:
 
 * [Go]  (BSD)
-* [blackfriday] (BSD)
+* [blackfriday]  (BSD)
+* [go-logging]
 * [Twitter Bootstrap]  (MIT)
 * [jQuery]  (MIT)
 * [Ace]  (BSD)
@@ -121,6 +139,7 @@ Following softwares are used:
 
 [Go]: http://golang.org/
 [blackfriday]: https://github.com/russross/blackfriday
+[go-logging]: https://github.com/op/go-logging
 [Twitter Bootstrap]: http://getbootstrap.com
 [jQuery]: http://jquery.com
 [Ace]: http://ace.c9.io

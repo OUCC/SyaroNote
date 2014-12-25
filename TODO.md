@@ -15,10 +15,12 @@ TODO
 * [x] fix sync scroll
 * [ ] auto save
 * [x] table editor
+  - [ ] CJK support
 * [ ] drag and drop file upload
 * [ ] picture viewer
 * [ ] comment field (DISQUS?)
 * [ ] setup github page
 * [x] print ready page
+  - [ ] print button
 * [ ] search
 * [x] change filelist show rule
