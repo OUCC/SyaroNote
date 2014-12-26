@@ -212,21 +212,20 @@ func Create(wpath string) error {
 }
 
 func Rename(oldpath string, newpath string) error {
-	Log.Debug("wikiio.Rename(%s, %s)", oldpath, newpath)
+	Log.Debug("oldpath: %s, newpath: %s", oldpath, newpath)
 
 	f, err := Load(oldpath)
 	if err != nil {
 		return err
 	}
 
-	if !util.IsMarkdown(newpath) {
+	if !f.IsDir() && f.IsMarkdown() && !util.IsMarkdown(newpath) {
 		newpath += ".md"
 	}
 
 	path := filepath.Join(setting.WikiRoot, newpath)
 	os.MkdirAll(filepath.Dir(path), 0755)
-	err = os.Rename(f.FilePath(), path)
-	if err != nil {
+	if err := os.Rename(f.FilePath(), path); err != nil {
 		Log.Debug("can't rename: %s", err)
 		return err
 	}

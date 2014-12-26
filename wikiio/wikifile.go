@@ -122,23 +122,9 @@ func (f *WikiFile) Save(b []byte) error {
 }
 
 func (f *WikiFile) Remove() error {
-	if err := os.Remove(f.FilePath()); err != nil {
-		return err
-	}
+	return os.Remove(f.FilePath())
+}
 
-	// // remove f from parentDir.Files
-	// tmp := make([]*WikiFile, len(f.parentDir.files)-1)
-	// for _, file := range f.parentDir.files {
-	// 	if file.Name() != f.Name() {
-	// 		tmp := append(tmp, file)
-	// 	}
-	// }
-	// f.parentDir.files = tmp
-
-	// // remove f from searchIndex
-
-	// FIXME
-	// update index
-	BuildIndex()
-	return nil
+func (f *WikiFile) RemoveAll() error {
+	return os.RemoveAll(f.FilePath())
 }

@@ -68,6 +68,9 @@
         </div>
 
         <p>Are you sure you want to <strong>delete</strong> {{.WikiPath}}?</p>
+        {{if .IsDir}}
+        <p>All contents under {{.WikiPath}}/ are deleted!</p>
+        {{end}}
 
       </div>
       <div class="modal-footer">

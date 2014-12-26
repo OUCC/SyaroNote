@@ -167,7 +167,12 @@ func handler(res http.ResponseWriter, req *http.Request) {
 				return
 			}
 
-			if err = f.Remove(); err != nil {
+			if f.IsDir() {
+				err = f.RemoveAll()
+			} else {
+				err = f.Remove()
+			}
+			if err != nil {
 				Log.Error("Delete file error: %s", err)
 				http.Error(res, "cannot delete file", http.StatusInternalServerError)
 				return
