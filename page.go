@@ -98,6 +98,11 @@ func (page *Page) MdText() string {
 }
 
 func (page *Page) MdHTML() template.HTML {
+	text := page.MdText()
+	if text == "" {
+		return template.HTML("")
+	}
+
 	var dir string
 	if page.IsDir() {
 		dir = page.WikiPath()
@@ -105,7 +110,7 @@ func (page *Page) MdHTML() template.HTML {
 		dir = filepath.Dir(page.WikiPath())
 	}
 
-	return template.HTML(parseMarkdown([]byte(page.MdText()), dir))
+	return template.HTML(parseMarkdown([]byte(text), dir))
 }
 
 func (page *Page) SidebarMdHTML() template.HTML {

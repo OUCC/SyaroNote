@@ -52,14 +52,19 @@ func parseMarkdown(input []byte, dir string) []byte {
 			return
 		}
 
+		// search for [[WikiLink]]
 		if n.Type == html.TextNode {
-			// search for [[WikiLink]]
 			processWikiLink(n, dir)
 		}
 
 		// task list
 		if n.Type == html.ElementNode && (n.Data == "ul" || n.Data == "ol") {
 			processTaskList(n)
+		}
+
+		// nav
+		if n.Type == html.ElementNode && (n.Data == "nav") {
+			processNav(n)
 		}
 
 		for c := n.FirstChild; c != nil; c = c.NextSibling {
@@ -162,5 +167,117 @@ func processTaskList(n *html.Node) {
 
 			break
 		}
+	}
+}
+
+func processNav(nav *html.Node) {
+	empty := false
+	c := nav.FirstChild
+	var ul *html.Node
+	if c == nil {
+		Log.Debug("nav has no child")
+		empty = true
+	} else {
+		// search ul
+	loop:
+		for {
+			switch {
+			case c == nil:
+				Log.Debug("nav has no ul")
+				empty = true
+				break loop
+			case c.Type == html.ElementNode && c.Data == "ul":
+				Log.Debug("nav has ul")
+				ul = c
+				break loop
+			}
+			Log.Debug(c.Data)
+			c = c.NextSibling
+		}
+	}
+
+	if empty {
+		Log.Debug("remove nav")
+		n := nav.Parent
+		if n.FirstChild == nav {
+			n.FirstChild = nav.NextSibling
+		}
+		if n.LastChild == nav {
+			n.LastChild = nav.PrevSibling
+		}
+		if nav.PrevSibling != nil {
+			nav.PrevSibling.NextSibling = nav.NextSibling
+		}
+		if nav.NextSibling != nil {
+			nav.NextSibling.PrevSibling = nav.PrevSibling
+		}
+		return
+	}
+
+	var process func(*html.Node) *html.Node
+	process = func(ul *html.Node) *html.Node {
+		if ul.FirstChild == nil {
+			Log.Debug("ul has no child")
+			return nil
+		}
+
+		// search li
+		itemNum := 0
+		c := ul.FirstChild
+		var li *html.Node
+	loop:
+		for {
+			switch {
+			case c == nil:
+				break loop
+			case c.Type == html.ElementNode && c.Data == "li":
+				itemNum++
+				li = c
+			}
+			c = c.NextSibling
+		}
+
+		switch itemNum {
+		case 0:
+			Log.Debug("ul has no li")
+			return nil
+		case 1:
+			Log.Debug("ul has only one li")
+
+			if li.FirstChild == nil {
+				Log.Debug("li has no child")
+				return nil
+			}
+
+			// search ul
+			c = li.FirstChild
+			for {
+				switch {
+				case c == nil:
+					Log.Debug("li has no ul")
+					return nil
+				case c.Type == html.ElementNode && c.Data == "ul":
+					Log.Debug("li has ul")
+					return process(c)
+				}
+				c = c.NextSibling
+			}
+		default:
+			Log.Debug("ul has %d li", itemNum)
+			return ul
+		}
+	}
+
+	switch ul = process(ul); ul {
+	case nil:
+		// do nothing
+		Log.Debug("do nothing")
+		return
+	default:
+		Log.Debug("set ul as only one child of nav")
+		ul.NextSibling = nil
+		ul.PrevSibling = nil
+		nav.FirstChild = ul
+		nav.LastChild = ul
 	}
 }
