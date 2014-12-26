@@ -15,7 +15,7 @@ import (
 )
 
 func processWikiLink(n *html.Node, currentDir string) {
-	const RE_DOUBLE_BRACKET = "\\[\\[.+\\]\\]"
+	const RE_DOUBLE_BRACKET = "\\[\\[[^\\]]+\\]\\]"
 
 	if n.Type != html.TextNode {
 		return
