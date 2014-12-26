@@ -107,7 +107,7 @@
 
       timeoutId = setTimeout(function() {
         updatePreview();
-      }, 5000);
+      }, 3000);
     })
 
     // sync scroll
