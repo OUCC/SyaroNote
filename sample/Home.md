@@ -61,6 +61,7 @@ is appended when you see `gochiusa.md`.
 [Sublime Table Editor](https://sublime.wbond.net/packages/Table%20Editor))
   - auto format (alignment, cell size) table
   - move cursor by tab/shift-tab
+  - support full width character (ex. CJK)
 
 ![Editor](editor.png)
 
@@ -133,6 +134,7 @@ Following softwares are used:
 * [Twitter Bootstrap]  (MIT)
 * [jQuery]  (MIT)
 * [Ace]  (BSD)
+* [East Asian Width]  (MIT)
 * [MathJax]  (Apache)
 * [highlight.js]  (BSD)
 
@@ -143,5 +145,6 @@ Following softwares are used:
 [Twitter Bootstrap]: http://getbootstrap.com
 [jQuery]: http://jquery.com
 [Ace]: http://ace.c9.io
+[East Asian Width]: https://github.com/komagata/eastasianwidth
 [Mathjax]: http://www.mathjax.org/
 [highlight.js]: https://highlightjs.org/

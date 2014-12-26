@@ -28,4 +28,5 @@ TODO
     - [ ] collapse
     - [ ] remove h1
 * [ ] fix code highlighting
-* [ ] alert before leaving page
+* [ ] alert before leaving editor
+* [ ] image width specifie
