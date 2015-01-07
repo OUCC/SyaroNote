@@ -17,7 +17,12 @@ import (
 var (
 	WikiRoot    *WikiFile
 	searchIndex map[string][]*WikiFile
-	watcher     *fsnotify.Watcher
+
+	// file system watcher
+	watcher *fsnotify.Watcher
+
+	// if true, BuildIndex is called
+	refreshRequired = true
 )
 
 var (
@@ -41,13 +46,11 @@ func InitWatcher() {
 				switch {
 				case event.Op&fsnotify.Create != 0:
 					Log.Info("New file Created (%s)", event.Name)
-					BuildIndex()
-					Log.Info("File index refreshed")
+					refreshRequired = true
 
 				case event.Op&fsnotify.Remove != 0:
 					Log.Info("File removed (%s)", event.Name)
-					BuildIndex()
-					Log.Info("File index refreshed")
+					refreshRequired = true
 				}
 
 			case err := <-watcher.Errors:
@@ -75,7 +78,7 @@ func CloseWatcher() {
 }
 
 // must be called after setting.WikiRoot is set
-func BuildIndex() {
+func buildIndex() {
 	Log.Debug("Index building start")
 
 	info, err := os.Stat(setting.WikiRoot)
@@ -93,6 +96,9 @@ func BuildIndex() {
 	walkfunc(WikiRoot)
 
 	Log.Debug("Index building end")
+	Log.Info("File index refreshed")
+
+	refreshRequired = false
 }
 
 // func for recursive
@@ -135,7 +141,11 @@ func walkfunc(dir *WikiFile) {
 }
 
 func Load(wpath string) (*WikiFile, error) {
-	Log.Debug("wikiio.Load(%s)", wpath)
+	Log.Debug("wpath: %s", wpath)
+
+	if refreshRequired {
+		buildIndex()
+	}
 
 	// wiki root
 	if wpath == "/" || wpath == "." || wpath == "" {
@@ -167,7 +177,12 @@ func Load(wpath string) (*WikiFile, error) {
 }
 
 func Search(name string) ([]*WikiFile, error) {
-	Log.Debug("wikiio.Search(%s)", name)
+	Log.Debug("name: %s", name)
+
+	if refreshRequired {
+		buildIndex()
+	}
+
 	files, present := searchIndex[name]
 	if !present {
 		Log.Debug("not found")
@@ -185,7 +200,7 @@ func Search(name string) ([]*WikiFile, error) {
 }
 
 func Create(wpath string) error {
-	Log.Debug("wikiio.Create(%s)", wpath)
+	Log.Debug("wpath: %s", wpath)
 
 	const initialText = "New Page\n========\n"
 
@@ -208,6 +223,8 @@ func Create(wpath string) error {
 		return err
 	}
 
+	refreshRequired = true
+
 	return nil
 }
 
@@ -229,6 +246,8 @@ func Rename(oldpath string, newpath string) error {
 		Log.Debug("can't rename: %s", err)
 		return err
 	}
+
+	refreshRequired = true
 
 	return nil
 }
