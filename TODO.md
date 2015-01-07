@@ -26,7 +26,9 @@ TODO
 * [x] change filelist show rule
 * [ ] fix TOC
     - [ ] collapse
-    - [ ] remove h1
+    - [x] remove h1
+    - [ ] style
 * [ ] fix code highlighting
 * [ ] alert before leaving editor
 * [ ] image width specifie
+* [ ] Goji

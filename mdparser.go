@@ -191,7 +191,6 @@ func processNav(nav *html.Node) {
 				ul = c
 				break loop
 			}
-			Log.Debug(c.Data)
 			c = c.NextSibling
 		}
 	}

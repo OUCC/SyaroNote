@@ -57,10 +57,6 @@ func main() {
 	}
 	Log.Info("Template parsed")
 
-	Log.Info("Building file index...")
-	wikiio.BuildIndex()
-	Log.Debug("Index built")
-
 	Log.Info("Setting up filesystem watcher...")
 	wikiio.InitWatcher()
 	defer wikiio.CloseWatcher()

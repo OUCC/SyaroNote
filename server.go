@@ -56,7 +56,7 @@ func startServer() {
 	}
 
 	if err != nil {
-		Log.Fatalf("main.startServer: %s", err)
+		Log.Fatal(err)
 	}
 }
 
@@ -64,12 +64,12 @@ func startServer() {
 func handler(res http.ResponseWriter, req *http.Request) {
 	requrl := req.URL
 
-	Log.Info("Request received (%s)", requrl.RequestURI())
+	Log.Debug("Request received (%s)", requrl.RequestURI())
 
 	// url unescape (+ -> <Space>)
 	requrl.Path = strings.Replace(requrl.Path, "+", " ", -1)
 
-	Log.Info("Path: %s, Query: %s, Fragment: %s", requrl.Path,
+	Log.Debug("Path: %s, Query: %s, Fragment: %s", requrl.Path,
 		requrl.RawQuery, requrl.Fragment)
 
 	wpath := strings.TrimPrefix(requrl.Path, setting.UrlPrefix)
@@ -85,22 +85,21 @@ func handler(res http.ResponseWriter, req *http.Request) {
 	case "":
 		switch requrl.Query().Get("action") {
 		case "":
-			Log.Info("Page requested")
 			v, err := LoadPage(wpath)
 			switch err {
 			case nil:
 				// render html
-				Log.Info("Rendering view...")
+				Log.Info("Rendering page (%s)...", wpath)
 				err = v.Render(res)
 				if err != nil {
 					Log.Error("Rendering error!: %s", err)
 					errorHandler(res, http.StatusInternalServerError, err.Error())
 					return
 				}
-				Log.Info("Page rendered")
+				Log.Info("OK")
 
 			case ErrIsNotMarkdown:
-				Log.Info("File requested")
+				Log.Info("Sending file (%s)...", wpath)
 				v, err := wikiio.Load(wpath)
 				if err != nil {
 					Log.Error(err.Error())
@@ -108,7 +107,7 @@ func handler(res http.ResponseWriter, req *http.Request) {
 					return
 				}
 				res.Write(v.Raw())
-				Log.Info("File sent")
+				Log.Info("OK")
 
 			default:
 				Log.Error(err.Error())
@@ -117,27 +116,24 @@ func handler(res http.ResponseWriter, req *http.Request) {
 			}
 
 		case "create":
-			Log.Info("Create new page")
+			Log.Info("Creating new page (%s)...", wpath)
 
-			err := wikiio.Create(wpath)
-			if err == os.ErrExist {
-				Log.Error("file already exists (%s)", err)
-				http.Error(res, "file already exists", http.StatusBadRequest)
-				return
-			}
-			if err != nil {
-				Log.Error("Create file error: %s", err)
-				http.Error(res, "cannot create file", http.StatusInternalServerError)
-				return
-			}
+			switch err := wikiio.Create(wpath); err {
+			case nil:
+				// send success response
+				res.Write(nil)
+				Log.Info("OK")
 
-			// send success response
-			res.Write(nil)
-			Log.Info("New page created")
+			case os.ErrExist:
+				Log.Error(err.Error())
+				http.Error(res, err.Error(), http.StatusBadRequest)
+
+			default:
+				Log.Error(err.Error())
+				http.Error(res, err.Error(), http.StatusInternalServerError)
+			}
 
 		case "rename":
-			Log.Info("Rename page")
-
 			oldpath, err := url.QueryUnescape(requrl.Query().Get("oldpath"))
 			if err != nil {
 				Log.Error("Unescape error: %s", err)
@@ -146,24 +142,33 @@ func handler(res http.ResponseWriter, req *http.Request) {
 				return
 			}
 
+			Log.Info("Rename page (%s -> %s)...", oldpath, wpath)
+
 			if err := wikiio.Rename(oldpath, wpath); err != nil {
-				Log.Error("Rename file error: %s", err)
-				http.Error(res, "cannot rename file", http.StatusInternalServerError)
+				Log.Error(err.Error())
+				http.Error(res, err.Error(), http.StatusInternalServerError)
 				return
 			}
 
 			// send success response
 			res.Write(nil)
-			Log.Info("Renamed")
+			Log.Info("OK")
 
 		case "delete":
-			Log.Info("Delete page")
+			Log.Info("Deleting page (%s)...", wpath)
 
 			f, err := wikiio.Load(wpath)
-			if err != nil {
-				Log.Error("Load file error: %s", err)
+			switch err {
+			case nil:
+
+			case os.ErrNotExist:
+				Log.Error(err.Error())
 				code := http.StatusNotFound
 				http.Error(res, http.StatusText(code), code)
+				return
+
+			default:
+				Log.Error("Load file error: %s", err)
 				return
 			}
 
@@ -193,7 +198,7 @@ func handler(res http.ResponseWriter, req *http.Request) {
 	case "editor":
 		switch req.Method {
 		case "", "GET":
-			Log.Info("Editor requested")
+			Log.Info("Editor requested (%s)", wpath)
 
 			// check main dir
 			f, _ := wikiio.Load(wpath)
@@ -226,9 +231,10 @@ func handler(res http.ResponseWriter, req *http.Request) {
 				errorHandler(res, http.StatusInternalServerError, err.Error())
 				return
 			}
+			Log.Info("OK")
 
 		case "POST":
-			Log.Info("Save requested")
+			Log.Info("Saving (%s)...", wpath)
 			f, err := wikiio.Load(wpath)
 			if err != nil {
 				Log.Error(err.Error())
@@ -239,11 +245,11 @@ func handler(res http.ResponseWriter, req *http.Request) {
 			b, _ := ioutil.ReadAll(req.Body)
 			err = f.Save(b)
 			if err != nil {
-				Log.Error("couldn't write: %s", err)
-				http.Error(res, "cannot save document", http.StatusInternalServerError)
+				Log.Error(err.Error())
+				http.Error(res, err.Error(), http.StatusInternalServerError)
 				return
 			}
-			Log.Info("File saved")
+			Log.Info("OK")
 
 			// send success response
 			res.Write(nil)
@@ -266,18 +272,18 @@ func handler(res http.ResponseWriter, req *http.Request) {
 
 // previewHandler for markdown preview in editor
 func previewHandler(res http.ResponseWriter, req *http.Request) {
-	Log.Info("Request received ReuqestURI: %s", req.RequestURI)
+	Log.Info("Rendering preview...")
 
 	path := req.URL.Query().Get("path")
 	dir := filepath.Dir(path)
-	Log.Info("dir: %s", dir)
+	Log.Debug("dir: %s", dir)
 
 	// raw markdown
 	text, _ := ioutil.ReadAll(req.Body)
 
 	// return generated html
 	res.Write(parseMarkdown(text, dir))
-	Log.Info("Response sent")
+	Log.Info("OK")
 }
 
 func errorHandler(res http.ResponseWriter, status int, data string) {
@@ -289,4 +295,5 @@ func errorHandler(res http.ResponseWriter, status int, data string) {
 		Log.Error(err.Error())
 		http.Error(res, http.StatusText(status), status)
 	}
+	Log.Info("OK")
 }

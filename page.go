@@ -40,13 +40,13 @@ func LoadPage(wpath string) (*Page, error) {
 
 	wfile, err := wikiio.Load(wpath)
 	if err != nil {
-		Log.Error(err.Error())
+		Log.Debug(err.Error())
 		return nil, err
 	}
 
 	// check if file isn't markdown
 	if !(wfile.IsDir() || wfile.IsMarkdown()) {
-		Log.Error("file isn't markdown")
+		Log.Debug("file isn't markdown")
 		return nil, ErrIsNotMarkdown
 	}
 
