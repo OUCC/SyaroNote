@@ -13,29 +13,44 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 var (
 	WikiRoot    *WikiFile
 	searchIndex map[string][]*WikiFile
 	watcher     *fsnotify.Watcher
-	repository  *git.Repository
+	repo        *git.Repository
 )
 
 var (
-	ErrNotExist = errors.New("file not exist")
-	ErrNotFound = errors.New("file not found")
+	ErrNotExist     = errors.New("file not exist")
+	ErrNotFound     = errors.New("file not found")
+	ErrRepoNotReady = errors.New("repository contains uncommited changes")
 )
 
-func OpenRepository() bool {
+func OpenRepository() error {
 	var err error
-	repository, err = git.OpenRepository(setting.WikiRoot)
+	repo, err = git.OpenRepository(setting.WikiRoot)
 	if err != nil {
-		Log.Debug(err.Error())
-		return false
-	} else {
-		return true
+		return err
 	}
+
+	// check if repository contains uncommited changes
+	opt := new(git.StatusOptions)
+	opt.Flags = git.StatusOptIncludeUntracked
+	opt.Show = git.StatusShowIndexAndWorkdir
+	statuses, err := repo.StatusList(opt)
+	if err != nil {
+		return err
+	} else {
+		defer statuses.Free()
+	}
+	if c, _ := statuses.EntryCount(); c != 0 {
+		return ErrRepoNotReady
+	}
+
+	return nil
 }
 
 func InitWatcher() {
