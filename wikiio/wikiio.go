@@ -239,8 +239,10 @@ func Create(wpath string) error {
 	}
 
 	// git commit
-	if repository != nil {
-		status, err := repository.StatusFile(wpath[1:])
+	// note: dont return error related to git
+	if setting.GitMode {
+		// check status is working directory new
+		status, err := repo.StatusFile(wpath[1:])
 		if err != nil {
 			Log.Error("Git error: %s", err)
 			return nil
@@ -250,13 +252,60 @@ func Create(wpath string) error {
 			Log.Error("Git error: Invalid status")
 			return nil
 		}
-		oid, err := repository.CreateCommit("HEAD", nil, nil, "Created "+
-			filepath.Base(wpath), nil)
+
+		// staging and get index tree
+		idx, _ := repo.Index()
+		defer idx.Free()
+		idx.AddByPath(wpath[1:])
+		treeid, _ := idx.WriteTree()
+		tree, _ := repo.LookupTree(treeid)
+		defer tree.Free()
+
+		// get latest commit of current branch
+		ref, _ := repo.LookupReference("HEAD")
+		defer ref.Free()
+		ref, _ = ref.Resolve()
+		var parent *git.Commit
+		if ref != nil {
+			parent, _ = repo.LookupCommit(ref.Target())
+			defer parent.Free()
+			Log.Debug("parent commit: %s", parent.Message())
+		} else {
+			Log.Debug("parent not found (initial commit)")
+		}
+
+		// get signature
+		config, _ := repo.Config()
+		defer config.Free()
+		name, err := config.LookupString("user.name")
 		if err != nil {
 			Log.Error("Git error: %s", err)
 			return nil
 		}
-		commit, err := repository.LookupCommit(oid)
+		email, err := config.LookupString("user.email")
+		if err != nil {
+			Log.Error("Git error: %s", err)
+			return nil
+		}
+		sig := &git.Signature{
+			Name:  name,
+			Email: email,
+			When:  time.Now(),
+		}
+
+		// commit
+		message := "Created " + filepath.Base(wpath)
+		var oid *git.Oid
+		if parent != nil {
+			oid, err = repo.CreateCommit("HEAD", sig, sig, message, tree, parent)
+		} else {
+			oid, err = repo.CreateCommit("HEAD", sig, sig, message, tree)
+		}
+		if err != nil {
+			Log.Error("Git error: %s", err)
+			return nil
+		}
+		commit, err := repo.LookupCommit(oid)
 		if err != nil {
 			Log.Error("Git error: %s", err)
 			return nil
