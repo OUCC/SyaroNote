@@ -110,7 +110,7 @@ func handler(res http.ResponseWriter, req *http.Request) {
 				Log.Info("OK")
 
 			default:
-				Log.Error(err.Error())
+				Log.Error("%s (%s)", err, wpath)
 				errorHandler(res, http.StatusNotFound, wpath)
 				return
 			}

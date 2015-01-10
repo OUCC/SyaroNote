@@ -13,22 +13,25 @@ TODO
 * [x] checkbox
 * [x] preview on server
 * [x] fix sync scroll
-* [ ] auto save
 * [x] table editor
   - [x] CJK support
-* [ ] drag and drop file upload
 * [ ] picture viewer
 * [ ] comment field (DISQUS?)
 * [ ] setup github page
 * [x] print ready page
-  - [ ] print button
+  - [x] print button
 * [ ] search
 * [x] change filelist show rule
-* [ ] fix TOC
-    - [ ] collapse
+* [x] fix TOC
+    - [x] collapse
     - [x] remove h1
-    - [ ] style
+    - [x] style
 * [ ] fix code highlighting
-* [ ] alert before leaving editor
 * [ ] image width specifie
 * [ ] Goji
+* [ ] Tablet and smartphone
+* [x] favicon
+* [ ] redesign editor
+  - [ ] auto save
+  - [ ] drag and drop file upload
+  - [ ] alert before leaving editor
