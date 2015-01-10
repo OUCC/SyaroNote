@@ -10,7 +10,7 @@
 
 /* TOC */
 .markdown nav {
-    padding: 20px 0;
+    padding: 0;
     max-width: 300px;
     min-width: 70px;
     max-height: 500px;
@@ -25,6 +25,49 @@
     border: solid 1px #ccc;
     margin-bottom: 20px;
     margin-left: 15px;
+    overflow-y: auto;
+}
+.markdown nav .toc-toggle {
+    box-sizing: border-box;
+    height: 24px;
+    position: relative;
+    padding: 2px 10px;
+}
+.markdown nav .toc-toggle:hover {
+    background-color: #eee;
+    cursor: pointer;
+}
+.markdown nav .toc-toggle span {
+    margin-right: 1em;
+}
+.markdown nav .toc-toggle i {
+    position: absolute;
+    color: #999;
+    top: 3px;
+    right: 5px;
+}
+.markdown nav.toc-open span {
+    display: none;
+}
+.markdown nav.toc-close ul {
+    display: none;
+}
+.markdown nav>ul {
+    padding-bottom: 20px;
+}
+.markdown nav ul {
+    list-style: none;
+    padding-left: 1em;
+}
+.markdown nav a {
+    position: relative;
+    display: block;
+    padding: 2px 5px;
+    color: #4a4a4a;
+    text-decoration: none;
+}
+.markdown nav a:hover {
+    background-color: #eee;
 }
 .syaro-sidebar .markdown nav,
 #preview.markdown nav {

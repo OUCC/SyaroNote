@@ -115,6 +115,23 @@ $(function(){
       req.send()
       $('#deleteModalButton').button('loading')
     })
+
+    nav = $('.syaro-main nav');
+    toggle = nav.children('.toc-toggle')
+    toggle.on('click', function() {
+      if(nav.hasClass('toc-open')) {
+        nav.removeClass('toc-open');
+        nav.addClass('toc-close');
+        toggle.children('i').removeClass('glyphicon-chevron-up');
+        toggle.children('i').addClass('glyphicon-chevron-down');
+      }
+      else {
+        nav.removeClass('toc-close');
+        nav.addClass('toc-open');
+        toggle.children('i').removeClass('glyphicon-chevron-down');
+        toggle.children('i').addClass('glyphicon-chevron-up');
+      }
+    });
   }
 
   init()

@@ -278,5 +278,41 @@ func processNav(nav *html.Node) {
 		ul.PrevSibling = nil
 		nav.FirstChild = ul
 		nav.LastChild = ul
+
+		Log.Debug("add .toc-toggle before ul")
+		toggle := &html.Node{
+			Type: html.ElementNode,
+			Data: "div",
+			Attr: []html.Attribute{
+				html.Attribute{Key: "class", Val: "toc-toggle"},
+			},
+		}
+		span := &html.Node{
+			Type: html.ElementNode,
+			Data: "span",
+		}
+		label := &html.Node{
+			Type: html.TextNode,
+			Data: "TOC",
+		}
+		caret := &html.Node{
+			Type: html.ElementNode,
+			Data: "i",
+			Attr: []html.Attribute{
+				html.Attribute{Key: "class", Val: "glyphicon glyphicon-chevron-up"},
+			},
+		}
+		span.FirstChild = label
+		span.LastChild = label
+		span.NextSibling = caret
+		toggle.FirstChild = span
+		toggle.LastChild = caret
+		toggle.NextSibling = ul
+		nav.FirstChild = toggle
+		ul.PrevSibling = toggle
+
+		nav.Attr = []html.Attribute{
+			html.Attribute{Key: "class", Val: "toc-open"},
+		}
 	}
 }
