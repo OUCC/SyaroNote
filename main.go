@@ -45,6 +45,21 @@ func main() {
 	}
 	Log.Notice("Port: %d", setting.Port)
 	Log.Notice("URL prefix: %s", setting.UrlPrefix)
+	switch wikiio.OpenRepository() {
+	case nil:
+		setting.GitMode = true
+	case wikiio.ErrRepoNotReady:
+		Log.Error("Your git repository contains uncommited changes")
+		Log.Error("Please commit all files before using syaro")
+		setting.GitMode = false
+	default:
+		setting.GitMode = false
+	}
+	if setting.GitMode {
+		Log.Notice("Git mode: ON")
+	} else {
+		Log.Notice("Git mode: OFF")
+	}
 	Log.Notice("MathJax: %t", setting.MathJax)
 	Log.Notice("Highlight: %t", setting.Highlight)
 	Log.Notice("Verbose output: %t", setting.Verbose)

@@ -77,6 +77,7 @@ var (
 	MathJax   bool
 	Highlight bool
 	Verbose   bool
+	GitMode   bool
 )
 
 func init() {

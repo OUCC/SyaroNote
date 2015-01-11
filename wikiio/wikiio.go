@@ -5,9 +5,11 @@ import (
 	"github.com/OUCC/syaro/setting"
 	"github.com/OUCC/syaro/util"
 
+	"github.com/libgit2/git2go"
 	"gopkg.in/fsnotify.v1"
 
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -17,6 +19,7 @@ import (
 var (
 	WikiRoot    *WikiFile
 	searchIndex map[string][]*WikiFile
+	repo        *git.Repository
 
 	// file system watcher
 	watcher *fsnotify.Watcher
@@ -26,11 +29,38 @@ var (
 )
 
 var (
-	ErrNotExist = errors.New("file not exist")
-	ErrNotFound = errors.New("file not found")
+	ErrNotExist     = errors.New("file not exist")
+	ErrNotFound     = errors.New("file not found")
+	ErrRepoNotReady = errors.New("repository contains uncommited changes")
 )
 
+func OpenRepository() error {
+	var err error
+	repo, err = git.OpenRepository(setting.WikiRoot)
+	if err != nil {
+		return err
+	}
+
+	// check if repository contains uncommited changes
+	opt := new(git.StatusOptions)
+	opt.Flags = git.StatusOptIncludeUntracked
+	opt.Show = git.StatusShowIndexAndWorkdir
+	statuses, err := repo.StatusList(opt)
+	if err != nil {
+		return err
+	} else {
+		defer statuses.Free()
+	}
+	if c, _ := statuses.EntryCount(); c != 0 {
+		return ErrRepoNotReady
+	}
+
+	return nil
+}
+
 func InitWatcher() {
+	const HIDDEN_DIR = "/."
+
 	var err error
 	watcher, err = fsnotify.NewWatcher()
 	if err != nil {
@@ -64,9 +94,9 @@ func InitWatcher() {
 			Log.Error(err.Error())
 		}
 
-		if info.IsDir() {
-			Log.Debug("%s added to watcher", path)
+		if info.IsDir() && !strings.Contains(path, HIDDEN_DIR) {
 			watcher.Add(path)
+			Log.Debug("%s added to watcher", path)
 		}
 
 		return nil
@@ -93,51 +123,50 @@ func buildIndex() {
 	}
 	searchIndex = make(map[string][]*WikiFile)
 
+	// anonymous recursive function
+	var walkfunc func(*WikiFile)
+	walkfunc = func(dir *WikiFile) {
+		infos, _ := ioutil.ReadDir(filepath.Join(setting.WikiRoot, dir.WikiPath()))
+
+		dir.files = make([]*WikiFile, 0, len(infos))
+		for _, info := range infos {
+			// skip hidden file
+			if info.Name()[:1] == "." {
+				continue
+			}
+
+			file := &WikiFile{
+				parentDir: dir,
+				wikiPath:  filepath.Join(dir.WikiPath(), info.Name()),
+				fileInfo:  info,
+			}
+			dir.files = append(dir.files, file)
+
+			// register to searchIndex
+			elem, present := searchIndex[file.Name()]
+			if present {
+				searchIndex[file.Name()] = append(elem, file)
+			} else {
+				searchIndex[file.Name()] = []*WikiFile{file}
+			}
+
+			elem, present = searchIndex[file.NameWithoutExt()]
+			if present {
+				searchIndex[file.NameWithoutExt()] = append(elem, file)
+			} else {
+				searchIndex[file.NameWithoutExt()] = []*WikiFile{file}
+			}
+
+			if info.IsDir() {
+				walkfunc(file)
+			}
+		}
+	}
 	walkfunc(WikiRoot)
 
 	Log.Debug("Index building end")
-	Log.Info("File index refreshed")
 
 	refreshRequired = false
-}
-
-// func for recursive
-func walkfunc(dir *WikiFile) {
-	infos, _ := ioutil.ReadDir(filepath.Join(setting.WikiRoot, dir.WikiPath()))
-
-	dir.files = make([]*WikiFile, 0, len(infos))
-	for _, info := range infos {
-		// skip hidden file
-		if info.Name()[:1] == "." {
-			continue
-		}
-
-		file := &WikiFile{
-			parentDir: dir,
-			wikiPath:  filepath.Join(dir.WikiPath(), info.Name()),
-			fileInfo:  info,
-		}
-		dir.files = append(dir.files, file)
-
-		// register to searchIndex
-		elem, present := searchIndex[file.Name()]
-		if present {
-			searchIndex[file.Name()] = append(elem, file)
-		} else {
-			searchIndex[file.Name()] = []*WikiFile{file}
-		}
-
-		elem, present = searchIndex[file.NameWithoutExt()]
-		if present {
-			searchIndex[file.NameWithoutExt()] = append(elem, file)
-		} else {
-			searchIndex[file.NameWithoutExt()] = []*WikiFile{file}
-		}
-
-		if info.IsDir() {
-			walkfunc(file)
-		}
-	}
 }
 
 func Load(wpath string) (*WikiFile, error) {
@@ -202,7 +231,7 @@ func Search(name string) ([]*WikiFile, error) {
 func Create(wpath string) error {
 	Log.Debug("wpath: %s", wpath)
 
-	const initialText = "New Page\n========\n"
+	initialText := util.RemoveExt(filepath.Base(wpath)) + "\n====\n"
 
 	// check if file is already exists
 	file, _ := Load(wpath)
@@ -223,6 +252,27 @@ func Create(wpath string) error {
 		return err
 	}
 
+	// git commit
+	if setting.GitMode {
+		// get signature
+		sig := getDefaultSignature()
+
+		commit, err := commitChange(
+			func(idx *git.Index) error {
+				if err := idx.AddByPath(wpath[1:]); err != nil {
+					return err
+				}
+				return nil
+			},
+			sig,
+			"Created "+filepath.Base(wpath))
+		if err != nil {
+			Log.Error("Git error: %s", err)
+			return nil // dont send git error to client
+		}
+		defer commit.Free()
+		logCommit(commit)
+	}
 	refreshRequired = true
 
 	return nil
@@ -247,6 +297,31 @@ func Rename(oldpath string, newpath string) error {
 		return err
 	}
 
+	// git commit
+	if setting.GitMode {
+		// get signature
+		sig := getDefaultSignature()
+
+		commit, err := commitChange(
+			func(idx *git.Index) error {
+				if err := idx.RemoveByPath(oldpath[1:]); err != nil {
+					return err
+				}
+				if err := idx.AddByPath(newpath[1:]); err != nil {
+					return err
+				}
+				return nil
+			},
+			sig,
+			fmt.Sprintf("Renamed %s\n\n%s -> %s", filepath.Base(oldpath), oldpath, newpath))
+
+		if err != nil {
+			Log.Error("Git error: %s", err)
+			return nil // dont send git error to client
+		}
+		defer commit.Free()
+		logCommit(commit)
+	}
 	refreshRequired = true
 
 	return nil
