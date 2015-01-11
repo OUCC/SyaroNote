@@ -59,8 +59,6 @@ func OpenRepository() error {
 }
 
 func InitWatcher() {
-	const HIDDEN_DIR = "/."
-
 	var err error
 	watcher, err = fsnotify.NewWatcher()
 	if err != nil {
@@ -94,7 +92,8 @@ func InitWatcher() {
 			Log.Error(err.Error())
 		}
 
-		if info.IsDir() && !strings.Contains(path, HIDDEN_DIR) {
+		// dont add hidden dir (ex. .git)
+		if info.IsDir() && !strings.Contains(path, "/.") && !strings.HasPrefix(path, ".") {
 			watcher.Add(path)
 			Log.Debug("%s added to watcher", path)
 		}
