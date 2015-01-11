@@ -9,11 +9,11 @@ import (
 	"gopkg.in/fsnotify.v1"
 
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
-	"time"
 )
 
 var (
@@ -239,81 +239,25 @@ func Create(wpath string) error {
 	}
 
 	// git commit
-	// note: dont return error related to git
 	if setting.GitMode {
-		// check status is working directory new
-		status, err := repo.StatusFile(wpath[1:])
-		if err != nil {
-			Log.Error("Git error: %s", err)
-			return nil
-		}
-		Log.Debug("status: %d", status)
-		if status != git.StatusWtNew {
-			Log.Error("Git error: Invalid status")
-			return nil
-		}
-
-		// staging and get index tree
-		idx, _ := repo.Index()
-		defer idx.Free()
-		idx.AddByPath(wpath[1:])
-		treeid, _ := idx.WriteTree()
-		tree, _ := repo.LookupTree(treeid)
-		defer tree.Free()
-
-		// get latest commit of current branch
-		ref, _ := repo.LookupReference("HEAD")
-		defer ref.Free()
-		ref, _ = ref.Resolve()
-		var parent *git.Commit
-		if ref != nil {
-			parent, _ = repo.LookupCommit(ref.Target())
-			defer parent.Free()
-			Log.Debug("parent commit: %s", parent.Message())
-		} else {
-			Log.Debug("parent not found (initial commit)")
-		}
-
 		// get signature
-		config, _ := repo.Config()
-		defer config.Free()
-		name, err := config.LookupString("user.name")
-		if err != nil {
-			Log.Error("Git error: %s", err)
-			return nil
-		}
-		email, err := config.LookupString("user.email")
-		if err != nil {
-			Log.Error("Git error: %s", err)
-			return nil
-		}
-		sig := &git.Signature{
-			Name:  name,
-			Email: email,
-			When:  time.Now(),
-		}
+		sig := getDefaultSignature()
 
-		// commit
-		message := "Created " + filepath.Base(wpath)
-		var oid *git.Oid
-		if parent != nil {
-			oid, err = repo.CreateCommit("HEAD", sig, sig, message, tree, parent)
-		} else {
-			oid, err = repo.CreateCommit("HEAD", sig, sig, message, tree)
-		}
+		commit, err := commitChange(
+			func(idx *git.Index) error {
+				if err := idx.AddByPath(wpath[1:]); err != nil {
+					return err
+				}
+				return nil
+			},
+			sig,
+			"Created "+filepath.Base(wpath))
 		if err != nil {
 			Log.Error("Git error: %s", err)
-			return nil
+			return nil // dont send git error to client
 		}
-		commit, err := repo.LookupCommit(oid)
-		if err != nil {
-			Log.Error("Git error: %s", err)
-			return nil
-		}
-		Log.Notice("Git commit created")
-		Log.Info("Message: %s", commit.Message())
-		Log.Info("Author: %s <%s>", commit.Author().Name, commit.Author().Email)
-		Log.Info("Committer: %s <%s>", commit.Committer().Name, commit.Committer().Email)
+		defer commit.Free()
+		logCommit(commit)
 	}
 
 	return nil
@@ -337,6 +281,32 @@ func Rename(oldpath string, newpath string) error {
 	if err != nil {
 		Log.Debug("can't rename: %s", err)
 		return err
+	}
+
+	// git commit
+	if setting.GitMode {
+		// get signature
+		sig := getDefaultSignature()
+
+		commit, err := commitChange(
+			func(idx *git.Index) error {
+				if err := idx.RemoveByPath(oldpath[1:]); err != nil {
+					return err
+				}
+				if err := idx.AddByPath(newpath[1:]); err != nil {
+					return err
+				}
+				return nil
+			},
+			sig,
+			fmt.Sprintf("Renamed %s\n\n%s -> %s", filepath.Base(oldpath), oldpath, newpath))
+
+		if err != nil {
+			Log.Error("Git error: %s", err)
+			return nil // dont send git error to client
+		}
+		defer commit.Free()
+		logCommit(commit)
 	}
 
 	return nil

@@ -5,6 +5,8 @@ import (
 	"github.com/OUCC/syaro/setting"
 	"github.com/OUCC/syaro/util"
 
+	"github.com/libgit2/git2go"
+
 	"html/template"
 	"io/ioutil"
 	"net/url"
@@ -112,7 +114,33 @@ func (f *WikiFile) Raw() []byte {
 }
 
 func (f *WikiFile) Save(b []byte) error {
-	return ioutil.WriteFile(f.FilePath(), b, 0644)
+	if err := ioutil.WriteFile(f.FilePath(), b, 0644); err != nil {
+		return err
+	}
+
+	// git commit
+	if setting.GitMode {
+		// get signature
+		// TODO custom signature
+		sig := getDefaultSignature()
+
+		commit, err := commitChange(
+			func(idx *git.Index) error {
+				if err := idx.AddByPath(f.wikiPath[1:]); err != nil {
+					return err
+				}
+				return nil
+			},
+			sig,
+			"Updated "+filepath.Base(f.wikiPath))
+		if err != nil {
+			Log.Error("Git error: %s", err)
+			return nil // dont send git error to client
+		}
+		defer commit.Free()
+		logCommit(commit)
+	}
+	return nil
 }
 
 func (f *WikiFile) Remove() error {
@@ -134,5 +162,28 @@ func (f *WikiFile) Remove() error {
 	// FIXME
 	// update index
 	BuildIndex()
+
+	// git commit
+	if setting.GitMode {
+		// get signature
+		sig := getDefaultSignature()
+
+		commit, err := commitChange(
+			func(idx *git.Index) error {
+				if err := idx.RemoveByPath(f.wikiPath[1:]); err != nil {
+					return err
+				}
+				return nil
+			},
+			sig,
+			"Removed "+filepath.Base(f.wikiPath))
+		if err != nil {
+			Log.Error("Git error: %s", err)
+			return nil // dont send git error to client
+		}
+		defer commit.Free()
+		logCommit(commit)
+	}
+
 	return nil
 }
