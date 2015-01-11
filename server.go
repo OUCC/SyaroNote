@@ -230,6 +230,13 @@ func handler(res http.ResponseWriter, req *http.Request) {
 
 		case "POST":
 			Log.Info("Saving (%s)...", wpath)
+			message, _ := url.QueryUnescape(requrl.Query().Get("message"))
+			name, _ := url.QueryUnescape(requrl.Query().Get("name"))
+			email, _ := url.QueryUnescape(requrl.Query().Get("email"))
+
+			Log.Info("message: %s", message)
+			Log.Info("author name: %s, email: %s", name, email)
+
 			f, err := wikiio.Load(wpath)
 			if err != nil {
 				Log.Error(err.Error())
@@ -238,7 +245,8 @@ func handler(res http.ResponseWriter, req *http.Request) {
 			}
 
 			b, _ := ioutil.ReadAll(req.Body)
-			err = f.Save(b)
+			defer req.Body.Close()
+			err = f.Save(b, message, name, email)
 			if err != nil {
 				Log.Error(err.Error())
 				http.Error(res, err.Error(), http.StatusInternalServerError)

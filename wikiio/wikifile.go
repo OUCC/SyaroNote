@@ -119,16 +119,24 @@ func (f *WikiFile) Raw() []byte {
 	return b
 }
 
-func (f *WikiFile) Save(b []byte) error {
+func (f *WikiFile) Save(b []byte, message, name, email string) error {
 	if err := ioutil.WriteFile(f.FilePath(), b, 0644); err != nil {
 		return err
 	}
 
 	// git commit
 	if setting.GitMode {
-		// get signature
-		// TODO custom signature
 		sig := getDefaultSignature()
+		if name != "" {
+			sig.Name = name
+		}
+		if email != "" {
+			sig.Email = email
+		}
+
+		if message == "" {
+			message = "Updated " + filepath.Base(f.wikiPath)
+		}
 
 		commit, err := commitChange(
 			func(idx *git.Index) error {
@@ -138,7 +146,7 @@ func (f *WikiFile) Save(b []byte) error {
 				return nil
 			},
 			sig,
-			"Updated "+filepath.Base(f.wikiPath))
+			message)
 		if err != nil {
 			Log.Error("Git error: %s", err)
 			return nil // dont send git error to client

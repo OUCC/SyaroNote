@@ -57,3 +57,12 @@
     box-sizing: border-box;
     box-flex: 1;
 }
+
+/* modal */
+.modal-content .input-group {
+    margin-bottom: 10px;
+}
+.modal-content .input-group-sm {
+    margin-bottom: 5px;
+    max-width: 50%;
+}

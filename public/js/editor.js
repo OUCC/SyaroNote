@@ -55,8 +55,16 @@
 
     // button on modal
     $('#saveModalButton').on('click', function() {
-      var req = new XMLHttpRequest()
-      req.open('POST', location.href)
+      var message = $('#messageInput').val();
+      var name    = $('#nameInput').val();
+      // var email   = $('#emailInput').val();
+      var email   = "";
+
+      var req = new XMLHttpRequest();
+      req.open('POST', location.href +
+       '&message=' + encodeURIComponent(message) +
+       '&name=' + encodeURIComponent(name) +
+       '&email=' + encodeURIComponent(email));
 
       req.onreadystatechange = function() {
         if(req.readyState === 4) {
@@ -65,9 +73,9 @@
 
           switch (req.status) {
           case 200:
-            $('#savedAlert').show()
-            modified = false
             $('#saveModalButton').toggleClass('disabled', true) // FIXME don't work!
+            $('#savedAlert').show();
+            modified = false;
             break
 
           default:

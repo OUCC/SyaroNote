@@ -4,7 +4,8 @@ TODO
 * [ ] readonly mode
 * [ ] git integration
   - [ ] ~auto git commit and git rebase when user save file~
-  - [ ] specify message and signature on checkout
+  - [x] specify message and signature on checkout
+  - [ ] save signature in localstorage
   - [ ] history
   - [ ] show last modified date on file list
   - [ ] auto sync
