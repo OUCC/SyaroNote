@@ -7,8 +7,7 @@ TODO
   - [ ] specify message and signature on checkout
   - [ ] history
   - [ ] show last modified date on file list
-  - [ ] auto pull
-  - [ ] auto push
+  - [ ] auto sync
   - [ ] auto commit
 * [x] html pipeline
 * [x] fragment(auto header ID)

@@ -258,9 +258,6 @@ func Create(wpath string) error {
 
 	// git commit
 	if setting.GitMode {
-		// get signature
-		sig := getDefaultSignature()
-
 		commit, err := commitChange(
 			func(idx *git.Index) error {
 				if err := idx.AddByPath(wpath[1:]); err != nil {
@@ -268,7 +265,7 @@ func Create(wpath string) error {
 				}
 				return nil
 			},
-			sig,
+			getDefaultSignature(),
 			"Created "+filepath.Base(wpath))
 		if err != nil {
 			Log.Error("Git error: %s", err)
@@ -304,20 +301,26 @@ func Rename(oldpath string, newpath string) error {
 
 	// git commit
 	if setting.GitMode {
-		// get signature
-		sig := getDefaultSignature()
-
 		commit, err := commitChange(
 			func(idx *git.Index) error {
-				if err := idx.RemoveByPath(oldpath[1:]); err != nil {
+				err := idx.RemoveAll(
+					[]string{oldpath[1:]},
+					func(path, spec string) int {
+						Log.Debug("git: removing %s", path)
+						return 0
+					})
+				if err != nil {
 					return err
 				}
-				if err := idx.AddByPath(newpath[1:]); err != nil {
-					return err
-				}
-				return nil
+				return idx.AddAll(
+					[]string{newpath[1:]},
+					git.IndexAddDefault,
+					func(path, spec string) int {
+						Log.Debug("git: adding %s", path)
+						return 0
+					})
 			},
-			sig,
+			getDefaultSignature(),
 			fmt.Sprintf("Renamed %s\n\n%s -> %s", filepath.Base(oldpath), oldpath, newpath))
 
 		if err != nil {

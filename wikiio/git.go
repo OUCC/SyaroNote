@@ -40,6 +40,10 @@ func commitChange(manip func(idx *git.Index) error, sig *git.Signature,
 	if err != nil {
 		return nil, err
 	}
+
+	// save index
+	idx.Write()
+
 	commit, _ := repo.LookupCommit(oid)
 	return commit, nil
 }

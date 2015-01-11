@@ -150,23 +150,24 @@ func (f *WikiFile) Save(b []byte) error {
 }
 
 func (f *WikiFile) Remove() error {
-	if err := os.Remove(f.FilePath()); err != nil {
+	if err := os.RemoveAll(f.FilePath()); err != nil {
 		return err
 	}
 
+	refreshRequired = true
+
 	// git commit
 	if setting.GitMode {
-		// get signature
-		sig := getDefaultSignature()
-
 		commit, err := commitChange(
 			func(idx *git.Index) error {
-				if err := idx.RemoveByPath(f.wikiPath[1:]); err != nil {
-					return err
-				}
-				return nil
+				return idx.RemoveAll(
+					[]string{f.wikiPath[1:]},
+					func(path, spec string) int {
+						Log.Debug("git: removing %s", path)
+						return 0
+					})
 			},
-			sig,
+			getDefaultSignature(),
 			"Removed "+filepath.Base(f.wikiPath))
 		if err != nil {
 			Log.Error("Git error: %s", err)
@@ -177,8 +178,4 @@ func (f *WikiFile) Remove() error {
 	}
 
 	return nil
-}
-
-func (f *WikiFile) RemoveAll() error {
-	return os.RemoveAll(f.FilePath())
 }
