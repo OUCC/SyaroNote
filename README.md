@@ -79,14 +79,12 @@ VS. [Gollum](https://github.com/gollum/gollum)
 
 Build & Install
 ----
-First, install go and bower.
+Required packages: go, bower, cmake, pkg-config
 
 ```bash
-go install github.com/OUCC/syaro.git
+go get github.com/OUCC/syaro
 cd $GOPATH/src/github.com/OUCC/syaro
-# get jquery, bootstrap, etc...
-bower install
-./install_components.sh # copy files
+./build.sh
 ```
 
 Usage
