@@ -19,7 +19,9 @@ import (
 var (
 	WikiRoot    *WikiFile
 	searchIndex map[string][]*WikiFile
-	repo        *git.Repository
+
+	// git repository
+	repo *git.Repository
 
 	// file system watcher
 	watcher *fsnotify.Watcher
@@ -164,6 +166,7 @@ func buildIndex() {
 	walkfunc(WikiRoot)
 
 	Log.Debug("Index building end")
+	Log.Info("File index refreshed")
 
 	refreshRequired = false
 }
@@ -251,6 +254,8 @@ func Create(wpath string) error {
 		return err
 	}
 
+	refreshRequired = true
+
 	// git commit
 	if setting.GitMode {
 		// get signature
@@ -272,7 +277,6 @@ func Create(wpath string) error {
 		defer commit.Free()
 		logCommit(commit)
 	}
-	refreshRequired = true
 
 	return nil
 }
@@ -295,6 +299,8 @@ func Rename(oldpath string, newpath string) error {
 		Log.Debug("can't rename: %s", err)
 		return err
 	}
+
+	refreshRequired = true
 
 	// git commit
 	if setting.GitMode {
@@ -321,7 +327,6 @@ func Rename(oldpath string, newpath string) error {
 		defer commit.Free()
 		logCommit(commit)
 	}
-	refreshRequired = true
 
 	return nil
 }
