@@ -57,6 +57,11 @@ func parseMarkdown(input []byte, dir string) []byte {
 			processWikiLink(n, dir)
 		}
 
+		// search for [[WikiLink]](Page Name)
+		if n.Type == html.ElementNode && n.Data == "a" {
+			processWikiLink2(n, dir)
+		}
+
 		// task list
 		if n.Type == html.ElementNode && (n.Data == "ul" || n.Data == "ol") {
 			processTaskList(n)

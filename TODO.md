@@ -40,3 +40,4 @@ TODO
   - [ ] auto save
   - [ ] drag and drop file upload
   - [ ] alert before leaving editor
+* [x] [[Link|Page name]] or [[Link>Page name]] or [[Link]](Page name)

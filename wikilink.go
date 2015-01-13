@@ -89,6 +89,60 @@ func processWikiLink(n *html.Node, currentDir string) {
 	}
 }
 
+func processWikiLink2(n *html.Node, currentDir string) {
+	if n.Type != html.ElementNode || n.Data != "a" {
+		return
+	}
+
+	const RE_BRACKET = "^\\[[^\\]]+\\]$"
+	re := regexp.MustCompile(RE_BRACKET)
+
+	c := n.FirstChild
+	s := c.Data
+	Log.Debug("s: %s, match: %v", s, re.MatchString(s))
+	if c.Type != html.TextNode || !re.MatchString(s) {
+		return
+	}
+
+	name := s[1 : len(s)-1]
+	link := ""
+	for _, attr := range n.Attr {
+		if attr.Key == "href" {
+			link = attr.Val
+		}
+	}
+	if link == "" {
+		return
+	}
+
+	Log.Debug("bracket tag found: [[%s]](%s)", name, link)
+
+	c.Data = name
+
+	if files := searchPage(link, currentDir); len(files) != 0 { //page found
+		// TODO avoid ambiguous page
+		Log.Debug("%d pages found", len(files))
+		Log.Debug("select %s", files[0].WikiPath())
+
+		for _, attr := range n.Attr {
+			if attr.Key == "href" {
+				attr.Val = string(files[0].URLPath())
+			}
+		}
+	} else { // page not found
+		Log.Debug("no page found")
+		for _, attr := range n.Attr {
+			if attr.Key == "href" {
+				attr.Val = setting.UrlPrefix + "/error/404?data=" + url.QueryEscape(name)
+			}
+		}
+		n.Attr = append(n.Attr, html.Attribute{
+			Key: "class",
+			Val: "notfound",
+		})
+	}
+}
+
 func searchPage(name string, currentDir string) []*wikiio.WikiFile {
 	if name == "" {
 		return nil

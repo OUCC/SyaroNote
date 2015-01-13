@@ -105,6 +105,7 @@ WikiLink
 ----
 * [[Home]]
 * [[page not available]]
+* [[さんぷるぺーじ]](Sample Page)
 
 Math
 ----
