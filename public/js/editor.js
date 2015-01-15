@@ -19,6 +19,10 @@
     $('.modal').hide()
 
     $('#saveModal').on('show.bs.modal', function() {
+      // restore from local storage
+      $('#nameInput').val(localStorage.getItem("name"));
+      $('#emailInput').val(localStorage.getItem("email"));
+
       $('.alert').hide()
       $('#saveModalButton').toggleClass('disabled', false)
     })
@@ -59,6 +63,10 @@
       var name    = $('#nameInput').val();
       // var email   = $('#emailInput').val();
       var email   = "";
+
+      // save to local storage
+      localStorage.setItem("name", name)
+      localStorage.setItem("email", email)
 
       var req = new XMLHttpRequest();
       req.open('POST', location.href +

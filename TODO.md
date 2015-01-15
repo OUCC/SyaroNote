@@ -5,7 +5,7 @@ TODO
 * [ ] git integration
   - [ ] ~auto git commit and git rebase when user save file~
   - [x] specify message and signature on checkout
-  - [ ] save signature in localstorage
+  - [x] save signature in localstorage
   - [ ] history
   - [ ] show last modified date on file list
   - [ ] auto sync
