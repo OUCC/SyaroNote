@@ -9,6 +9,7 @@ import (
 	"html/template"
 	"os"
 	"path/filepath"
+	"time"
 )
 
 const (
@@ -119,10 +120,13 @@ func setupViews() error {
 	// funcs for template
 	tmpl := template.New("").Funcs(template.FuncMap{
 		"add":       func(a, b int) int { return a + b },
+		"op":        wikiio.OpString,
+		"timef":     func(t time.Time) string { return t.Format("Mon _2 Jan 2006") },
 		"wikiName":  func() string { return setting.WikiName },
 		"urlPrefix": func() string { return setting.UrlPrefix },
 		"mathjax":   func() bool { return setting.MathJax },
 		"highlight": func() bool { return setting.Highlight },
+		"gitmode":   func() bool { return setting.GitMode },
 	})
 	tmpl, err := tmpl.ParseGlob(filepath.Join(setting.SyaroDir, VIEWS_DIR, "*.html"))
 	if err != nil {

@@ -1,0 +1,29 @@
+<!-- file list -->
+<div class="syaro-filelist">
+  <div class="panel panel-info">
+    <div class="panel-heading">History of {{.WikiPath}}</div>
+
+      <!-- Table -->
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Op</th>
+            <th>Message</th>
+            <th>Author</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{range $index, $change:= .Changes}}
+          <tr>
+            <td>{{op $change.Op}}</td>
+            <td>{{$change.Commit.Message}}</td>
+            <td>{{$change.Commit.Author.Name}}</td>
+            <td>{{timef $change.Commit.Author.When}}</td>
+          </tr>
+          {{end}}
+        </tbody>
+      </table>
+
+  </div>
+</div>

@@ -261,9 +261,22 @@ func handler(res http.ResponseWriter, req *http.Request) {
 	case "history":
 		Log.Info("History view requested")
 
-		// not implemented
-		errorHandler(res, http.StatusNotImplemented, "History")
-		return
+		v, err := LoadHistoryPage(wpath)
+		if err != nil {
+			Log.Error("%s (%s)", err, wpath)
+			errorHandler(res, http.StatusNotFound, wpath)
+			return
+		}
+
+		// render html
+		Log.Info("Rendering history page (%s)...", wpath)
+		err = v.Render(res)
+		if err != nil {
+			Log.Error("Rendering error!: %s", err)
+			errorHandler(res, http.StatusInternalServerError, err.Error())
+			return
+		}
+		Log.Info("OK")
 
 	default:
 		data := requrl.Query().Get("view")

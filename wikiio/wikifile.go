@@ -187,3 +187,11 @@ func (f *WikiFile) Remove() error {
 
 	return nil
 }
+
+func (f *WikiFile) History() []Change {
+	if setting.GitMode {
+		return getChanges(f.wikiPath)
+	} else {
+		return nil
+	}
+}
