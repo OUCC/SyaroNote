@@ -14,24 +14,31 @@ import (
 	"strings"
 )
 
-func processWikiLink(n *html.Node, currentDir string) {
-	const RE_DOUBLE_BRACKET = "\\[\\[[^\\]]+\\]\\]"
+const (
+	RE_BRACKET        = "^\\[[^\\]]+\\]$"
+	RE_DOUBLE_BRACKET = "\\[\\[[^\\]]+\\]\\]"
+)
 
+var (
+	reBracket       = regexp.MustCompile(RE_BRACKET)
+	reDoubleBracket = regexp.MustCompile(RE_DOUBLE_BRACKET)
+)
+
+func processWikiLink(n *html.Node, currentDir string) {
 	if n.Type != html.TextNode {
 		return
 	}
-
-	re := regexp.MustCompile(RE_DOUBLE_BRACKET)
 
 	p := n.Parent
 	nx := n.NextSibling
 
 	for {
 		s := n.Data
-		indices := re.FindStringIndex(s)
+		indices := reDoubleBracket.FindStringIndex(s)
 
 		if len(indices) != 0 { // double bracket fount
-			Log.Debug("bracket tag found: %s", s[indices[0]:indices[1]])
+			name := s[indices[0]+2 : indices[1]-2] // [[name]]
+			Log.Debug("bracket tag found: [[%s]]", name)
 
 			// text before <a> tag
 			n.Data = s[:indices[0]]
@@ -42,7 +49,6 @@ func processWikiLink(n *html.Node, currentDir string) {
 				Data: "a",
 			}
 
-			name := s[indices[0]+2 : indices[1]-2]                      // [[name]]
 			if files := searchPage(name, currentDir); len(files) != 0 { // page found
 				// TODO avoid ambiguous page
 				Log.Debug("%d pages found", len(files))
@@ -94,17 +100,12 @@ func processWikiLink2(n *html.Node, currentDir string) {
 		return
 	}
 
-	const RE_BRACKET = "^\\[[^\\]]+\\]$"
-	re := regexp.MustCompile(RE_BRACKET)
-
 	c := n.FirstChild
-	s := c.Data
-	Log.Debug("s: %s, match: %v", s, re.MatchString(s))
-	if c.Type != html.TextNode || !re.MatchString(s) {
+	if c == nil || c.Type != html.TextNode || !reBracket.MatchString(c.Data) {
 		return
 	}
 
-	name := s[1 : len(s)-1]
+	name := c.Data[1 : len(c.Data)-1]
 	link := ""
 	for _, attr := range n.Attr {
 		if attr.Key == "href" {
@@ -124,22 +125,22 @@ func processWikiLink2(n *html.Node, currentDir string) {
 		Log.Debug("%d pages found", len(files))
 		Log.Debug("select %s", files[0].WikiPath())
 
-		for _, attr := range n.Attr {
-			if attr.Key == "href" {
-				attr.Val = string(files[0].URLPath())
-			}
-		}
+		n.Attr = []html.Attribute{html.Attribute{
+			Key: "href",
+			Val: string(files[0].URLPath()),
+		}}
 	} else { // page not found
 		Log.Debug("no page found")
-		for _, attr := range n.Attr {
-			if attr.Key == "href" {
-				attr.Val = setting.UrlPrefix + "/error/404?data=" + url.QueryEscape(name)
-			}
+		n.Attr = []html.Attribute{
+			html.Attribute{
+				Key: "href",
+				Val: setting.UrlPrefix + "/error/404?data=" + url.QueryEscape(name),
+			},
+			html.Attribute{
+				Key: "class",
+				Val: "notfound",
+			},
 		}
-		n.Attr = append(n.Attr, html.Attribute{
-			Key: "class",
-			Val: "notfound",
-		})
 	}
 }
 
