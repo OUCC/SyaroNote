@@ -11,7 +11,7 @@ import (
 var (
 	Log    = logging.MustGetLogger("syaro")
 	format = logging.MustStringFormatter(
-		"%{time:2006/01/02 15:04:05} %{shortpkg:-6.6s} %{shortfunc:-12.12s} | %{color:bold}%{level:.4s}%{color:reset} %{color}%{message}%{color:reset}",
+		"%{time:2006/01/02 15:04:05.000000} %{shortpkg:-6.6s} %{shortfunc:-12.12s} | %{color:bold}%{level:.4s}%{color:reset} %{color}%{message}%{color:reset}",
 	)
 )
 

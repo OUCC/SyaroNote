@@ -20,17 +20,17 @@ $(function(){
       }
 
       if (name[0] !== '/') { name = '/' + name }
-      var reqUrl = syaro.urlPrefix + encodeURIComponent(name).replace(/%2F/g, '/')
+      var reqUrl = syaro.urlPrefix + encodeURIComponent(name).replace(/%2F/g, '/');
 
       var req = new XMLHttpRequest()
-      req.open('GET', reqUrl + '?action=create')
+      req.open('POST', reqUrl);
 
       req.onreadystatechange = function() {
         if (req.readyState === 4) {
           $('#createModalButton').button('reset')
 
           switch (req.status) {
-          case 200:
+          case 201: // created
             // redirect to editor
             location.href = reqUrl + '?view=editor'
             break
@@ -57,10 +57,10 @@ $(function(){
       }
 
       if (name[0] !== '/') { name = '/' + name }
-      var reqUrl = syaro.urlPrefix + encodeURIComponent(name).replace(/%2F/g, '/')
+      var reqUrl = syaro.urlPrefix + encodeURIComponent(name).replace(/%2F/g, '/');
 
       var req = new XMLHttpRequest()
-      req.open('GET', reqUrl + '?action=rename&oldpath='
+      req.open('PUT', reqUrl + '?action=rename&oldpath='
         + encodeURIComponent(syaro.wikiPath).replace(/%2F/g, '/'))
 
       req.onreadystatechange = function() {
@@ -68,7 +68,7 @@ $(function(){
           $('#renameModalButton').button('reset')
 
           switch (req.status) {
-          case 200:
+          case 200: // ok
             // redirect to page
             location.href = reqUrl
             break
@@ -87,20 +87,16 @@ $(function(){
     })
 
     $('#deleteModalButton').on('click', function() {
-      var reqUrl = location.href
-
       var req = new XMLHttpRequest()
-      req.open('GET', reqUrl + '?action=delete')
+      req.open('DELETE', location.href)
 
       req.onreadystatechange = function() {
         if (req.readyState === 4) {
           $('#deleteModalButton').button('reset')
 
           switch (req.status) {
-          case 200:
-            $('#deleteErrorAlert').hide()
-            // show success alert
-            $('#deleteSuccessAlert').show()
+          case 200: // ok
+            location.reload(true)
             break
 
           default:

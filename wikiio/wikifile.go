@@ -157,6 +157,10 @@ func (f *WikiFile) Save(b []byte, message, name, email string) error {
 	return nil
 }
 
+func (f *WikiFile) Backup(b []byte) error {
+	return ioutil.WriteFile(f.FilePath()+".bac", b, 0644)
+}
+
 func (f *WikiFile) Remove() error {
 	if err := os.RemoveAll(f.FilePath()); err != nil {
 		return err

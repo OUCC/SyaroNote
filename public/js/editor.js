@@ -1,17 +1,17 @@
 (function(global) {
 
-  var editor
-  var modified = false
-  var theme = 'ace/theme/chrome'
-  var preview = true
-  var mathjax = false
-  var timeoutId = ""
+  var editor,
+      modified   = false,
+      theme      = 'ace/theme/chrome',
+      preview    = true,
+      syncScroll = true,
+      mathjax    = false,
+      timeoutId  = "";
 
   function init() {
-    initUi()
-    initAce()
+    initUi();
+    initAce();
     initTableFormatter();
-    updatePreview()
   }
 
   function initUi() {
@@ -20,15 +20,20 @@
 
     $('#saveModal').on('show.bs.modal', function() {
       // restore from local storage
-      $('#nameInput').val(localStorage.getItem("name"));
-      $('#emailInput').val(localStorage.getItem("email"));
+      var name  = localStorage.getItem("name"),
+          email = localStorage.getItem("email");
+      if (name == undefined)  name = "";
+      if (email == undefined) email = "";
+      $('#nameInput').val();
+      $('#emailInput').val();
 
       $('.alert').hide()
       $('#saveModalButton').toggleClass('disabled', false)
     })
 
     // option dropdown on navbar
-    $('#optionPreview > span').toggleClass('glyphicon-check', true)
+    $('#optionPreview > span').toggleClass('glyphicon-check', true);
+    $('#optionSyncScroll > span').toggleClass('glyphicon-check', true);
     $('#optionMathJax > span').toggleClass('glyphicon-unchecked', true);
 
     $('#optionPreview').on('click', function() {
@@ -36,6 +41,13 @@
       $('#optionPreview > span').toggleClass('glyphicon-check')
       $('#optionPreview > span').toggleClass('glyphicon-unchecked')
       $('#optionMathJax').parent('li').toggleClass('disabled')
+      return false
+    })
+
+    $('#optionSyncScroll').on('click', function() {
+      syncScroll = !syncScroll;
+      $('#optionSyncScroll > span').toggleClass('glyphicon-check');
+      $('#optionSyncScroll > span').toggleClass('glyphicon-unchecked');
       return false
     })
 
@@ -65,16 +77,10 @@
       var email   = "";
 
       // save to local storage
-      localStorage.setItem("name", name)
-      localStorage.setItem("email", email)
+      localStorage.setItem("name", name);
+      localStorage.setItem("email", email);
 
-      var req = new XMLHttpRequest();
-      req.open('POST', location.href +
-       '&message=' + encodeURIComponent(message) +
-       '&name=' + encodeURIComponent(name) +
-       '&email=' + encodeURIComponent(email));
-
-      req.onreadystatechange = function() {
+      var callback = function (req) {
         if(req.readyState === 4) {
           $('#saveModalButton').button('reset')
           $('.alert').hide()
@@ -92,9 +98,10 @@
             break
           }
         }
-      }
+      };
 
-      req.send(editor.getSession().getValue())
+      saveAndPreview(callback, false, message, name, email);
+
       $('#saveModalButton').button('loading')
     })
 
@@ -122,8 +129,26 @@
       if(timeoutId !== "") { clearTimeout(timeoutId); }
 
       timeoutId = setTimeout(function() {
-        updatePreview();
-      }, 3000);
+        var callback = function (req) {
+          if (req.readyState === 4 && req.status === 200) {
+            if (!preview) { return; }
+
+            $('#preview').html(req.responseText);
+
+            if (syaro.highlight) {
+              $('#preview pre code').each(function(i, block) {
+                hljs.highlightBlock(block);
+              });
+            }
+
+            if (syaro.mathjax && mathjax) {
+              // update math in #preview
+              MathJax.Hub.Queue(["Typeset", MathJax.Hub, "preview"]);
+            }
+          }
+        }
+        saveAndPreview(callback, true);
+      }, 2000);
     })
 
     // sync scroll
@@ -138,36 +163,22 @@
     editor.keyBinding.addKeyboardHandler(new TableFormatter());
   }
 
-  function updatePreview() {
-    if (!preview) { return; }
-
-    var url = document.createElement('a');
-    url.href = location.href;
-
-    var reqUrl = url.protocol + '//' + url.host + syaro.urlPrefix +
-        '/preview?path=' + encodeURIComponent(syaro.wikiPath).replace(/%2F/g, '/');
+  function saveAndPreview(callback, backup, message, name, email) {
+    var reqUrl = location.href.split('?')[0];
+    if (backup) {
+      reqUrl += '?backup=true';
+    } else {
+      reqUrl += '?message=' + encodeURIComponent(message) +
+                '&name='    + encodeURIComponent(name) +
+                '&email='   + encodeURIComponent(email);
+    }
 
     var req = new XMLHttpRequest();
-    req.open('POST', reqUrl);
+    req.open('PUT', reqUrl);
 
-    req.onreadystatechange = function() {
-      if(req.readyState === 4 && req.status === 200) {
-        $('#preview').html(req.responseText);
-
-        if (syaro.highlight) {
-          $('#preview pre code').each(function(i, block) {
-            hljs.highlightBlock(block);
-          });
-        }
-
-        if (syaro.mathjax && mathjax) {
-          // update math in #preview
-          MathJax.Hub.Queue(["Typeset", MathJax.Hub, "preview"]);
-        }
-
-        syncScroll();
-      }
-    }
+    req.onreadystatechange = function () {
+      callback(req);
+    };
 
     req.send(editor.getSession().getValue());
   }
