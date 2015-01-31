@@ -170,10 +170,6 @@ func updatePage(wpath string, w http.ResponseWriter, r *http.Request) {
 		Log.Info("Backing up (%s)...", wpath+".bac")
 	} else {
 		Log.Info("Saving (%s)...", wpath)
-		if setting.GitMode {
-			Log.Info("message: %s", message)
-			Log.Info("author name: %s, email: %s", name, email)
-		}
 	}
 
 	f, err := wikiio.Load(wpath)

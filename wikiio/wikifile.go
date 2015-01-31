@@ -139,7 +139,8 @@ func (f *WikiFile) Save(b []byte, message, name, email string) error {
 
 	// git commit
 	if setting.GitMode {
-		sig := getDefaultSignature()
+		repo := getRepo()
+		sig := getDefaultSignature(repo)
 		if name != "" {
 			sig.Name = name
 		}
@@ -151,7 +152,7 @@ func (f *WikiFile) Save(b []byte, message, name, email string) error {
 			message = "Updated " + filepath.Base(f.wikiPath)
 		}
 
-		commit, err := commitChange(
+		commit, err := commitChange(repo,
 			func(idx *git.Index) error {
 				if err := idx.AddByPath(f.wikiPath[1:]); err != nil {
 					return err
@@ -183,7 +184,8 @@ func (f *WikiFile) Remove() error {
 
 	// git commit
 	if setting.GitMode {
-		commit, err := commitChange(
+		repo := getRepo()
+		commit, err := commitChange(repo,
 			func(idx *git.Index) error {
 				return idx.RemoveAll(
 					[]string{f.wikiPath[1:]},
@@ -192,7 +194,7 @@ func (f *WikiFile) Remove() error {
 						return 0
 					})
 			},
-			getDefaultSignature(),
+			getDefaultSignature(repo),
 			"Removed "+filepath.Base(f.wikiPath))
 		if err != nil {
 			Log.Error("Git error: %s", err)
@@ -211,7 +213,7 @@ func (f *WikiFile) RemoveBackup() error {
 
 func (f *WikiFile) History() []Change {
 	if setting.GitMode {
-		return getChanges(f.wikiPath)
+		return getChanges(getRepo(), f.wikiPath)
 	} else {
 		return nil
 	}

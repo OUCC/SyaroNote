@@ -20,9 +20,6 @@ var (
 	WikiRoot    *WikiFile
 	searchIndex map[string][]*WikiFile
 
-	// git repository
-	repo *git.Repository
-
 	// file system watcher
 	watcher *fsnotify.Watcher
 
@@ -31,33 +28,17 @@ var (
 )
 
 var (
-	ErrNotExist     = errors.New("file not exist")
-	ErrNotFound     = errors.New("file not found")
-	ErrRepoNotReady = errors.New("repository contains uncommited changes")
+	ErrNotExist = errors.New("file not exist")
+	ErrNotFound = errors.New("file not found")
 )
 
-func OpenRepository() error {
-	var err error
-	repo, err = git.OpenRepository(setting.WikiRoot)
-	if err != nil {
-		return err
+func CheckRepository() bool {
+	switch _, err := git.OpenRepository(setting.WikiRoot); err {
+	case nil:
+		return true
+	default:
+		return false
 	}
-
-	// check if repository contains uncommited changes
-	opt := new(git.StatusOptions)
-	opt.Flags = git.StatusOptIncludeUntracked
-	opt.Show = git.StatusShowIndexAndWorkdir
-	statuses, err := repo.StatusList(opt)
-	if err != nil {
-		return err
-	} else {
-		defer statuses.Free()
-	}
-	if c, _ := statuses.EntryCount(); c != 0 {
-		return ErrRepoNotReady
-	}
-
-	return nil
 }
 
 func InitWatcher() {
@@ -261,14 +242,15 @@ func Create(wpath string) error {
 
 	// git commit
 	if setting.GitMode {
-		commit, err := commitChange(
+		repo := getRepo()
+		commit, err := commitChange(repo,
 			func(idx *git.Index) error {
 				if err := idx.AddByPath(wpath[1:]); err != nil {
 					return err
 				}
 				return nil
 			},
-			getDefaultSignature(),
+			getDefaultSignature(repo),
 			"Created "+filepath.Base(wpath))
 		if err != nil {
 			Log.Error("Git error: %s", err)
@@ -304,7 +286,8 @@ func Rename(oldpath string, newpath string) error {
 
 	// git commit
 	if setting.GitMode {
-		commit, err := commitChange(
+		repo := getRepo()
+		commit, err := commitChange(repo,
 			func(idx *git.Index) error {
 				err := idx.RemoveAll(
 					[]string{oldpath[1:]},
@@ -323,7 +306,7 @@ func Rename(oldpath string, newpath string) error {
 						return 0
 					})
 			},
-			getDefaultSignature(),
+			getDefaultSignature(repo),
 			fmt.Sprintf("Renamed %s\n\n%s -> %s", filepath.Base(oldpath), oldpath, newpath))
 
 		if err != nil {

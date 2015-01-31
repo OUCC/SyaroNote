@@ -2,6 +2,7 @@ package wikiio
 
 import (
 	. "github.com/OUCC/syaro/logger"
+	"github.com/OUCC/syaro/setting"
 
 	"github.com/libgit2/git2go"
 
@@ -36,7 +37,19 @@ func OpString(op Op) string {
 	return ""
 }
 
-func commitChange(manip func(idx *git.Index) error, sig *git.Signature,
+func getRepo() *git.Repository {
+	if !setting.GitMode {
+		return nil
+	}
+
+	repo, err := git.OpenRepository(setting.WikiRoot)
+	if err != nil {
+		Log.Panic(err)
+	}
+	return repo
+}
+
+func commitChange(repo *git.Repository, manip func(idx *git.Index) error, sig *git.Signature,
 	message string) (*git.Commit, error) {
 	// staging and get index tree
 	idx, _ := repo.Index()
@@ -49,7 +62,7 @@ func commitChange(manip func(idx *git.Index) error, sig *git.Signature,
 	defer tree.Free()
 
 	// get latest commit of current branch
-	parent := getLastCommit()
+	parent := getLastCommit(repo)
 	if parent != nil {
 		defer parent.Free()
 		Log.Debug("parent commit: %s", parent.Message())
@@ -77,7 +90,7 @@ func commitChange(manip func(idx *git.Index) error, sig *git.Signature,
 }
 
 // getLastCommit returns latest commit of current branch
-func getLastCommit() *git.Commit {
+func getLastCommit(repo *git.Repository) *git.Commit {
 	ref, _ := repo.LookupReference("HEAD")
 	defer ref.Free()
 	ref, _ = ref.Resolve()
@@ -90,7 +103,7 @@ func getLastCommit() *git.Commit {
 	}
 }
 
-func getDefaultSignature() *git.Signature {
+func getDefaultSignature(repo *git.Repository) *git.Signature {
 	config, _ := repo.Config()
 	defer config.Free()
 	name, err := config.LookupString("user.name")
@@ -117,14 +130,14 @@ func logCommit(c *git.Commit) {
 	Log.Info("Committer: %s <%s>", c.Committer().Name, c.Committer().Email)
 }
 
-func getChanges(wpath string) []Change {
+func getChanges(repo *git.Repository, wpath string) []Change {
 	// setup revision walker
 	walk, _ := repo.Walk()
 	walk.Sorting(git.SortTopological | git.SortTime)
 	walk.PushHead()
 
 	// find out current oid of the wpath
-	head := getLastCommit()
+	head := getLastCommit(repo)
 	tree, _ := head.Tree()
 	entry, err := tree.EntryByPath(wpath[1:])
 	if err != nil {
