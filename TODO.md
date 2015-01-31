@@ -3,13 +3,12 @@ TODO
 * [x] fix wiki link bug (wiki link including space is not valid)
 * [ ] readonly mode
 * [ ] git integration
-  - [ ] ~auto git commit and git rebase when user save file~
   - [x] specify message and signature on checkout
   - [x] save signature in localstorage
   - [ ] history
   - [ ] show last modified date on file list
   - [ ] auto sync
-  - [ ] auto commit
+  - [x] auto commit
 * [x] html pipeline
 * [x] fragment(auto header ID)
   - [ ] link anchor
@@ -33,11 +32,11 @@ TODO
     - [x] style
 * [ ] fix code highlighting
 * [ ] image width specifie
-* [ ] Goji
+* [x] Goji
 * [ ] Tablet and smartphone
 * [x] favicon
 * [ ] redesign editor
-  - [ ] auto save
+  - [x] auto backup
   - [ ] drag and drop file upload
-  - [ ] alert before leaving editor
+  - [x] alert before leaving editor
 * [x] [[Link|Page name]] or [[Link>Page name]] or [[Link]](Page name)

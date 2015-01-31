@@ -11,7 +11,7 @@
 
       <ul class="nav navbar-nav">
         <li class="active">
-          <a class="close-button" href="#">{{.WikiPath}}</a>
+          <a href="{{.URLPath}}">{{.WikiPath}}</a>
         </li>
         <li class="dropdown">
           <a href="#" class="dropdown-toggle" data-toggle="dropdown">Option <span class="caret"></span></a>
@@ -19,6 +19,9 @@
           <ul class="dropdown-menu" role="menu">
             <li>
               <a id="optionPreview" href="#"><span class="glyphicon"></span> Realtime preview</a>
+            </li>
+            <li>
+              <a id="optionSyncScroll" href="#"><span class="glyphicon"></span> Sync scroll</a>
             </li>
             {{if mathjax}}
             <li>
@@ -39,7 +42,7 @@
           <a class="hover-green" data-toggle="modal" href="#saveModal"><span class="glyphicon glyphicon-floppy-disk"></span> Save</a>
         </li>
         <li>
-          <a class="hover-red close-button" href="#"><span class="glyphicon glyphicon-remove"></span> Close editor</a>
+          <a class="hover-red" href="{{.URLPath}}"><span class="glyphicon glyphicon-remove"></span> Close editor</a>
         </li>
       </ul>
 

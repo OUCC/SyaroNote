@@ -58,17 +58,6 @@
       return false
     })
 
-    // button on navbar
-    $('a.close-button').on('click', function() {
-      if (modified) {
-        $('#closeModal').modal()
-      } else {
-        // back to page view
-        location.href = location.href.split('?')[0]
-      }
-      return false
-    })
-
     // button on modal
     $('#saveModalButton').on('click', function() {
       var message = $('#messageInput').val();
@@ -105,9 +94,10 @@
       $('#saveModalButton').button('loading')
     })
 
-    $('#closeModalButton').on('click', function() {
-        // back to page view
-        location.href = location.href.split('?')[0]
+    $(window).on('beforeunload', function () {
+      if (modified) {
+        return 'Document will not be saved. OK?'
+      }
     })
   }
 
@@ -152,7 +142,7 @@
     })
 
     // sync scroll
-    editor.getSession().on('changeScrollTop', syncScroll)
+    editor.getSession().on('changeScrollTop', scroll)
   }
 
   function initTableFormatter() {
@@ -183,7 +173,9 @@
     req.send(editor.getSession().getValue());
   }
 
-  function syncScroll() {
+  function scroll() {
+    if (!syncScroll) { return; }
+
     var $preview = $('#preview');
 
     var previewHeight  = $preview[0].scrollHeight,
