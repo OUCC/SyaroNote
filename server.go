@@ -186,7 +186,7 @@ func updatePage(wpath string, w http.ResponseWriter, r *http.Request) {
 	b, _ := ioutil.ReadAll(r.Body)
 	defer r.Body.Close()
 	if backup {
-		err = f.Backup(b)
+		err = f.SaveBackup(b)
 	} else {
 		err = f.Save(b, message, name, email)
 	}

@@ -94,8 +94,11 @@ func InitWatcher() {
 			Log.Error(err.Error())
 		}
 
-		// dont add hidden dir (ex. .git)
-		if info.IsDir() && !strings.Contains(path, "/.") && !strings.HasPrefix(path, ".") {
+		// dont add hidden dir (ex. .git) and backup file
+		if info.IsDir() &&
+			!strings.Contains(path, "/.") &&
+			!strings.HasPrefix(path, ".") &&
+			!strings.HasSuffix(path, BACKUP_SUFFIX) {
 			watcher.Add(path)
 			Log.Debug("%s added to watcher", path)
 		}
@@ -131,8 +134,8 @@ func buildIndex() {
 
 		dir.files = make([]*WikiFile, 0, len(infos))
 		for _, info := range infos {
-			// skip hidden file
-			if info.Name()[:1] == "." {
+			// skip hidden files and backup files
+			if info.Name()[:1] == "." || strings.HasSuffix(info.Name(), BACKUP_SUFFIX) {
 				continue
 			}
 

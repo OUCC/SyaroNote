@@ -9,15 +9,17 @@
       timeoutId  = "";
 
   function init() {
-    initUi();
     initAce();
+    initUi();
     initTableFormatter();
+    promptBackup();
   }
 
   function initUi() {
     $('.alert').hide()
     $('.modal').hide()
 
+    //== modal
     $('#saveModal').on('show.bs.modal', function() {
       // restore from local storage
       var name  = localStorage.getItem("name"),
@@ -29,33 +31,6 @@
 
       $('.alert').hide()
       $('#saveModalButton').toggleClass('disabled', false)
-    })
-
-    // option dropdown on navbar
-    $('#optionPreview > span').toggleClass('glyphicon-check', true);
-    $('#optionSyncScroll > span').toggleClass('glyphicon-check', true);
-    $('#optionMathJax > span').toggleClass('glyphicon-unchecked', true);
-
-    $('#optionPreview').on('click', function() {
-      preview = !preview
-      $('#optionPreview > span').toggleClass('glyphicon-check')
-      $('#optionPreview > span').toggleClass('glyphicon-unchecked')
-      $('#optionMathJax').parent('li').toggleClass('disabled')
-      return false
-    })
-
-    $('#optionSyncScroll').on('click', function() {
-      syncScroll = !syncScroll;
-      $('#optionSyncScroll > span').toggleClass('glyphicon-check');
-      $('#optionSyncScroll > span').toggleClass('glyphicon-unchecked');
-      return false
-    })
-
-    $('#optionMathJax').on('click', function() {
-      mathjax = !mathjax
-      $('#optionMathJax > span').toggleClass('glyphicon-check')
-      $('#optionMathJax > span').toggleClass('glyphicon-unchecked')
-      return false
     })
 
     // button on modal
@@ -94,6 +69,39 @@
       $('#saveModalButton').button('loading')
     })
 
+    $('#backupModalButton').on('click', function() {
+      editor.getSession().getDocument().setValue(syaro.rawBackup);
+      $('#backupModal').modal('hide');
+    })
+
+    //== option dropdown on navbar
+    $('#optionPreview > span').toggleClass('glyphicon-check', true);
+    $('#optionSyncScroll > span').toggleClass('glyphicon-check', true);
+    $('#optionMathJax > span').toggleClass('glyphicon-unchecked', true);
+
+    $('#optionPreview').on('click', function() {
+      preview = !preview
+      $('#optionPreview > span').toggleClass('glyphicon-check')
+      $('#optionPreview > span').toggleClass('glyphicon-unchecked')
+      $('#optionMathJax').parent('li').toggleClass('disabled')
+      return false
+    })
+
+    $('#optionSyncScroll').on('click', function() {
+      syncScroll = !syncScroll;
+      $('#optionSyncScroll > span').toggleClass('glyphicon-check');
+      $('#optionSyncScroll > span').toggleClass('glyphicon-unchecked');
+      return false
+    })
+
+    $('#optionMathJax').on('click', function() {
+      mathjax = !mathjax
+      $('#optionMathJax > span').toggleClass('glyphicon-check')
+      $('#optionMathJax > span').toggleClass('glyphicon-unchecked')
+      return false
+    })
+
+    //== alart
     $(window).on('beforeunload', function () {
       if (modified) {
         return 'Document will not be saved. OK?'
@@ -151,6 +159,12 @@
     TableFormatter = global['TableFormatter'];
 
     editor.keyBinding.addKeyboardHandler(new TableFormatter());
+  }
+
+  function promptBackup () {
+    if (syaro.rawBackup != undefined) {
+      $('#backupModal').modal('show');
+    }
   }
 
   function saveAndPreview(callback, backup, message, name, email) {

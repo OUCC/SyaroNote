@@ -127,6 +127,7 @@ func setupViews() error {
 		"mathjax":   func() bool { return setting.MathJax },
 		"highlight": func() bool { return setting.Highlight },
 		"gitmode":   func() bool { return setting.GitMode },
+		"byteToStr": func(b []byte) string { return string(b) },
 	})
 	tmpl, err := tmpl.ParseGlob(filepath.Join(setting.SyaroDir, VIEWS_DIR, "*.html"))
 	if err != nil {

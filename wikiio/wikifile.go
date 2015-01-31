@@ -15,6 +15,8 @@ import (
 	"strings"
 )
 
+const BACKUP_SUFFIX = "~"
+
 type WikiFile struct {
 	fileInfo  os.FileInfo
 	files     []*WikiFile
@@ -119,10 +121,21 @@ func (f *WikiFile) Raw() []byte {
 	return b
 }
 
+func (f *WikiFile) RawBackup() []byte {
+	if f.IsDir() {
+		return nil
+	}
+
+	b, _ := ioutil.ReadFile(f.FilePath() + BACKUP_SUFFIX)
+	return b
+}
+
 func (f *WikiFile) Save(b []byte, message, name, email string) error {
 	if err := ioutil.WriteFile(f.FilePath(), b, 0644); err != nil {
 		return err
 	}
+
+	f.RemoveBackup()
 
 	// git commit
 	if setting.GitMode {
@@ -157,8 +170,8 @@ func (f *WikiFile) Save(b []byte, message, name, email string) error {
 	return nil
 }
 
-func (f *WikiFile) Backup(b []byte) error {
-	return ioutil.WriteFile(f.FilePath()+".bac", b, 0644)
+func (f *WikiFile) SaveBackup(b []byte) error {
+	return ioutil.WriteFile(f.FilePath()+BACKUP_SUFFIX, b, 0644)
 }
 
 func (f *WikiFile) Remove() error {
@@ -190,6 +203,10 @@ func (f *WikiFile) Remove() error {
 	}
 
 	return nil
+}
+
+func (f *WikiFile) RemoveBackup() error {
+	return os.Remove(f.FilePath() + BACKUP_SUFFIX)
 }
 
 func (f *WikiFile) History() []Change {
