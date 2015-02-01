@@ -12,6 +12,7 @@
     initAce();
     initUi();
     initTableFormatter();
+    updateEmojify();
     promptBackup();
   }
 
@@ -132,6 +133,7 @@
             if (!preview) { return; }
 
             $('#preview').html(req.responseText);
+            updateEmojify();
 
             if (syaro.highlight) {
               $('#preview pre code').each(function(i, block) {
@@ -204,6 +206,10 @@
     var top = editorTop * (previewHeight - previewVisible) / (editorHeight - editorVisible);
 
     $preview.scrollTop(top);
+  }
+
+  function updateEmojify() {
+    emojify.run($('#preview').get(0));
   }
 
   init()
