@@ -247,3 +247,8 @@
 .markdown img {
     max-width: 100%;
 }
+
+.markdown img.emoji {
+    vertical-align: text-bottom;
+    height: 20px;
+}

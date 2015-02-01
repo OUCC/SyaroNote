@@ -1,7 +1,8 @@
 $(function(){
 
   function init() {
-    initUI()
+    initUI();
+    initEmojify();
   }
 
   function initUI() {
@@ -127,6 +128,12 @@ $(function(){
         toggle.children('i').removeClass('glyphicon-chevron-down');
         toggle.children('i').addClass('glyphicon-chevron-up');
       }
+    });
+  }
+
+  function initEmojify() {
+    $(".markdown").each(function() {
+      emojify.run($(this).get(0));
     });
   }
 
