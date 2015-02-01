@@ -1,2 +1,10 @@
+.DS_Store
+.AppleDouble
+.LSOverride
+
+Thumbs.db
+ehthumbs.db
+$RECYCLE.BIN/
+
 bower_components
 public/lib
