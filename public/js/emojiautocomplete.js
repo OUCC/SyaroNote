@@ -71,7 +71,6 @@
     }
 
     function insertEmoji(editor, emoji) {
-        console.log(emoji);
         var session     = editor.getSession();
         var cursorPos   = editor.getCursorPosition();
         var currentLine = session.getLine(cursorPos.row);
