@@ -7,44 +7,45 @@
     var emojiNames = emojify.emojiNames;
     var $suggestDropdown;
     var enteringEmoji;
+    var maybe = [];
 
     function EmojiAutoComplete(editor) {
+        HashHandler = ace.require("ace/keyboard/hash_handler").HashHandler;
+
         $suggestDropdown = $(_dropdownDom());
         $("#app_wrap").append($suggestDropdown);
-        editor.getSession().on("changeBackMarker", function() {
-            eacExecEvent(editor);
+        $suggestDropdown.find(".insert-emoji-trigger").on("click", function() {
+            insertEmoji(editor, $(this).attr("data-emoji"));
         });
+
+        editor.getSession().on("changeBackMarker", function() {
+            cursorMoveAction(editor);
+        });
+        editor.keyBinding.addKeyboardHandler(new HashHandler([{
+            bindKey: "Tab",
+            descr:   "Insert suggested emoji",
+            exec:    tabKeyAction(editor)
+        }]));
     }
 
-    function eacExecEvent(editor) {
-        var d = new $.Deferred;
-        var maybe = detectSuggestableEmoji(editor);
-
-        if (maybe === null) {
-            $suggestDropdown.removeClass("open");
+    function cursorMoveAction(editor) {
+        var m = detectSuggestableEmoji(editor);
+        if (m === null) {
+            hideSuggest();
         } else {
-            $suggestDropdown.find(".insert-emoji-trigger").each(function() {
-                if (enteringEmoji === "") {
-                    $(this).removeClass("hidden")
-                        .children(".dropdown-emoji-text").text($(this).attr("data-emoji"));
-                } else {
-                    if (maybe.indexOf($(this).attr("data-emoji")) >= 0) {
-                        $(this).removeClass("hidden")
-                            .children(".dropdown-emoji-text").html(
-                                '<b>' + enteringEmoji + '</b>' + $(this).attr("data-emoji").slice(enteringEmoji.length)
-                        );
-                    } else {
-                        $(this).addClass("hidden");
-                    }
-                }
-            });
-            $suggestDropdown.find("ul.emoji-suggest-list")
-                .css("top", ($(".ace_cursor").offset().top + 40) + "px")
-                .css("left", $(".ace_cursor").offset().left      + "px");
-            $suggestDropdown.addClass("open");
+            showSuggest(m);
         }
-        d.resolve();
-        return d.promise();
+    }
+
+    function tabKeyAction(editor) {
+        return function() {
+            if (maybe.length > 0) {
+                insertEmoji(editor, maybe[0]);
+                hideSuggest();
+                return true;
+            }
+            return false;
+        }
     }
 
     function detectSuggestableEmoji(editor) {
@@ -52,9 +53,9 @@
         var cursorPos   = editor.getCursorPosition();
         var currentLine = session.getLine(cursorPos.row);
 
-        var headMatch = currentLine.slice(0, cursorPos.column).match(/^:([^:\s]*)$|\s:([^:\s]*)$/);
-        var tailMatch = currentLine.slice(cursorPos.column).match(/^([^:\s]*)$|^([^:\s]*)\s/);
-        if (headMatch === null || tailMatch === null) {
+        var headMatch = currentLine.slice(0, cursorPos.column).match(/^:([\w+-]*)$|\s:([\w+-]*)$/);
+        var tailMatch = currentLine.slice(cursorPos.column).match(/^[\w+-]*:/);
+        if (headMatch === null || tailMatch !== null) {
             return null;
         }
 
@@ -69,10 +70,55 @@
         return maybe;
     }
 
-    function execHashHandler() {
-        return function(editor) {
-            console.log("event");
+    function insertEmoji(editor, emoji) {
+        console.log(emoji);
+        var session     = editor.getSession();
+        var cursorPos   = editor.getCursorPosition();
+        var currentLine = session.getLine(cursorPos.row);
+
+        var headMatch = currentLine.slice(0, cursorPos.column).match(/^(.*:)[\w+-:w]*$/);
+        var tailMatch = currentLine.slice(cursorPos.column).match(/^([\w+-]*)\s|^([\w+-]*)/);
+        if (headMatch === null || tailMatch === null) {
+            return null;
         }
+
+        var startColumn = headMatch[1].length;
+        var endColumn = cursorPos.column
+                      + ((typeof tailMatch[1] !== "undefined")? tailMatch[1].length : tailMatch[2].length);
+        var text = emoji + ((typeof tailMatch[1] !== "undefined")? ":" : ": ");
+
+        session.replace(new Range(cursorPos.row, startColumn, cursorPos.row, endColumn), text);
+        editor.moveCursorTo(cursorPos.row, startColumn + text.length);
+        editor.focus();
+    }
+
+    function showSuggest(m) {
+        maybe = m;
+        $suggestDropdown.find(".insert-emoji-trigger").each(function() {
+            if (enteringEmoji === "") {
+                $(this).removeClass("hidden")
+                    .children(".dropdown-emoji-text").text($(this).attr("data-emoji"));
+            } else {
+                if (maybe.indexOf($(this).attr("data-emoji")) >= 0) {
+                    $(this).removeClass("hidden")
+                        .children(".dropdown-emoji-text").html(
+                            '<b>' + enteringEmoji + '</b>' + $(this).attr("data-emoji").slice(enteringEmoji.length)
+                        );
+                } else {
+                    $(this).addClass("hidden");
+                }
+            }
+        });
+        $suggestDropdown.find("ul.emoji-suggest-list")
+            .css("top", ($(".ace_cursor").offset().top + 40) + "px")
+            .css("left", $(".ace_cursor").offset().left      + "px")
+            .scrollTop(0);
+        $suggestDropdown.addClass("open");
+    }
+
+    function hideSuggest() {
+        maybe = [];
+        $suggestDropdown.removeClass("open");
     }
 
     function _dropdownDom() {

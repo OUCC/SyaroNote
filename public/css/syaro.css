@@ -78,3 +78,7 @@ img.emoji {
     overflow: auto;
     position: fixed;
 }
+
+a.insert-emoji-trigger {
+    cursor: pointer;
+}

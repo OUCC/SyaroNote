@@ -11,7 +11,7 @@
   function init() {
     initAce();
     initUi();
-    initTableFormatter();
+    initTool();
     updateEmojify();
     promptBackup();
   }
@@ -155,7 +155,7 @@
     editor.getSession().on('changeScrollTop', scroll)
   }
 
-  function initTableFormatter() {
+  function initTool() {
     // http://stackoverflow.com/questions/14042926/keydown-event-not-fired-on-ace-editor
     HashHandler = ace.require('ace/keyboard/hash_handler').HashHandler;
     TableFormatter = global['TableFormatter'];
@@ -163,7 +163,6 @@
 
     editor.keyBinding.addKeyboardHandler(new TableFormatter());
     new EmojiAutoComplete(editor);
-    //editor.keyBinding.addKeyboardHandler(new EmojiAutoComplete());
   }
 
   function promptBackup () {
