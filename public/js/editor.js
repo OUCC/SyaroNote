@@ -11,7 +11,8 @@
   function init() {
     initAce();
     initUi();
-    initTableFormatter();
+    initTool();
+    updateEmojify();
     promptBackup();
   }
 
@@ -132,6 +133,7 @@
             if (!preview) { return; }
 
             $('#preview').html(req.responseText);
+            updateEmojify();
 
             if (syaro.highlight) {
               $('#preview pre code').each(function(i, block) {
@@ -153,12 +155,14 @@
     editor.getSession().on('changeScrollTop', scroll)
   }
 
-  function initTableFormatter() {
+  function initTool() {
     // http://stackoverflow.com/questions/14042926/keydown-event-not-fired-on-ace-editor
     HashHandler = ace.require('ace/keyboard/hash_handler').HashHandler;
     TableFormatter = global['TableFormatter'];
+    EmojiAutoComplete = global['EmojiAutoComplete'];
 
     editor.keyBinding.addKeyboardHandler(new TableFormatter());
+    new EmojiAutoComplete(editor);
   }
 
   function promptBackup () {
@@ -204,6 +208,10 @@
     var top = editorTop * (previewHeight - previewVisible) / (editorHeight - editorVisible);
 
     $preview.scrollTop(top);
+  }
+
+  function updateEmojify() {
+    emojify.run($('#preview').get(0));
   }
 
   init()

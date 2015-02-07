@@ -66,3 +66,19 @@
     margin-bottom: 5px;
     max-width: 50%;
 }
+
+/* emoji */
+img.emoji {
+    vertical-align: text-bottom;
+    height: 1.3em;
+}
+
+.dropdown-menu.emoji-suggest-list {
+    max-height: 230px;
+    overflow: auto;
+    position: fixed;
+}
+
+a.insert-emoji-trigger {
+    cursor: pointer;
+}
