@@ -21,18 +21,25 @@
     $('.modal').hide()
 
     //== modal
-    $('#saveModal').on('show.bs.modal', function() {
-      // restore from local storage
-      var name  = localStorage.getItem("name"),
-          email = localStorage.getItem("email");
-      if (name == undefined)  name = "";
-      if (email == undefined) email = "";
-      $('#nameInput').val();
-      $('#emailInput').val();
+    $('#saveButton').on('click', function () {
+      if (syaro.gitmode) {
+        // restore user signature from local storage
+        var name  = localStorage.getItem("name"),
+            email = localStorage.getItem("email");
+        if (name == undefined)  name = "";
+        if (email == undefined) email = "";
+        $('#nameInput').val();
+        $('#emailInput').val();
 
-      $('.alert').hide()
-      $('#saveModalButton').toggleClass('disabled', false)
-    })
+        // show save modal
+        $('.alert').hide();
+        $('#saveModalButton').toggleClass('disabled', false);
+        $('#saveModal').modal('show');
+
+      } else {
+        simpleSave();
+      }
+    });
 
     // button on modal
     $('#saveModalButton').on('click', function() {
@@ -52,8 +59,8 @@
 
           switch (req.status) {
           case 200:
-            $('#saveModalButton').toggleClass('disabled', true) // FIXME don't work!
-            $('#savedAlert').show();
+            $('#saveModal').modal('hide');
+            indicateSaved();
             modified = false;
             break
 
@@ -201,6 +208,46 @@
     };
 
     req.send(editor.getSession().getValue());
+  }
+
+  function indicateSaved() {
+    var savedText = "<strong>Saved!</strong>";
+    $('#saveButton').html($('#saveButton').html().replace("Save", savedText));
+
+    var count = 9;
+    var func = function () {
+      if (count % 2 === 1) {
+        $('#saveButton').css('color', '#00e613');
+      } else {
+        $('#saveButton').removeAttr('style');
+      }
+
+      if (count !== 0) { setTimeout(func, 333); }
+      else {
+        $('#saveButton').html($('#saveButton').html().replace(savedText, "Save"));
+      }
+      count--;
+    };
+    setTimeout(func, 333)
+    editor.focus()
+  }
+
+  function simpleSave() {
+    var callback = function (req) {
+      if(req.readyState === 4) {
+        switch (req.status) {
+        case 200:
+          indicateSaved();
+          modified = false;
+          break
+
+        default:
+          window.alert("**Error** " + req.responseText)
+          break
+        }
+      }
+    };
+    saveAndPreview(callback, false);
   }
 
   function scroll() {

@@ -13,7 +13,7 @@ TODO
 * [x] fragment(auto header ID)
   - [ ] link anchor
 * [x] table of contents
-* [ ] emoji (https://github.com/twitter/twemoji)
+* [x] emoji (https://github.com/twitter/twemoji)
 * [x] checkbox
 * [x] preview on server
 * [x] fix sync scroll
@@ -39,4 +39,6 @@ TODO
   - [x] auto backup
   - [ ] drag and drop file upload
   - [x] alert before leaving editor
+  - [x] save by Ctrl-S
+  - [x] saved indicator
 * [x] [[Link|Page name]] or [[Link>Page name]] or [[Link]](Page name)
