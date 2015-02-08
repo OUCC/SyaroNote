@@ -5,8 +5,7 @@ TODO
 * [ ] git integration
   - [x] specify message and signature on checkout
   - [x] save signature in localstorage
-  - [ ] history
-  - [ ] show last modified date on file list
+  - [x] history
   - [ ] auto sync
   - [x] auto commit
 * [x] html pipeline

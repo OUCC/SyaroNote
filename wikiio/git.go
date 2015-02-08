@@ -154,11 +154,20 @@ func getChanges(repo *git.Repository, wpath string) []Change {
 	previous := head
 	changes := make([]Change, 0)
 
-	// walking func
+	// revision walking func
 	fun := func(c *git.Commit) bool {
 		tree, _ := c.Tree()
-		if entry := tree.EntryByName(name); entry != nil { // found (by name)
-			if !entry.Id.Equal(oid) { // entry is found but its contents is differ
+		found := false
+
+		// tree walking
+		tree.Walk(func(dir string, entry *git.TreeEntry) int {
+			if dir+entry.Name == name && entry.Id.Equal(oid) {
+				// found (not changed)
+				found = true
+				return -1 // end tree walking
+
+			} else if dir+entry.Name == name && !entry.Id.Equal(oid) { // found (by name)
+				// entry is found but its contents is differ
 				Log.Debug("%s is updated in %s", name, previous.Id().String()[:7])
 
 				changes = append(changes, Change{
@@ -166,49 +175,47 @@ func getChanges(repo *git.Repository, wpath string) []Change {
 					Commit: previous,
 				})
 				oid = entry.Id.Copy()
-			}
-		} else { // not found (by name)
-			var i uint64
-			found := false
-			for i = 0; i < tree.EntryCount(); i++ {
-				entry := tree.EntryByIndex(i)
-				if entry.Id.Equal(oid) { // found (by oid)
-					// found a contents but its name is differ
-					Log.Debug("%s is renamed to %s in %s", entry.Name, name, previous.Id().String()[:7])
+				found = true
+				return -1 // end tree walking
 
-					changes = append(changes, Change{
-						Op:     OpRename,
-						Commit: previous,
-					})
-					name = entry.Name
-					found = true
-					break
-				}
-			}
-			if !found {
-				// contents not found
-				Log.Debug("%s is added in %s", name, previous.Id().String()[:7])
+			} else if entry.Id.Equal(oid) { // found (by oid)
+				// found a contents but its name is differ
+				Log.Debug("%s is renamed to %s in %s", entry.Name, name, previous.Id().String()[:7])
 
 				changes = append(changes, Change{
-					Op:     OpAdd,
+					Op:     OpRename,
 					Commit: previous,
 				})
-				return false // terminate walking
+				name = entry.Name
+				found = true
+				return -1 // end tree walking
 			}
+			return 0 // continue tree walking
+		})
+
+		if !found {
+			// contents not found
+			Log.Debug("%s is added in %s", name, previous.Id().String()[:7])
+
+			changes = append(changes, Change{
+				Op:     OpAdd,
+				Commit: previous,
+			})
+			return false // end rev walking
 		}
 
 		previous = c
 		if len(changes) == ENTRY_LIMIT { // limit number of entry
-			return false
+			return false // end rev walking
 		}
-		return true
+		return true // continue rev walking
 	}
 
 	if err := walk.Iterate(fun); err != nil {
-		Log.Debug(err.Error())
+		Log.Error("Error while rev walking: %s", err)
 	}
 
-	if l := len(changes); l < ENTRY_LIMIT && changes[len(changes)-1].Op != OpAdd {
+	if l := len(changes); l < ENTRY_LIMIT && (l == 0 || changes[l-1].Op != OpAdd) {
 		// file is added in last commit
 		changes = append(changes, Change{
 			Op:     OpAdd,
