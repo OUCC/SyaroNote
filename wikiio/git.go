@@ -17,10 +17,12 @@ type Change struct {
 type Op int
 
 const (
-	OpAdd Op = iota
+	OpNone Op = iota
+	OpAdd
 	OpUpdate
 	OpRename
-	OpRemove
+
+	ENTRY_LIMIT = 100
 )
 
 func OpString(op Op) string {
@@ -31,8 +33,6 @@ func OpString(op Op) string {
 		return "Edit"
 	case OpRename:
 		return "Rename"
-	case OpRemove:
-		return "Remove"
 	}
 	return ""
 }
@@ -131,6 +131,10 @@ func logCommit(c *git.Commit) {
 }
 
 func getChanges(repo *git.Repository, wpath string) []Change {
+	if wpath == "/" {
+		return getAllChanges(repo)
+	}
+
 	// setup revision walker
 	walk, _ := repo.Walk()
 	walk.Sorting(git.SortTopological | git.SortTime)
@@ -148,61 +152,55 @@ func getChanges(repo *git.Repository, wpath string) []Change {
 	oid := entry.Id
 	name := wpath[1:]
 	previous := head
-	found := true
 	changes := make([]Change, 0)
 
 	// walking func
 	fun := func(c *git.Commit) bool {
 		tree, _ := c.Tree()
 		if entry := tree.EntryByName(name); entry != nil { // found (by name)
-			if !entry.Id.Equal(oid) {
+			if !entry.Id.Equal(oid) { // entry is found but its contents is differ
+				Log.Debug("%s is updated in %s", name, previous.Id().String()[:7])
+
+				changes = append(changes, Change{
+					Op:     OpUpdate,
+					Commit: previous,
+				})
 				oid = entry.Id.Copy()
-				if found {
-					Log.Debug("%s is updated in %s", name, previous.Id().String()[:7])
-
-					changes = append(changes, Change{
-						Op:     OpUpdate,
-						Commit: previous,
-					})
-				} else {
-					found = true
-					Log.Debug("%s is removed in %s", name, previous.Id().String()[:7])
-
-					changes = append(changes, Change{
-						Op:     OpRemove,
-						Commit: previous,
-					})
-				}
 			}
 		} else { // not found (by name)
 			var i uint64
-			ok := false
+			found := false
 			for i = 0; i < tree.EntryCount(); i++ {
 				entry := tree.EntryByIndex(i)
-				if entry.Id.Equal(oid) && found { // found (by oid)
-					name = entry.Name
-					Log.Debug("%s is renamed in %s", name, previous.Id().String()[:7])
+				if entry.Id.Equal(oid) { // found (by oid)
+					// found a contents but its name is differ
+					Log.Debug("%s is renamed to %s in %s", entry.Name, name, previous.Id().String()[:7])
 
 					changes = append(changes, Change{
 						Op:     OpRename,
 						Commit: previous,
 					})
-					ok = true
+					name = entry.Name
+					found = true
 					break
 				}
 			}
-			if !ok && found {
-				found = false
+			if !found {
+				// contents not found
 				Log.Debug("%s is added in %s", name, previous.Id().String()[:7])
 
 				changes = append(changes, Change{
 					Op:     OpAdd,
 					Commit: previous,
 				})
+				return false // terminate walking
 			}
 		}
 
 		previous = c
+		if len(changes) == ENTRY_LIMIT { // limit number of entry
+			return false
+		}
 		return true
 	}
 
@@ -210,11 +208,39 @@ func getChanges(repo *git.Repository, wpath string) []Change {
 		Log.Debug(err.Error())
 	}
 
-	if found { // file is added in last commit
+	if l := len(changes); l < ENTRY_LIMIT && changes[len(changes)-1].Op != OpAdd {
+		// file is added in last commit
 		changes = append(changes, Change{
 			Op:     OpAdd,
 			Commit: previous,
 		})
+	}
+	return changes
+}
+
+func getAllChanges(repo *git.Repository) []Change {
+	// setup revision walker
+	walk, _ := repo.Walk()
+	walk.Sorting(git.SortTopological | git.SortTime)
+	walk.PushHead()
+
+	changes := make([]Change, 0)
+
+	// walking func
+	fun := func(c *git.Commit) bool {
+		changes = append(changes, Change{
+			Op:     OpNone,
+			Commit: c,
+		})
+
+		if len(changes) == ENTRY_LIMIT {
+			return false
+		}
+		return true
+	}
+
+	if err := walk.Iterate(fun); err != nil {
+		Log.Debug(err.Error())
 	}
 
 	return changes
