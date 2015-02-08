@@ -153,15 +153,27 @@
 
     // sync scroll
     editor.getSession().on('changeScrollTop', scroll)
+
+    // Ctrl-S
+    HashHandler = ace.require('ace/keyboard/hash_handler').HashHandler;
+    editor.keyBinding.addKeyboardHandler(new HashHandler([{
+      bindKey: "Ctrl+S",
+      descr:   "Save document",
+      exec:    function () {
+        if (syaro.gitmode) {
+          $('#saveModal').modal('show');
+        } else {
+          simpleSave();
+        }
+      },
+    }]));
   }
 
   function initTool() {
-    // http://stackoverflow.com/questions/14042926/keydown-event-not-fired-on-ace-editor
-    HashHandler = ace.require('ace/keyboard/hash_handler').HashHandler;
     TableFormatter = global['TableFormatter'];
     EmojiAutoComplete = global['EmojiAutoComplete'];
 
-    editor.keyBinding.addKeyboardHandler(new TableFormatter());
+    new TableFormatter(editor);
     new EmojiAutoComplete(editor);
   }
 

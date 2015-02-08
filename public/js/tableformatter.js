@@ -4,8 +4,8 @@
     var HashHandler = ace.require("ace/keyboard/hash_handler").HashHandler;
     var Range = ace.require("ace/range").Range;
 
-    function TableFormatter() {
-        return new HashHandler([
+    function TableFormatter(editor) {
+        editor.keyBinding.addKeyboardHandler(new HashHandler([
             {
                 bindKey: "Tab",
                 descr  : "Format markdown table and move cursor to next cell",
@@ -16,7 +16,7 @@
                 descr  : "Format markdown table and move cursor to previous cell",
                 exec   : execHashHandler(false)
             }
-        ]);
+        ]));
     }
 
     function execHashHandler(forward) {
