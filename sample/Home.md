@@ -70,6 +70,9 @@ is appended when you see `gochiusa.md`.
 ### Supports MathJax and code highlighting
 See [[Sample Page]]
 
+### Emoji! :smile: 
+:school: :hash: :pencil: :+1: :100: :smiley: 
+
 VS. [Gollum](https://github.com/gollum/gollum)
 ----
 * Syaro supports CJK filename and text.

@@ -13,6 +13,7 @@ TODO
   - [ ] link anchor
 * [x] table of contents
 * [x] emoji (https://github.com/twitter/twemoji)
+  - [ ] cache or compress
 * [x] checkbox
 * [x] preview on server
 * [x] fix sync scroll
@@ -29,6 +30,7 @@ TODO
     - [x] collapse
     - [x] remove h1
     - [x] style
+    - [ ] remove emoji
 * [ ] fix code highlighting
 * [ ] image width specifie
 * [x] Goji

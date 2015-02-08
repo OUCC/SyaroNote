@@ -5,9 +5,9 @@ import (
 	"github.com/OUCC/syaro/setting"
 	"github.com/OUCC/syaro/wikiio"
 
-	"github.com/zenazn/goji"
 	"github.com/zenazn/goji/graceful"
 	"github.com/zenazn/goji/web"
+	"github.com/zenazn/goji/web/middleware"
 
 	"io/ioutil"
 	"net"
@@ -29,16 +29,24 @@ func startServer() {
 	}
 
 	// set handlers
+	mux := web.New()
+	mux.Use(middleware.RequestID)
+	if setting.Verbose {
+		mux.Use(middleware.Logger)
+	}
+	mux.Use(middleware.Recoverer)
+	mux.Use(middleware.AutomaticOptions)
+
 	// files under SYARO_DIR/public
 	rootDir := http.Dir(filepath.Join(setting.SyaroDir, PUBLIC_DIR))
 	fileServer := http.StripPrefix(setting.UrlPrefix, http.FileServer(rootDir))
-	goji.Get(setting.UrlPrefix+"/css/*", fileServer)
-	goji.Get(setting.UrlPrefix+"/fonts/*", fileServer)
-	goji.Get(setting.UrlPrefix+"/ico/*", fileServer)
-	goji.Get(setting.UrlPrefix+"/js/*", fileServer)
-	goji.Get(setting.UrlPrefix+"/lib/*", fileServer)
+	mux.Get(setting.UrlPrefix+"/css/*", fileServer)
+	mux.Get(setting.UrlPrefix+"/fonts/*", fileServer)
+	mux.Get(setting.UrlPrefix+"/ico/*", fileServer)
+	mux.Get(setting.UrlPrefix+"/js/*", fileServer)
+	mux.Get(setting.UrlPrefix+"/lib/*", fileServer)
 
-	goji.Get(setting.UrlPrefix+"/error/:code",
+	mux.Get(setting.UrlPrefix+"/error/:code",
 		func(c web.C, w http.ResponseWriter, r *http.Request) {
 			i, _ := strconv.Atoi(c.URLParams["code"])
 			if i == 0 { // invalid request
@@ -46,7 +54,7 @@ func startServer() {
 			}
 			errorHandler(w, i, r.URL.Query().Get("data"))
 		})
-	goji.Get(setting.UrlPrefix+"/*",
+	mux.Get(setting.UrlPrefix+"/*",
 		func(w http.ResponseWriter, r *http.Request) {
 			switch r.URL.Query().Get("view") {
 			case "":
@@ -61,8 +69,8 @@ func startServer() {
 				errorHandler(w, http.StatusBadRequest, data)
 			}
 		})
-	goji.Post(setting.UrlPrefix+"/*", handlerConverter(createPage))
-	goji.Put(setting.UrlPrefix+"/*",
+	mux.Post(setting.UrlPrefix+"/*", handlerConverter(createPage))
+	mux.Put(setting.UrlPrefix+"/*",
 		func(w http.ResponseWriter, r *http.Request) {
 			switch r.URL.Query().Get("action") {
 			case "":
@@ -75,7 +83,7 @@ func startServer() {
 				errorHandler(w, http.StatusBadRequest, data)
 			}
 		})
-	goji.Delete(setting.UrlPrefix+"/*", handlerConverter(deletePage))
+	mux.Delete(setting.UrlPrefix+"/*", handlerConverter(deletePage))
 
 	Log.Notice("Server started. Waiting connection localhost:%d%s\n",
 		setting.Port, setting.UrlPrefix)
@@ -87,11 +95,11 @@ func startServer() {
 	}
 
 	if setting.FCGI {
-		if err := fcgi.Serve(l, goji.DefaultMux); err != nil {
+		if err := fcgi.Serve(l, mux); err != nil {
 			Log.Fatal(err)
 		}
 	} else {
-		http.Handle("/", goji.DefaultMux)
+		http.Handle("/", mux)
 		if err = graceful.Serve(l, http.DefaultServeMux); err != nil {
 			Log.Fatal(err)
 		}
