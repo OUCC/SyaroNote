@@ -18,7 +18,8 @@ const (
 )
 
 var (
-	views *template.Template
+	version string
+	views   *template.Template
 )
 
 func main() {
@@ -26,7 +27,7 @@ func main() {
 	setupLogger()
 
 	// print welcome message
-	log.Notice("===== Syaro Wiki Server =====")
+	log.Notice("===== Syaro Wiki Server %s =====", version)
 	log.Notice("Starting...")
 	log.Notice("")
 

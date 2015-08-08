@@ -56,8 +56,7 @@ func init() {
 
 	// usage
 	flag.Usage = func() {
-		// fmt.Fprintf(os.Stderr, "syaro %s\n\n", version)
-		fmt.Fprintf(os.Stderr, "syaro %s\n\n")
+		fmt.Fprintf(os.Stderr, "syaro %s\n\n", version)
 		fmt.Fprintf(os.Stderr, "Usage: %s [<flags>] [<wikiroot>]\n\nFlags:\n", os.Args[0])
 		flag.PrintDefaults()
 		fmt.Fprintf(os.Stderr, "\nArgs:\n  wikiroot=\"./\": Root folder of wiki\n")
