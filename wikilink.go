@@ -1,9 +1,6 @@
 package main
 
 import (
-	. "github.com/OUCC/syaro/logger"
-	"github.com/OUCC/syaro/setting"
-	"github.com/OUCC/syaro/util"
 	"github.com/OUCC/syaro/wikiio"
 
 	"code.google.com/p/go.net/html"
@@ -38,7 +35,7 @@ func processWikiLink(n *html.Node, currentDir string) {
 
 		if len(indices) != 0 { // double bracket fount
 			name := s[indices[0]+2 : indices[1]-2] // [[name]]
-			Log.Debug("bracket tag found: [[%s]]", name)
+			log.Debug("bracket tag found: [[%s]]", name)
 
 			// text before <a> tag
 			n.Data = s[:indices[0]]
@@ -51,15 +48,15 @@ func processWikiLink(n *html.Node, currentDir string) {
 
 			if files := searchPage(name, currentDir); len(files) != 0 { // page found
 				// TODO avoid ambiguous page
-				Log.Debug("%d pages found", len(files))
-				Log.Debug("select %s", files[0].WikiPath())
+				log.Debug("%d pages found", len(files))
+				log.Debug("select %s", files[0].WikiPath())
 				a.Attr = []html.Attribute{html.Attribute{
 					Key: "href",
 					Val: string(files[0].URLPath()),
 				},
 				}
 			} else { // page not found
-				Log.Debug("no page found")
+				log.Debug("no page found")
 				a.Attr = []html.Attribute{
 					html.Attribute{
 						Key: "class",
@@ -67,7 +64,7 @@ func processWikiLink(n *html.Node, currentDir string) {
 					},
 					html.Attribute{
 						Key: "href",
-						Val: setting.UrlPrefix + "/error/404?data=" + url.QueryEscape(name),
+						Val: setting.urlPrefix + "/error/404?data=" + url.QueryEscape(name),
 					},
 				}
 			}
@@ -116,25 +113,25 @@ func processWikiLink2(n *html.Node, currentDir string) {
 		return
 	}
 
-	Log.Debug("bracket tag found: [[%s]](%s)", name, link)
+	log.Debug("bracket tag found: [[%s]](%s)", name, link)
 
 	c.Data = name
 
 	if files := searchPage(link, currentDir); len(files) != 0 { //page found
 		// TODO avoid ambiguous page
-		Log.Debug("%d pages found", len(files))
-		Log.Debug("select %s", files[0].WikiPath())
+		log.Debug("%d pages found", len(files))
+		log.Debug("select %s", files[0].WikiPath())
 
 		n.Attr = []html.Attribute{html.Attribute{
 			Key: "href",
 			Val: string(files[0].URLPath()),
 		}}
 	} else { // page not found
-		Log.Debug("no page found")
+		log.Debug("no page found")
 		n.Attr = []html.Attribute{
 			html.Attribute{
 				Key: "href",
-				Val: setting.UrlPrefix + "/error/404?data=" + url.QueryEscape(name),
+				Val: setting.urlPrefix + "/error/404?data=" + url.QueryEscape(name),
 			},
 			html.Attribute{
 				Key: "class",
@@ -168,7 +165,7 @@ func searchPage(name string, currentDir string) []*wikiio.WikiFile {
 }
 
 func searchPageByAbsPath(abspath string) []*wikiio.WikiFile {
-	Log.Debug("main.searchPageByAbsPath(%s)", abspath)
+	log.Debug("main.searchPageByAbsPath(%s)", abspath)
 	file, _ := wikiio.Load(abspath)
 	if file == nil {
 		return nil
@@ -177,7 +174,7 @@ func searchPageByAbsPath(abspath string) []*wikiio.WikiFile {
 }
 
 func searchPageByRelPath(relpath, currentDir string) []*wikiio.WikiFile {
-	Log.Debug("main.searchPageByRelPath(%s, %s)", relpath, currentDir)
+	log.Debug("main.searchPageByRelPath(%s, %s)", relpath, currentDir)
 	wpath := filepath.Join(currentDir, relpath)
 	file, _ := wikiio.Load(wpath)
 	if file == nil {
@@ -187,7 +184,7 @@ func searchPageByRelPath(relpath, currentDir string) []*wikiio.WikiFile {
 }
 
 func searchPageByBaseName(baseName string) []*wikiio.WikiFile {
-	Log.Debug("main.searchPageByBaseName(%s)", baseName)
+	log.Debug("main.searchPageByBaseName(%s)", baseName)
 	files, _ := wikiio.Search(baseName)
 	return files
 }

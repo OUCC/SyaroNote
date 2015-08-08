@@ -1,9 +1,6 @@
 package main
 
 import (
-	. "github.com/OUCC/syaro/logger"
-	"github.com/OUCC/syaro/wikiio"
-
 	"net/http"
 )
 
@@ -13,19 +10,19 @@ const (
 
 type HistoryPage struct {
 	*Page
-	Changes []wikiio.Change
+	Changes []Change
 }
 
 func LoadHistoryPage(wpath string) (*HistoryPage, error) {
-	Log.Debug("wpath: %s", wpath)
+	log.Debug("wpath: %s", wpath)
 
 	page, err := LoadPage(wpath)
 	if err != nil {
-		Log.Error(err.Error())
+		log.Error(err.Error())
 		return nil, err
 	}
 
-	Log.Debug("ok")
+	log.Debug("ok")
 	return &HistoryPage{
 		Page:    page,
 		Changes: page.History(),

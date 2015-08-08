@@ -1,10 +1,6 @@
 package main
 
 import (
-	. "github.com/OUCC/syaro/logger"
-	"github.com/OUCC/syaro/setting"
-	"github.com/OUCC/syaro/wikiio"
-
 	"flag"
 	"html/template"
 	"os"
@@ -27,46 +23,46 @@ func main() {
 	SetupLogger()
 
 	// print welcome message
-	Log.Notice("===== Syaro Wiki Server =====")
-	Log.Notice("Starting...")
-	Log.Notice("")
+	log.Notice("===== Syaro Wiki Server =====")
+	log.Notice("Starting...")
+	log.Notice("")
 
 	findSyaroDir()
 	if setting.SyaroDir == "" {
-		Log.Fatal("Error: Can't find system file directory.")
+		log.Fatal("Error: Can't find system file directory.")
 	}
 
-	Log.Notice("WikiName: %s", setting.WikiName)
-	Log.Notice("WikiRoot: %s", setting.WikiRoot)
-	Log.Notice("Syaro dir: %s", setting.SyaroDir)
-	if setting.FCGI {
-		Log.Notice("Fast CGI mode: ON")
+	log.Notice("WikiName: %s", setting.wikiName)
+	log.Notice("WikiRoot: %s", setting.wikiRoot)
+	log.Notice("Syaro dir: %s", setting.SyaroDir)
+	if setting.fcgi {
+		log.Notice("Fast CGI mode: ON")
 	} else {
-		Log.Notice("Fast CGI mode: OFF")
+		log.Notice("Fast CGI mode: OFF")
 	}
-	Log.Notice("Port: %d", setting.Port)
-	Log.Notice("URL prefix: %s", setting.UrlPrefix)
-	setting.GitMode = wikiio.CheckRepository()
-	if setting.GitMode {
-		Log.Notice("Git mode: ON")
+	log.Notice("Port: %d", setting.port)
+	log.Notice("URL prefix: %s", setting.urlPrefix)
+	setting.gitMode = CheckRepository()
+	if setting.gitMode {
+		log.Notice("Git mode: ON")
 	} else {
-		Log.Notice("Git mode: OFF")
+		log.Notice("Git mode: OFF")
 	}
-	Log.Notice("MathJax: %t", setting.MathJax)
-	Log.Notice("Highlight: %t", setting.Highlight)
-	Log.Notice("Verbose output: %t", setting.Verbose)
-	Log.Notice("")
+	//log.Notice("MathJax: %t", setting.mathjax)
+	//log.Notice("Highlight: %t", setting.highlight)
+	log.Notice("Verbose output: %t", setting.verbose)
+	log.Notice("")
 
-	Log.Info("Parsing template...")
+	log.Info("Parsing template...")
 	err := setupViews()
 	if err != nil {
-		Log.Fatalf("Failed to parse template: %s", err)
+		log.Fatalf("Failed to parse template: %s", err)
 	}
-	Log.Info("Template parsed")
+	log.Info("Template parsed")
 
-	Log.Info("Setting up filesystem watcher...")
-	wikiio.InitWatcher()
-	defer wikiio.CloseWatcher()
+	log.Info("Setting up filesystem watcher...")
+	InitWatcher()
+	defer CloseWatcher()
 
 	startServer()
 }
@@ -81,7 +77,7 @@ func findSyaroDir() {
 		_, err := os.Stat(filepath.Join(setting.SyaroDir, VIEWS_DIR))
 		// if directory isn't exist
 		if err != nil {
-			Log.Error("Can't find template file dir specified in argument")
+			log.Error("Can't find template file dir specified in argument")
 			setting.SyaroDir = ""
 			return
 		}
@@ -111,13 +107,13 @@ func setupViews() error {
 	// funcs for template
 	tmpl := template.New("").Funcs(template.FuncMap{
 		"add":       func(a, b int) int { return a + b },
-		"op":        wikiio.OpString,
+		"op":        OpString,
 		"timef":     func(t time.Time) string { return t.Format("Mon _2 Jan 2006") },
-		"wikiName":  func() string { return setting.WikiName },
-		"urlPrefix": func() string { return setting.UrlPrefix },
-		"mathjax":   func() bool { return setting.MathJax },
-		"highlight": func() bool { return setting.Highlight },
-		"gitmode":   func() bool { return setting.GitMode },
+		"wikiName":  func() string { return setting.wikiName },
+		"urlPrefix": func() string { return setting.urlPrefix },
+		"mathjax":   func() bool { return setting.mathjax },
+		"highlight": func() bool { return setting.highlight },
+		"gitmode":   func() bool { return setting.gitMode },
 		"byteToStr": func(b []byte) string { return string(b) },
 	})
 	tmpl, err := tmpl.ParseGlob(filepath.Join(setting.SyaroDir, VIEWS_DIR, "*.html"))

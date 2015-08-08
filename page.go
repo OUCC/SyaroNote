@@ -1,10 +1,6 @@
 package main
 
 import (
-	. "github.com/OUCC/syaro/logger"
-	"github.com/OUCC/syaro/setting"
-	"github.com/OUCC/syaro/wikiio"
-
 	"bufio"
 	"errors"
 	"html/template"
@@ -31,26 +27,26 @@ var (
 )
 
 type Page struct {
-	*wikiio.WikiFile
+	*WikiFile
 }
 
 // LoadPage returns new Page.
 func LoadPage(wpath string) (*Page, error) {
-	Log.Debug("wpath: %s", wpath)
+	log.Debug("wpath: %s", wpath)
 
-	wfile, err := wikiio.Load(wpath)
+	wfile, err := Load(wpath)
 	if err != nil {
-		Log.Debug(err.Error())
+		log.Debug(err.Error())
 		return nil, err
 	}
 
 	// check if file isn't markdown
 	if !(wfile.IsDir() || wfile.IsMarkdown()) {
-		Log.Debug("file isn't markdown")
+		log.Debug("file isn't markdown")
 		return nil, ErrIsNotMarkdown
 	}
 
-	Log.Debug("ok")
+	log.Debug("ok")
 	return &Page{wfile}, nil
 }
 
@@ -79,13 +75,13 @@ func (page *Page) Title() string {
 // row returns row file data.
 func (page *Page) raw() []byte {
 	if page.IsDir() {
-		Log.Debug("requested page is dir, use main file of dir")
+		log.Debug("requested page is dir, use main file of dir")
 
 		if page.DirMainPage() != nil {
-			Log.Debug("main file of dir found")
+			log.Debug("main file of dir found")
 			return page.DirMainPage().Raw()
 		} else {
-			Log.Debug("main file of dir not found")
+			log.Debug("main file of dir not found")
 			return nil
 		}
 	} else { // page.filePath isn't dir
@@ -114,18 +110,18 @@ func (page *Page) MdHTML() template.HTML {
 }
 
 func (page *Page) SidebarMdHTML() template.HTML {
-	path := filepath.Join(setting.WikiRoot, SIDEBAR_MD)
+	path := filepath.Join(setting.wikiRoot, SIDEBAR_MD)
 	_, err := os.Stat(path)
 	if err != nil {
-		Log.Debug("%s not found", SIDEBAR_MD)
+		log.Debug("%s not found", SIDEBAR_MD)
 		// return template.HTML("")
 		return ""
 	}
 
-	Log.Debug("%s found", SIDEBAR_MD)
+	log.Debug("%s found", SIDEBAR_MD)
 	b, err := ioutil.ReadFile(path)
 	if err != nil {
-		Log.Error("in SidebarHTML ioutil.ReadFile(%s) %s", path, err)
+		log.Error("in SidebarHTML ioutil.ReadFile(%s) %s", path, err)
 		// return template.HTML("")
 		return ""
 	}

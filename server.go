@@ -1,8 +1,6 @@
 package main
 
 import (
-	. "github.com/OUCC/syaro/logger"
-	"github.com/OUCC/syaro/setting"
 	"github.com/OUCC/syaro/wikiio"
 
 	"github.com/zenazn/goji/graceful"
@@ -24,14 +22,14 @@ type wikiHandler func(wpath string, w http.ResponseWriter, r *http.Request)
 
 func startServer() {
 	// fix url prefix
-	if setting.UrlPrefix != "" {
-		setting.UrlPrefix = filepath.Clean("/" + setting.UrlPrefix)
+	if setting.urlPrefix != "" {
+		setting.urlPrefix = filepath.Clean("/" + setting.urlPrefix)
 	}
 
 	// set handlers
 	mux := web.New()
 	mux.Use(middleware.RequestID)
-	if setting.Verbose {
+	if setting.verbose {
 		mux.Use(middleware.Logger)
 	}
 	mux.Use(middleware.Recoverer)
@@ -39,14 +37,14 @@ func startServer() {
 
 	// files under SYARO_DIR/public
 	rootDir := http.Dir(filepath.Join(setting.SyaroDir, PUBLIC_DIR))
-	fileServer := http.StripPrefix(setting.UrlPrefix, http.FileServer(rootDir))
-	mux.Get(setting.UrlPrefix+"/css/*", fileServer)
-	mux.Get(setting.UrlPrefix+"/fonts/*", fileServer)
-	mux.Get(setting.UrlPrefix+"/ico/*", fileServer)
-	mux.Get(setting.UrlPrefix+"/js/*", fileServer)
-	mux.Get(setting.UrlPrefix+"/lib/*", fileServer)
+	fileServer := http.StripPrefix(setting.urlPrefix, http.FileServer(rootDir))
+	mux.Get(setting.urlPrefix+"/css/*", fileServer)
+	mux.Get(setting.urlPrefix+"/fonts/*", fileServer)
+	mux.Get(setting.urlPrefix+"/ico/*", fileServer)
+	mux.Get(setting.urlPrefix+"/js/*", fileServer)
+	mux.Get(setting.urlPrefix+"/lib/*", fileServer)
 
-	mux.Get(setting.UrlPrefix+"/error/:code",
+	mux.Get(setting.urlPrefix+"/error/:code",
 		func(c web.C, w http.ResponseWriter, r *http.Request) {
 			i, _ := strconv.Atoi(c.URLParams["code"])
 			if i == 0 { // invalid request
@@ -54,7 +52,7 @@ func startServer() {
 			}
 			errorHandler(w, i, r.URL.Query().Get("data"))
 		})
-	mux.Get(setting.UrlPrefix+"/*",
+	mux.Get(setting.urlPrefix+"/*",
 		func(w http.ResponseWriter, r *http.Request) {
 			switch r.URL.Query().Get("view") {
 			case "":
@@ -65,12 +63,12 @@ func startServer() {
 				handlerConverter(historyView)(w, r)
 			default:
 				data := r.URL.Query().Get("view")
-				Log.Error("invalid URL query (view: %s)", data)
+				log.Error("invalid URL query (view: %s)", data)
 				errorHandler(w, http.StatusBadRequest, data)
 			}
 		})
-	mux.Post(setting.UrlPrefix+"/*", handlerConverter(createPage))
-	mux.Put(setting.UrlPrefix+"/*",
+	mux.Post(setting.urlPrefix+"/*", handlerConverter(createPage))
+	mux.Put(setting.urlPrefix+"/*",
 		func(w http.ResponseWriter, r *http.Request) {
 			switch r.URL.Query().Get("action") {
 			case "":
@@ -79,29 +77,29 @@ func startServer() {
 				handlerConverter(renamePage)(w, r)
 			default:
 				data := r.URL.Query().Get("action")
-				Log.Error("invalid URL query (action: %s)", data)
+				log.Error("invalid URL query (action: %s)", data)
 				errorHandler(w, http.StatusBadRequest, data)
 			}
 		})
-	mux.Delete(setting.UrlPrefix+"/*", handlerConverter(deletePage))
+	mux.Delete(setting.urlPrefix+"/*", handlerConverter(deletePage))
 
-	Log.Notice("Server started. Waiting connection localhost:%d%s\n",
-		setting.Port, setting.UrlPrefix)
+	log.Notice("Server started. Waiting connection localhost:%d%s\n",
+		setting.port, setting.urlPrefix)
 
 	// listen port
-	l, err := net.Listen("tcp", ":"+strconv.Itoa(setting.Port))
+	l, err := net.Listen("tcp", ":"+strconv.Itoa(setting.port))
 	if err != nil {
-		Log.Fatal(err)
+		log.Fatal(err)
 	}
 
 	if setting.FCGI {
 		if err := fcgi.Serve(l, mux); err != nil {
-			Log.Fatal(err)
+			log.Fatal(err)
 		}
 	} else {
 		http.Handle("/", mux)
 		if err = graceful.Serve(l, http.DefaultServeMux); err != nil {
-			Log.Fatal(err)
+			log.Fatal(err)
 		}
 		graceful.Wait()
 	}
@@ -111,9 +109,9 @@ func handlerConverter(f wikiHandler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// url unescape (+ -> <Space>)
 		r.URL.Path = strings.Replace(r.URL.Path, "+", " ", -1)
-		wpath := strings.TrimPrefix(r.URL.Path, setting.UrlPrefix)
+		wpath := strings.TrimPrefix(r.URL.Path, setting.urlPrefix)
 
-		Log.Debug("WikiPath: %s, Query: %s, Fragment: %s", wpath,
+		log.Debug("WikiPath: %s, Query: %s, Fragment: %s", wpath,
 			r.URL.RawQuery, r.URL.Fragment)
 		f(wpath, w, r)
 	}
@@ -124,46 +122,46 @@ func viewPage(wpath string, w http.ResponseWriter, r *http.Request) {
 	switch err {
 	case nil:
 		// render html
-		Log.Info("Rendering page (%s)...", wpath)
+		log.Info("Rendering page (%s)...", wpath)
 		err = v.Render(w)
 		if err != nil {
-			Log.Error("Rendering error!: %s", err)
+			log.Error("Rendering error!: %s", err)
 			errorHandler(w, http.StatusInternalServerError, err.Error())
 			return
 		}
-		Log.Info("OK")
+		log.Info("OK")
 
 	case ErrIsNotMarkdown:
-		Log.Info("Sending file (%s)...", wpath)
+		log.Info("Sending file (%s)...", wpath)
 		v, err := wikiio.Load(wpath)
 		if err != nil {
-			Log.Error(err.Error())
+			log.Error(err.Error())
 			errorHandler(w, http.StatusInternalServerError, err.Error())
 			return
 		}
 		w.Write(v.Raw())
-		Log.Info("OK")
+		log.Info("OK")
 
 	default:
-		Log.Error("%s (%s)", err, wpath)
+		log.Error("%s (%s)", err, wpath)
 		errorHandler(w, http.StatusNotFound, wpath)
 		return
 	}
 }
 
 func createPage(wpath string, w http.ResponseWriter, r *http.Request) {
-	Log.Info("Creating new page (%s)...", wpath)
+	log.Info("Creating new page (%s)...", wpath)
 
 	switch err := wikiio.Create(wpath); err {
 	case nil:
 		// send success response
 		errorHandler(w, http.StatusCreated, "")
-		Log.Info("OK")
+		log.Info("OK")
 	case os.ErrExist:
-		Log.Error(err.Error())
+		log.Error(err.Error())
 		errorHandler(w, http.StatusFound, "")
 	default:
-		Log.Error(err.Error())
+		log.Error(err.Error())
 		errorHandler(w, http.StatusInternalServerError, err.Error())
 	}
 }
@@ -175,14 +173,14 @@ func updatePage(wpath string, w http.ResponseWriter, r *http.Request) {
 	email, _ := url.QueryUnescape(r.URL.Query().Get("email"))
 
 	if backup {
-		Log.Info("Backing up (%s)...", wpath+".bac")
+		log.Info("Backing up (%s)...", wpath+".bac")
 	} else {
-		Log.Info("Saving (%s)...", wpath)
+		log.Info("Saving (%s)...", wpath)
 	}
 
 	f, err := wikiio.Load(wpath)
 	if err != nil {
-		Log.Error(err.Error())
+		log.Error(err.Error())
 		http.Error(w, wpath+"not found", http.StatusNotFound)
 		return
 	}
@@ -195,81 +193,81 @@ func updatePage(wpath string, w http.ResponseWriter, r *http.Request) {
 		err = f.Save(b, message, name, email)
 	}
 	if err != nil {
-		Log.Error(err.Error())
+		log.Error(err.Error())
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	Log.Info("Rendering preview...")
+	log.Info("Rendering preview...")
 	// return generated html
 	w.Write(parseMarkdown(b, filepath.Dir(wpath)))
-	Log.Info("OK")
+	log.Info("OK")
 }
 
 func renamePage(wpath string, w http.ResponseWriter, r *http.Request) {
 	oldpath, err := url.QueryUnescape(r.URL.Query().Get("oldpath"))
 	if err != nil {
-		Log.Error("Unescape error: %s", err)
+		log.Error("Unescape error: %s", err)
 		code := http.StatusBadRequest
 		http.Error(w, http.StatusText(code), code)
 		return
 	}
 
-	Log.Info("Rename page (%s -> %s)...", oldpath, wpath)
+	log.Info("Rename page (%s -> %s)...", oldpath, wpath)
 
 	if err := wikiio.Rename(oldpath, wpath); err != nil {
-		Log.Error(err.Error())
+		log.Error(err.Error())
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	// send success response
 	w.Write(nil)
-	Log.Info("OK")
+	log.Info("OK")
 }
 
 func deletePage(wpath string, w http.ResponseWriter, r *http.Request) {
-	Log.Info("Deleting page (%s)...", wpath)
+	log.Info("Deleting page (%s)...", wpath)
 
 	f, err := wikiio.Load(wpath)
 	switch err {
 	case nil:
 
 	case os.ErrNotExist:
-		Log.Error(err.Error())
+		log.Error(err.Error())
 		code := http.StatusNotFound
 		http.Error(w, http.StatusText(code), code)
 		return
 
 	default:
-		Log.Error("Load file error: %s", err)
+		log.Error("Load file error: %s", err)
 		return
 	}
 
 	if err = f.Remove(); err != nil {
-		Log.Error("Delete file error: %s", err)
+		log.Error("Delete file error: %s", err)
 		http.Error(w, "cannot delete file", http.StatusInternalServerError)
 		return
 	}
 
 	// send success response
 	w.Write(nil)
-	Log.Info("Deleted")
+	log.Info("Deleted")
 }
 
 func editorView(wpath string, w http.ResponseWriter, r *http.Request) {
-	Log.Info("Editor requested (%s)", wpath)
+	log.Info("Editor requested (%s)", wpath)
 
 	// check main dir
 	f, _ := wikiio.Load(wpath)
 	if f != nil {
 		if f.DirMainPage() != nil {
-			Log.Info("Requested file is dir, let's redirect to main file")
+			log.Info("Requested file is dir, let's redirect to main file")
 			http.Redirect(w, r,
 				string(f.DirMainPage().URLPath())+"?view=editor", http.StatusFound)
 			return
 		} else if f.IsDir() {
-			Log.Info("Requested file is dir, but main file dosen't exists.")
+			log.Info("Requested file is dir, but main file dosen't exists.")
 			errorHandler(w, http.StatusNotFound, wpath)
 			return
 		}
@@ -277,45 +275,45 @@ func editorView(wpath string, w http.ResponseWriter, r *http.Request) {
 
 	v, err := NewEditor(wpath)
 	if err != nil {
-		Log.Error(err.Error())
+		log.Error(err.Error())
 		errorHandler(w, http.StatusNotFound, wpath)
 		return
 	}
 
 	// render html
-	Log.Info("Rendering view...")
+	log.Info("Rendering view...")
 	err = v.Render(w)
 	if err != nil {
-		Log.Error("Rendering error!: %s", err)
+		log.Error("Rendering error!: %s", err)
 		errorHandler(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	Log.Info("OK")
+	log.Info("OK")
 }
 
 func historyView(wpath string, w http.ResponseWriter, r *http.Request) {
-	Log.Info("History view requested")
+	log.Info("History view requested")
 
 	v, err := LoadHistoryPage(wpath)
 	if err != nil {
-		Log.Error("%s (%s)", err, wpath)
+		log.Error("%s (%s)", err, wpath)
 		errorHandler(w, http.StatusNotFound, wpath)
 		return
 	}
 
 	// render html
-	Log.Info("Rendering history page (%s)...", wpath)
+	log.Info("Rendering history page (%s)...", wpath)
 	err = v.Render(w)
 	if err != nil {
-		Log.Error("Rendering error!: %s", err)
+		log.Error("Rendering error!: %s", err)
 		errorHandler(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	Log.Info("OK")
+	log.Info("OK")
 }
 
 func errorHandler(w http.ResponseWriter, status int, data string) {
-	Log.Info("Rendering error view... (status: %d, data: %s)", status, data)
+	log.Info("Rendering error view... (status: %d, data: %s)", status, data)
 
 	w.WriteHeader(status)
 	err := views.ExecuteTemplate(w, strconv.Itoa(status)+".html", data)
@@ -323,5 +321,5 @@ func errorHandler(w http.ResponseWriter, status int, data string) {
 		// template not available
 		http.Error(w, http.StatusText(status), status)
 	}
-	Log.Info("OK")
+	log.Info("OK")
 }

@@ -1,8 +1,6 @@
 package main
 
 import (
-	. "github.com/OUCC/syaro/logger"
-
 	. "github.com/russross/blackfriday"
 
 	"code.google.com/p/go.net/html"
@@ -32,17 +30,17 @@ func parseMarkdown(input []byte, dir string) []byte {
 		EXTENSION_HEADER_IDS |
 		EXTENSION_AUTO_HEADER_IDS
 
-	Log.Debug("setting up the HTML renderer")
+	log.Debug("setting up the HTML renderer")
 	renderer := HtmlRenderer(htmlFlags, "", "")
 
-	Log.Debug("rendering html with blackfriday")
+	log.Debug("rendering html with blackfriday")
 	mdHtml := Markdown(input, renderer, extensions)
 
-	Log.Debug("parsing html")
+	log.Debug("parsing html")
 	r := bytes.NewReader(mdHtml) // byte reader
 	tree, err := html.Parse(r)
 	if err != nil {
-		Log.Panic(err)
+		log.Panic(err)
 	}
 
 	var treeManip func(*html.Node)
@@ -79,7 +77,7 @@ func parseMarkdown(input []byte, dir string) []byte {
 
 	treeManip(tree)
 
-	Log.Debug("re-rendering html from tree")
+	log.Debug("re-rendering html from tree")
 	var w bytes.Buffer
 	html.Render(&w, tree) // re-render html
 	b := w.Bytes()
@@ -180,7 +178,7 @@ func processNav(nav *html.Node) {
 	c := nav.FirstChild
 	var ul *html.Node
 	if c == nil {
-		Log.Debug("nav has no child")
+		log.Debug("nav has no child")
 		empty = true
 	} else {
 		// search ul
@@ -188,11 +186,11 @@ func processNav(nav *html.Node) {
 		for {
 			switch {
 			case c == nil:
-				Log.Debug("nav has no ul")
+				log.Debug("nav has no ul")
 				empty = true
 				break loop
 			case c.Type == html.ElementNode && c.Data == "ul":
-				Log.Debug("nav has ul")
+				log.Debug("nav has ul")
 				ul = c
 				break loop
 			}
@@ -201,7 +199,7 @@ func processNav(nav *html.Node) {
 	}
 
 	if empty {
-		Log.Debug("remove nav")
+		log.Debug("remove nav")
 		n := nav.Parent
 		if n.FirstChild == nav {
 			n.FirstChild = nav.NextSibling
@@ -221,7 +219,7 @@ func processNav(nav *html.Node) {
 	var process func(*html.Node) *html.Node
 	process = func(ul *html.Node) *html.Node {
 		if ul.FirstChild == nil {
-			Log.Debug("ul has no child")
+			log.Debug("ul has no child")
 			return nil
 		}
 
@@ -243,13 +241,13 @@ func processNav(nav *html.Node) {
 
 		switch itemNum {
 		case 0:
-			Log.Debug("ul has no li")
+			log.Debug("ul has no li")
 			return nil
 		case 1:
-			Log.Debug("ul has only one li")
+			log.Debug("ul has only one li")
 
 			if li.FirstChild == nil {
-				Log.Debug("li has no child")
+				log.Debug("li has no child")
 				return nil
 			}
 
@@ -258,16 +256,16 @@ func processNav(nav *html.Node) {
 			for {
 				switch {
 				case c == nil:
-					Log.Debug("li has no ul")
+					log.Debug("li has no ul")
 					return nil
 				case c.Type == html.ElementNode && c.Data == "ul":
-					Log.Debug("li has ul")
+					log.Debug("li has ul")
 					return process(c)
 				}
 				c = c.NextSibling
 			}
 		default:
-			Log.Debug("ul has %d li", itemNum)
+			log.Debug("ul has %d li", itemNum)
 			return ul
 		}
 	}
@@ -275,16 +273,16 @@ func processNav(nav *html.Node) {
 	switch ul = process(ul); ul {
 	case nil:
 		// do nothing
-		Log.Debug("do nothing")
+		log.Debug("do nothing")
 		return
 	default:
-		Log.Debug("set ul as only one child of nav")
+		log.Debug("set ul as only one child of nav")
 		ul.NextSibling = nil
 		ul.PrevSibling = nil
 		nav.FirstChild = ul
 		nav.LastChild = ul
 
-		Log.Debug("add .toc-toggle before ul")
+		log.Debug("add .toc-toggle before ul")
 		toggle := &html.Node{
 			Type: html.ElementNode,
 			Data: "div",

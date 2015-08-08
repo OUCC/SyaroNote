@@ -1,10 +1,6 @@
 package wikiio
 
 import (
-	. "github.com/OUCC/syaro/logger"
-	"github.com/OUCC/syaro/setting"
-	"github.com/OUCC/syaro/util"
-
 	"github.com/libgit2/git2go"
 	"gopkg.in/fsnotify.v1"
 
