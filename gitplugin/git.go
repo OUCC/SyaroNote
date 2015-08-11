@@ -1,50 +1,22 @@
-package wikiio
+package main
 
 import (
-	. "github.com/OUCC/syaro/logger"
-	"github.com/OUCC/syaro/setting"
+	pb "github.com/OUCC/syaro/gitservice"
 
 	"github.com/libgit2/git2go"
 
+	"fmt"
 	"time"
 )
 
-type Change struct {
-	Op     Op
-	Commit *git.Commit
-}
-
-type Op int
-
 const (
-	OpNone Op = iota
-	OpAdd
-	OpUpdate
-	OpRename
-
 	ENTRY_LIMIT = 100
 )
 
-func OpString(op Op) string {
-	switch op {
-	case OpAdd:
-		return "Add"
-	case OpUpdate:
-		return "Edit"
-	case OpRename:
-		return "Rename"
-	}
-	return ""
-}
-
 func getRepo() *git.Repository {
-	if !setting.GitMode {
-		return nil
-	}
-
-	repo, err := git.OpenRepository(setting.WikiRoot)
+	repo, err := git.OpenRepository(repoRoot)
 	if err != nil {
-		Log.Panic(err)
+		log.Panic(err)
 	}
 	return repo
 }
@@ -65,9 +37,9 @@ func commitChange(repo *git.Repository, manip func(idx *git.Index) error, sig *g
 	parent := getLastCommit(repo)
 	if parent != nil {
 		defer parent.Free()
-		Log.Debug("parent commit: %s", parent.Message())
+		log.Debug("parent commit: %s", parent.Message())
 	} else {
-		Log.Debug("parent not found (initial commit)")
+		log.Debug("parent not found (initial commit)")
 	}
 
 	// commit
@@ -108,12 +80,12 @@ func getDefaultSignature(repo *git.Repository) *git.Signature {
 	defer config.Free()
 	name, err := config.LookupString("user.name")
 	if err != nil {
-		Log.Error("Git error: %s", err)
+		log.Error("failed to look up user.name: %s", err)
 		return nil
 	}
 	email, err := config.LookupString("user.email")
 	if err != nil {
-		Log.Error("Git error: %s", err)
+		log.Error("failed to look up user.email: %s", err)
 		return nil
 	}
 	return &git.Signature{
@@ -124,13 +96,13 @@ func getDefaultSignature(repo *git.Repository) *git.Signature {
 }
 
 func logCommit(c *git.Commit) {
-	Log.Notice("Git commit created")
-	Log.Info("Message: %s", c.Message())
-	Log.Info("Author: %s <%s>", c.Author().Name, c.Author().Email)
-	Log.Info("Committer: %s <%s>", c.Committer().Name, c.Committer().Email)
+	log.Notice("Git commit created")
+	log.Info("Message: %s", c.Message())
+	log.Info("Author: %s <%s>", c.Author().Name, c.Author().Email)
+	log.Info("Committer: %s <%s>", c.Committer().Name, c.Committer().Email)
 }
 
-func getChanges(repo *git.Repository, wpath string) []Change {
+func getChanges(repo *git.Repository, wpath string) ([]*pb.Change, error) {
 	if wpath == "/" {
 		return getAllChanges(repo)
 	}
@@ -145,14 +117,13 @@ func getChanges(repo *git.Repository, wpath string) []Change {
 	tree, _ := head.Tree()
 	entry, err := tree.EntryByPath(wpath[1:])
 	if err != nil {
-		Log.Error("%s not found in HEAD", wpath)
-		return nil
+		return nil, fmt.Errorf("%s not found in HEAD", wpath)
 	}
 
 	oid := entry.Id
 	name := wpath[1:]
 	previous := head
-	changes := make([]Change, 0)
+	changes := make([]*pb.Change, 0)
 
 	// revision walking func
 	fun := func(c *git.Commit) bool {
@@ -168,11 +139,13 @@ func getChanges(repo *git.Repository, wpath string) []Change {
 
 			} else if dir+entry.Name == name && !entry.Id.Equal(oid) { // found (by name)
 				// entry is found but its contents is differ
-				Log.Debug("%s is updated in %s", name, previous.Id().String()[:7])
+				log.Debug("%s is updated in %s", name, previous.Id().String()[:7])
 
-				changes = append(changes, Change{
-					Op:     OpUpdate,
-					Commit: previous,
+				changes = append(changes, &pb.Change{
+					Op:    pb.Change_OpUpdate,
+					Name:  previous.Author().Name,
+					Email: previous.Author().Email,
+					Msg:   previous.Message(),
 				})
 				oid = entry.Id.Copy()
 				found = true
@@ -180,11 +153,13 @@ func getChanges(repo *git.Repository, wpath string) []Change {
 
 			} else if entry.Id.Equal(oid) { // found (by oid)
 				// found a contents but its name is differ
-				Log.Debug("%s is renamed to %s in %s", entry.Name, name, previous.Id().String()[:7])
+				log.Debug("%s is renamed to %s in %s", entry.Name, name, previous.Id().String()[:7])
 
-				changes = append(changes, Change{
-					Op:     OpRename,
-					Commit: previous,
+				changes = append(changes, &pb.Change{
+					Op:    pb.Change_OpRename,
+					Name:  previous.Author().Name,
+					Email: previous.Author().Email,
+					Msg:   previous.Message(),
 				})
 				name = entry.Name
 				found = true
@@ -195,11 +170,13 @@ func getChanges(repo *git.Repository, wpath string) []Change {
 
 		if !found {
 			// contents not found
-			Log.Debug("%s is added in %s", name, previous.Id().String()[:7])
+			log.Debug("%s is added in %s", name, previous.Id().String()[:7])
 
-			changes = append(changes, Change{
-				Op:     OpAdd,
-				Commit: previous,
+			changes = append(changes, &pb.Change{
+				Op:    pb.Change_OpAdd,
+				Name:  previous.Author().Name,
+				Email: previous.Author().Email,
+				Msg:   previous.Message(),
 			})
 			return false // end rev walking
 		}
@@ -212,32 +189,36 @@ func getChanges(repo *git.Repository, wpath string) []Change {
 	}
 
 	if err := walk.Iterate(fun); err != nil {
-		Log.Error("Error while rev walking: %s", err)
+		return nil, fmt.Errorf("Error while rev walking: %s", err)
 	}
 
-	if l := len(changes); l < ENTRY_LIMIT && (l == 0 || changes[l-1].Op != OpAdd) {
+	if l := len(changes); l < ENTRY_LIMIT && (l == 0 || changes[l-1].Op != pb.Change_OpAdd) {
 		// file is added in last commit
-		changes = append(changes, Change{
-			Op:     OpAdd,
-			Commit: previous,
+		changes = append(changes, &pb.Change{
+			Op:    pb.Change_OpAdd,
+			Name:  previous.Author().Name,
+			Email: previous.Author().Email,
+			Msg:   previous.Message(),
 		})
 	}
-	return changes
+	return changes, nil
 }
 
-func getAllChanges(repo *git.Repository) []Change {
+func getAllChanges(repo *git.Repository) ([]*pb.Change, error) {
 	// setup revision walker
 	walk, _ := repo.Walk()
 	walk.Sorting(git.SortTopological | git.SortTime)
 	walk.PushHead()
 
-	changes := make([]Change, 0)
+	changes := make([]*pb.Change, 0)
 
 	// walking func
 	fun := func(c *git.Commit) bool {
-		changes = append(changes, Change{
-			Op:     OpNone,
-			Commit: c,
+		changes = append(changes, &pb.Change{
+			Op:    pb.Change_OpNone,
+			Name:  c.Author().Name,
+			Email: c.Author().Email,
+			Msg:   c.Message(),
 		})
 
 		if len(changes) == ENTRY_LIMIT {
@@ -247,8 +228,8 @@ func getAllChanges(repo *git.Repository) []Change {
 	}
 
 	if err := walk.Iterate(fun); err != nil {
-		Log.Debug(err.Error())
+		return nil, err
 	}
 
-	return changes
+	return changes, nil
 }

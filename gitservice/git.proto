@@ -1,0 +1,58 @@
+syntax = "proto3";
+
+package gitservice;
+
+message Change {
+    Op op = 1;
+    string name = 2;
+    string email = 3;
+    string msg = 4;
+
+    enum Op {
+        OpNone = 0;
+        OpAdd = 1;
+        OpUpdate = 2;
+        OpRename = 3;
+    }
+}
+
+message GitError {
+    string error = 1;
+}
+
+message SaveRequest {
+    string path = 1;
+    string name = 2;
+    string email = 3;
+    string msg = 4;
+}
+
+message RemoveRequest {
+    string path = 1;
+    string name = 2;
+    string email = 3;
+}
+
+message RenameRequest {
+    string src = 1;
+    string dst = 2;
+    string name = 3;
+    string email = 4;
+}
+
+message CommitResponse {
+    string name = 2;
+    string email = 3;
+    string msg = 4;
+}
+
+message ChangesRequest {
+    string path = 1;
+}
+
+service Git {
+    rpc Save (SaveRequest) returns (CommitResponse);
+    rpc Remove (RemoveRequest) returns (CommitResponse);
+    rpc Rename (RenameRequest) returns (CommitResponse);
+    rpc Changes (ChangesRequest) returns (stream Change);
+}
