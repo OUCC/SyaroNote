@@ -93,6 +93,7 @@ type RemoveRequest struct {
 	Path  string `protobuf:"bytes,1,opt,name=path" json:"path,omitempty"`
 	Name  string `protobuf:"bytes,2,opt,name=name" json:"name,omitempty"`
 	Email string `protobuf:"bytes,3,opt,name=email" json:"email,omitempty"`
+	Msg   string `protobuf:"bytes,4,opt,name=msg" json:"msg,omitempty"`
 }
 
 func (m *RemoveRequest) Reset()         { *m = RemoveRequest{} }
@@ -104,6 +105,7 @@ type RenameRequest struct {
 	Dst   string `protobuf:"bytes,2,opt,name=dst" json:"dst,omitempty"`
 	Name  string `protobuf:"bytes,3,opt,name=name" json:"name,omitempty"`
 	Email string `protobuf:"bytes,4,opt,name=email" json:"email,omitempty"`
+	Msg   string `protobuf:"bytes,5,opt,name=msg" json:"msg,omitempty"`
 }
 
 func (m *RenameRequest) Reset()         { *m = RenameRequest{} }
@@ -111,6 +113,7 @@ func (m *RenameRequest) String() string { return proto.CompactTextString(m) }
 func (*RenameRequest) ProtoMessage()    {}
 
 type CommitResponse struct {
+	Id    string `protobuf:"bytes,1,opt,name=id" json:"id,omitempty"`
 	Name  string `protobuf:"bytes,2,opt,name=name" json:"name,omitempty"`
 	Email string `protobuf:"bytes,3,opt,name=email" json:"email,omitempty"`
 	Msg   string `protobuf:"bytes,4,opt,name=msg" json:"msg,omitempty"`

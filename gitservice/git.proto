@@ -31,6 +31,7 @@ message RemoveRequest {
     string path = 1;
     string name = 2;
     string email = 3;
+    string msg = 4;
 }
 
 message RenameRequest {
@@ -38,9 +39,11 @@ message RenameRequest {
     string dst = 2;
     string name = 3;
     string email = 4;
+    string msg = 5;
 }
 
 message CommitResponse {
+    string id = 1;
     string name = 2;
     string email = 3;
     string msg = 4;

@@ -21,8 +21,8 @@ func getRepo() *git.Repository {
 	return repo
 }
 
-func commitChange(repo *git.Repository, manip func(idx *git.Index) error, sig *git.Signature,
-	message string) (*git.Commit, error) {
+func commitChange(repo *git.Repository, manip func(idx *git.Index) error,
+	sig *git.Signature, message string) (*git.Commit, error) {
 	// staging and get index tree
 	idx, _ := repo.Index()
 	defer idx.Free()
@@ -51,6 +51,7 @@ func commitChange(repo *git.Repository, manip func(idx *git.Index) error, sig *g
 		oid, err = repo.CreateCommit("HEAD", sig, sig, message, tree)
 	}
 	if err != nil {
+		log.Error("CreateCommit: %s", err)
 		return nil, err
 	}
 
@@ -63,12 +64,24 @@ func commitChange(repo *git.Repository, manip func(idx *git.Index) error, sig *g
 
 // getLastCommit returns latest commit of current branch
 func getLastCommit(repo *git.Repository) *git.Commit {
-	ref, _ := repo.LookupReference("HEAD")
+	ref, err := repo.LookupReference("HEAD")
+	if err != nil {
+		log.Debug("HEAD not found: %s", err)
+		return nil
+	}
 	defer ref.Free()
-	ref, _ = ref.Resolve()
+	ref, err = ref.Resolve()
+	if err != nil {
+		log.Debug("Couldn't resolve HEAD: %s", err)
+		return nil
+	}
 	var parent *git.Commit
 	if ref != nil {
-		parent, _ = repo.LookupCommit(ref.Target())
+		parent, err = repo.LookupCommit(ref.Target())
+		if err != nil {
+			log.Debug("Failed to lookup HEAD: %s", err)
+			return nil
+		}
 		return parent
 	} else {
 		return nil

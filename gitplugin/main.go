@@ -21,6 +21,8 @@ func main() {
 	repoRoot = os.Args[2]
 	setupLogger()
 
+	// TODO check if git repository is available
+
 	lis, err := net.Listen("tcp", os.Args[1])
 	if err != nil {
 		log.Fatal("failed to listen: ", err)
