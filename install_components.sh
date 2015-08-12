@@ -10,3 +10,4 @@ cp bower_components/ace-builds/src-min-noconflict/mode-markdown.js public/lib/js
 cp bower_components/emojify.js/emojify.min.js public/lib/js/emojify.min.js
 cp bower_components/emojify.js/images/emoji/* public/lib/images/emoji/
 cp eastasianwidth/eastasianwidth.js public/lib/js/eastasianwidth.js
+cp bower_components/react/react.min.js public/lib/js/react.min.js
