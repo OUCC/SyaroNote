@@ -1,158 +1,20 @@
-package wikiio
+package main
 
 import (
-	"github.com/libgit2/git2go"
-	"gopkg.in/fsnotify.v1"
+	pb "github.com/OUCC/syaro/gitservice"
+	"golang.org/x/net/context"
+	"google.golang.org/grpc"
 
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 )
 
-var (
-	WikiRoot    *WikiFile
-	searchIndex map[string][]*WikiFile
-
-	// file system watcher
-	watcher *fsnotify.Watcher
-
-	// if true, BuildIndex is called
-	refreshRequired = true
-)
-
-var (
-	ErrNotExist = errors.New("file not exist")
-	ErrNotFound = errors.New("file not found")
-)
-
-func CheckRepository() bool {
-	switch _, err := git.OpenRepository(setting.WikiRoot); err {
-	case nil:
-		return true
-	default:
-		return false
-	}
-}
-
-func InitWatcher() {
-	var err error
-	watcher, err = fsnotify.NewWatcher()
-	if err != nil {
-		Log.Fatal(err)
-	}
-
-	// event loop for watcher
-	go func() {
-		for {
-			select {
-			case event := <-watcher.Events:
-				Log.Debug("%s", event)
-				switch {
-				case event.Op&fsnotify.Create != 0:
-					Log.Info("New file Created (%s)", event.Name)
-					refreshRequired = true
-
-				case event.Op&fsnotify.Remove != 0:
-					Log.Info("File removed (%s)", event.Name)
-					refreshRequired = true
-				}
-
-			case err := <-watcher.Errors:
-				Log.Fatal(err)
-			}
-		}
-	}()
-
-	filepath.Walk(setting.WikiRoot, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			Log.Error(err.Error())
-		}
-
-		// dont add hidden dir (ex. .git) and backup file
-		if info.IsDir() &&
-			!strings.Contains(path, "/.") &&
-			!strings.HasPrefix(path, ".") &&
-			!strings.HasSuffix(path, BACKUP_SUFFIX) {
-			watcher.Add(path)
-			Log.Debug("%s added to watcher", path)
-		}
-
-		return nil
-	})
-}
-
-func CloseWatcher() {
-	watcher.Close()
-}
-
-// must be called after setting.WikiRoot is set
-func buildIndex() {
-	Log.Debug("Index building start")
-
-	info, err := os.Stat(setting.WikiRoot)
-	if err != nil {
-		Log.Fatal(err)
-	}
-
-	WikiRoot = &WikiFile{
-		parentDir: nil,
-		wikiPath:  "/",
-		fileInfo:  info,
-	}
-	searchIndex = make(map[string][]*WikiFile)
-
-	// anonymous recursive function
-	var walkfunc func(*WikiFile)
-	walkfunc = func(dir *WikiFile) {
-		infos, _ := ioutil.ReadDir(filepath.Join(setting.WikiRoot, dir.WikiPath()))
-
-		dir.files = make([]*WikiFile, 0, len(infos))
-		for _, info := range infos {
-			// skip hidden files and backup files
-			if info.Name()[:1] == "." || strings.HasSuffix(info.Name(), BACKUP_SUFFIX) {
-				continue
-			}
-
-			file := &WikiFile{
-				parentDir: dir,
-				wikiPath:  filepath.Join(dir.WikiPath(), info.Name()),
-				fileInfo:  info,
-			}
-			dir.files = append(dir.files, file)
-
-			// register to searchIndex
-			elem, present := searchIndex[file.Name()]
-			if present {
-				searchIndex[file.Name()] = append(elem, file)
-			} else {
-				searchIndex[file.Name()] = []*WikiFile{file}
-			}
-
-			elem, present = searchIndex[file.NameWithoutExt()]
-			if present {
-				searchIndex[file.NameWithoutExt()] = append(elem, file)
-			} else {
-				searchIndex[file.NameWithoutExt()] = []*WikiFile{file}
-			}
-
-			if info.IsDir() {
-				walkfunc(file)
-			}
-		}
-	}
-	walkfunc(WikiRoot)
-
-	Log.Debug("Index building end")
-	Log.Info("File index refreshed")
-
-	refreshRequired = false
-}
-
-func Load(wpath string) (*WikiFile, error) {
-	Log.Debug("wpath: %s", wpath)
+func loadFile(wpath string) (*WikiFile, error) {
+	log.Debug("wpath: %s", wpath)
 
 	if refreshRequired {
 		buildIndex()
@@ -160,11 +22,11 @@ func Load(wpath string) (*WikiFile, error) {
 
 	// wiki root
 	if wpath == "/" || wpath == "." || wpath == "" {
-		return WikiRoot, nil
+		return wikiRoot, nil
 	}
 
 	sl := strings.Split(wpath, "/")
-	ret := WikiRoot
+	ret := wikiRoot
 	for _, s := range sl {
 		if s == "" {
 			continue
@@ -172,14 +34,14 @@ func Load(wpath string) (*WikiFile, error) {
 
 		tmp := ret
 		for _, f := range ret.Files() {
-			if f.Name() == s || util.RemoveExt(f.Name()) == s {
+			if f.Name() == s || removeExt(f.Name()) == s {
 				ret = f
 				break
 			}
 		}
 		// not found
 		if ret == tmp {
-			Log.Debug("wikiio.Load: not exist")
+			log.Debug("wikiio.Load: not exist")
 			return nil, ErrNotExist
 		}
 	}
@@ -187,131 +49,88 @@ func Load(wpath string) (*WikiFile, error) {
 	return ret, nil
 }
 
-func Search(name string) ([]*WikiFile, error) {
-	Log.Debug("name: %s", name)
+func createFile(wpath string) error {
+	log.Debug("wpath: %s", wpath)
 
-	if refreshRequired {
-		buildIndex()
-	}
-
-	files, present := searchIndex[name]
-	if !present {
-		Log.Debug("not found")
-		return nil, ErrNotFound
-	}
-
-	// for debug output
-	found := make([]string, len(files))
-	for i := 0; i < len(found); i++ {
-		found[i] = files[i].WikiPath()
-	}
-	Log.Debug("found %v", found)
-
-	return files, nil
-}
-
-func Create(wpath string) error {
-	Log.Debug("wpath: %s", wpath)
-
-	initialText := util.RemoveExt(filepath.Base(wpath)) + "\n====\n"
+	initialText := removeExt(filepath.Base(wpath)) + "\n====\n"
 
 	// check if file is already exists
-	file, _ := Load(wpath)
+	file, _ := loadFile(wpath)
 	if file != nil {
 		// if exists, return error
 		return os.ErrExist
 	}
 
-	if !util.IsMarkdown(wpath) {
+	if !isMarkdown(wpath) {
 		wpath += ".md"
 	}
 
-	path := filepath.Join(setting.WikiRoot, wpath)
+	path := filepath.Join(setting.wikiRoot, wpath)
 	os.MkdirAll(filepath.Dir(path), 0755)
 	err := ioutil.WriteFile(path, []byte(initialText), 0644)
 	if err != nil {
-		Log.Debug(err.Error())
+		log.Debug(err.Error())
 		return err
 	}
 
 	refreshRequired = true
 
-	// git commit
-	if setting.GitMode {
-		repo := getRepo()
-		commit, err := commitChange(repo,
-			func(idx *git.Index) error {
-				if err := idx.AddByPath(wpath[1:]); err != nil {
-					return err
-				}
-				return nil
-			},
-			getDefaultSignature(repo),
-			"Created "+filepath.Base(wpath))
-		if err != nil {
-			Log.Error("Git error: %s", err)
-			return nil // dont send git error to client
-		}
-		defer commit.Free()
-		logCommit(commit)
-	}
-
-	return nil
+	return gitCommit(func(client pb.GitClient) (*pb.CommitResponse, error) {
+		return client.Save(context.Background(), &pb.SaveRequest{
+			Path: wpath,
+			Msg:  "Created " + wpath,
+		})
+	})
 }
 
-func Rename(oldpath string, newpath string) error {
-	Log.Debug("oldpath: %s, newpath: %s", oldpath, newpath)
+func renameFile(oldpath string, newpath string) error {
+	log.Debug("oldpath: %s, newpath: %s", oldpath, newpath)
 
-	f, err := Load(oldpath)
+	f, err := loadFile(oldpath)
 	if err != nil {
 		return err
 	}
 
-	if !f.IsDir() && f.IsMarkdown() && !util.IsMarkdown(newpath) {
+	if !f.IsDir() && f.IsMarkdown() && !isMarkdown(newpath) {
 		newpath += ".md"
 	}
 
-	path := filepath.Join(setting.WikiRoot, newpath)
+	path := filepath.Join(setting.wikiRoot, newpath)
 	os.MkdirAll(filepath.Dir(path), 0755)
 	if err := os.Rename(f.FilePath(), path); err != nil {
-		Log.Debug("can't rename: %s", err)
+		log.Debug("can't rename: %s", err)
 		return err
 	}
 
 	refreshRequired = true
 
-	// git commit
-	if setting.GitMode {
-		repo := getRepo()
-		commit, err := commitChange(repo,
-			func(idx *git.Index) error {
-				err := idx.RemoveAll(
-					[]string{oldpath[1:]},
-					func(path, spec string) int {
-						Log.Debug("git: removing %s", path)
-						return 0
-					})
-				if err != nil {
-					return err
-				}
-				return idx.AddAll(
-					[]string{newpath[1:]},
-					git.IndexAddDefault,
-					func(path, spec string) int {
-						Log.Debug("git: adding %s", path)
-						return 0
-					})
-			},
-			getDefaultSignature(repo),
-			fmt.Sprintf("Renamed %s\n\n%s -> %s", filepath.Base(oldpath), oldpath, newpath))
+	return gitCommit(func(client pb.GitClient) (*pb.CommitResponse, error) {
+		return client.Rename(context.Background(), &pb.RenameRequest{
+			Src: oldpath,
+			Dst: newpath,
+			Msg: fmt.Sprintf("Renamed %s -> %s", oldpath, newpath),
+		})
+	})
+}
 
-		if err != nil {
-			Log.Error("Git error: %s", err)
-			return nil // dont send git error to client
-		}
-		defer commit.Free()
-		logCommit(commit)
+func gitCommit(commitFunc func(pb.GitClient) (*pb.CommitResponse, error)) error {
+	if !setting.gitMode {
+		return nil
 	}
 
+	conn, err := grpc.Dial("127.0.0.1:" + strconv.Itoa(setting.port+1))
+	if err != nil {
+		log.Debug("Dial error: %s", err)
+		return err
+	}
+	defer conn.Close()
+
+	client := pb.NewGitClient(conn)
+	res, err := commitFunc(client)
+	if err != nil {
+		log.Debug("Git error: %s", err)
+		return err
+	}
+	log.Debug("commit id: %s, message: %s", res.Msg, res.Msg)
 	return nil
 }

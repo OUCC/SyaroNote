@@ -1,8 +1,6 @@
 package main
 
 import (
-	"github.com/OUCC/syaro/wikiio"
-
 	"github.com/zenazn/goji/graceful"
 	"github.com/zenazn/goji/web"
 	"github.com/zenazn/goji/web/middleware"
@@ -36,7 +34,7 @@ func startServer() {
 	mux.Use(middleware.AutomaticOptions)
 
 	// files under SYARO_DIR/public
-	rootDir := http.Dir(filepath.Join(setting.SyaroDir, PUBLIC_DIR))
+	rootDir := http.Dir(filepath.Join(setting.syaroDir, PUBLIC_DIR))
 	fileServer := http.StripPrefix(setting.urlPrefix, http.FileServer(rootDir))
 	mux.Get(setting.urlPrefix+"/css/*", fileServer)
 	mux.Get(setting.urlPrefix+"/fonts/*", fileServer)
@@ -92,7 +90,7 @@ func startServer() {
 		log.Fatal(err)
 	}
 
-	if setting.FCGI {
+	if setting.fcgi {
 		if err := fcgi.Serve(l, mux); err != nil {
 			log.Fatal(err)
 		}
@@ -133,7 +131,7 @@ func viewPage(wpath string, w http.ResponseWriter, r *http.Request) {
 
 	case ErrIsNotMarkdown:
 		log.Info("Sending file (%s)...", wpath)
-		v, err := wikiio.Load(wpath)
+		v, err := loadFile(wpath)
 		if err != nil {
 			log.Error(err.Error())
 			errorHandler(w, http.StatusInternalServerError, err.Error())
@@ -152,7 +150,7 @@ func viewPage(wpath string, w http.ResponseWriter, r *http.Request) {
 func createPage(wpath string, w http.ResponseWriter, r *http.Request) {
 	log.Info("Creating new page (%s)...", wpath)
 
-	switch err := wikiio.Create(wpath); err {
+	switch err := createFile(wpath); err {
 	case nil:
 		// send success response
 		errorHandler(w, http.StatusCreated, "")
@@ -178,7 +176,7 @@ func updatePage(wpath string, w http.ResponseWriter, r *http.Request) {
 		log.Info("Saving (%s)...", wpath)
 	}
 
-	f, err := wikiio.Load(wpath)
+	f, err := loadFile(wpath)
 	if err != nil {
 		log.Error(err.Error())
 		http.Error(w, wpath+"not found", http.StatusNotFound)
@@ -215,7 +213,7 @@ func renamePage(wpath string, w http.ResponseWriter, r *http.Request) {
 
 	log.Info("Rename page (%s -> %s)...", oldpath, wpath)
 
-	if err := wikiio.Rename(oldpath, wpath); err != nil {
+	if err := renameFile(oldpath, wpath); err != nil {
 		log.Error(err.Error())
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -229,7 +227,7 @@ func renamePage(wpath string, w http.ResponseWriter, r *http.Request) {
 func deletePage(wpath string, w http.ResponseWriter, r *http.Request) {
 	log.Info("Deleting page (%s)...", wpath)
 
-	f, err := wikiio.Load(wpath)
+	f, err := loadFile(wpath)
 	switch err {
 	case nil:
 
@@ -259,7 +257,7 @@ func editorView(wpath string, w http.ResponseWriter, r *http.Request) {
 	log.Info("Editor requested (%s)", wpath)
 
 	// check main dir
-	f, _ := wikiio.Load(wpath)
+	f, _ := loadFile(wpath)
 	if f != nil {
 		if f.DirMainPage() != nil {
 			log.Info("Requested file is dir, let's redirect to main file")

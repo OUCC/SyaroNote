@@ -1,13 +1,17 @@
-package wikiio
+package main
 
 import (
-	"github.com/libgit2/git2go"
+	pb "github.com/OUCC/syaro/gitservice"
+	"golang.org/x/net/context"
+	"google.golang.org/grpc"
 
 	"html/template"
+	"io"
 	"io/ioutil"
 	"net/url"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 )
 
@@ -26,7 +30,7 @@ func (f *WikiFile) Name() string {
 }
 
 func (f *WikiFile) NameWithoutExt() string {
-	return util.RemoveExt(f.Name())
+	return removeExt(f.Name())
 }
 
 func (f *WikiFile) WikiPath() string { return f.wikiPath }
@@ -34,8 +38,8 @@ func (f *WikiFile) WikiPath() string { return f.wikiPath }
 // WikiPathList returns slice of each WikiFile in wikipath
 // (slice doesn't include urlPrefix)
 func (f *WikiFile) WikiPathList() []*WikiFile {
-	Log.Debug("building...")
-	s := strings.Split(util.RemoveExt(f.WikiPath()), "/")
+	log.Debug("building...")
+	s := strings.Split(removeExt(f.WikiPath()), "/")
 	if s[0] == "" {
 		s = s[1:]
 	}
@@ -43,26 +47,26 @@ func (f *WikiFile) WikiPathList() []*WikiFile {
 	ret := make([]*WikiFile, len(s))
 	for i := 0; i < len(ret); i++ {
 		path := "/" + strings.Join(s[:i+1], "/")
-		Log.Debug("load %s", path)
+		log.Debug("load %s", path)
 		//		p, err := LoadPage(path)
-		wfile, err := Load(path)
+		wfile, err := loadFile(path)
 		if err != nil {
-			Log.Debug("error in wikiio.Load(path): %s", err)
+			log.Debug("error in wikiio.Load(path): %s", err)
 		}
 		ret[i] = wfile
 	}
-	Log.Debug("finish")
+	log.Debug("finish")
 	return ret
 }
 
 // WIKIROOT/a/b/c.md
 func (f *WikiFile) FilePath() string {
-	return filepath.Join(setting.WikiRoot, f.wikiPath)
+	return filepath.Join(setting.wikiRoot, f.wikiPath)
 }
 
 // URLPREFIX/a/b/c.md
 func (f *WikiFile) URLPath() template.URL {
-	path := filepath.Join(setting.UrlPrefix, f.wikiPath)
+	path := filepath.Join(setting.urlPrefix, f.wikiPath)
 
 	// url escape and revert %2F -> /
 	return template.URL(strings.Replace(url.QueryEscape(path), "%2F", "/", -1))
@@ -98,7 +102,7 @@ func (f *WikiFile) DirMainPage() *WikiFile {
 	return nil
 }
 
-func (f *WikiFile) IsMarkdown() bool { return util.IsMarkdown(f.wikiPath) }
+func (f *WikiFile) IsMarkdown() bool { return isMarkdown(f.wikiPath) }
 
 func (f *WikiFile) Files() []*WikiFile { return f.files }
 
@@ -111,7 +115,7 @@ func (f *WikiFile) Raw() []byte {
 
 	b, err := ioutil.ReadFile(f.FilePath())
 	if err != nil {
-		Log.Fatal(err)
+		log.Fatal(err)
 	}
 
 	return b
@@ -133,38 +137,18 @@ func (f *WikiFile) Save(b []byte, message, name, email string) error {
 
 	f.RemoveBackup()
 
-	// git commit
-	if setting.GitMode {
-		repo := getRepo()
-		sig := getDefaultSignature(repo)
-		if name != "" {
-			sig.Name = name
-		}
-		if email != "" {
-			sig.Email = email
-		}
-
-		if message == "" {
-			message = "Updated " + filepath.Base(f.wikiPath)
-		}
-
-		commit, err := commitChange(repo,
-			func(idx *git.Index) error {
-				if err := idx.AddByPath(f.wikiPath[1:]); err != nil {
-					return err
-				}
-				return nil
-			},
-			sig,
-			message)
-		if err != nil {
-			Log.Error("Git error: %s", err)
-			return nil // dont send git error to client
-		}
-		defer commit.Free()
-		logCommit(commit)
+	if strings.TrimSpace(message) == "" {
+		message = "Updated " + f.wikiPath
 	}
-	return nil
+
+	return gitCommit(func(client pb.GitClient) (*pb.CommitResponse, error) {
+		return client.Save(context.Background(), &pb.SaveRequest{
+			Path:  f.wikiPath,
+			Name:  name,
+			Email: email,
+			Msg:   message,
+		})
+	})
 }
 
 func (f *WikiFile) SaveBackup(b []byte) error {
@@ -178,38 +162,48 @@ func (f *WikiFile) Remove() error {
 
 	refreshRequired = true
 
-	// git commit
-	if setting.GitMode {
-		repo := getRepo()
-		commit, err := commitChange(repo,
-			func(idx *git.Index) error {
-				return idx.RemoveAll(
-					[]string{f.wikiPath[1:]},
-					func(path, spec string) int {
-						Log.Debug("git: removing %s", path)
-						return 0
-					})
-			},
-			getDefaultSignature(repo),
-			"Removed "+filepath.Base(f.wikiPath))
-		if err != nil {
-			Log.Error("Git error: %s", err)
-			return nil // dont send git error to client
-		}
-		defer commit.Free()
-		logCommit(commit)
-	}
-
-	return nil
+	return gitCommit(func(client pb.GitClient) (*pb.CommitResponse, error) {
+		return client.Remove(context.Background(), &pb.RemoveRequest{
+			Path: f.wikiPath,
+			Msg:  "Removed " + f.wikiPath,
+		})
+	})
 }
 
 func (f *WikiFile) RemoveBackup() error {
 	return os.Remove(f.FilePath() + BACKUP_SUFFIX)
 }
 
-func (f *WikiFile) History() []Change {
-	if setting.GitMode {
-		return getChanges(getRepo(), f.wikiPath)
+func (f *WikiFile) History() []*pb.Change {
+	if setting.gitMode {
+		conn, err := grpc.Dial("127.0.0.1:" + strconv.Itoa(setting.port+1))
+		if err != nil {
+			log.Debug("Dial error: %s", err)
+			return nil
+		}
+		defer conn.Close()
+
+		client := pb.NewGitClient(conn)
+		stream, err := client.Changes(context.Background(), &pb.ChangesRequest{
+			Path: f.wikiPath,
+		})
+		if err != nil {
+			log.Debug("Git error: %s", err)
+			return nil
+		}
+
+		changes := make([]*pb.Change, 0)
+		for {
+			c, err := stream.Recv()
+			if err == io.EOF {
+				break
+			} else if err != nil {
+				log.Debug("Stream error: %s", err)
+				return nil
+			}
+			changes = append(changes, c)
+		}
+		return changes
 	} else {
 		return nil
 	}

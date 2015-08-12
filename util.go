@@ -18,7 +18,7 @@ var (
 	}
 )
 
-func IsMarkdown(filename string) bool {
+func isMarkdown(filename string) bool {
 	ext := filepath.Ext(filename)
 	for _, mdext := range mdExtList {
 		if ext == mdext {
@@ -29,7 +29,7 @@ func IsMarkdown(filename string) bool {
 }
 
 // TODO test
-func RemoveExt(filename string) string {
+func removeExt(filename string) string {
 	dir := filepath.Dir(filename)
 	base := filepath.Base(filename)
 
@@ -40,7 +40,7 @@ func RemoveExt(filename string) string {
 	return filepath.Join(dir, base)
 }
 
-func AddExt(pathWithoutExt string) []string {
+func addExt(pathWithoutExt string) []string {
 	files := list.New()
 
 	for _, ext := range mdExtList {
@@ -51,10 +51,10 @@ func AddExt(pathWithoutExt string) []string {
 		}
 	}
 
-	return ToStringArray(files)
+	return toStringArray(files)
 }
 
-func ToStringArray(src *list.List) []string {
+func toStringArray(src *list.List) []string {
 	ret := make([]string, src.Len())
 	for i, v := 0, src.Front(); i < len(ret); i, v = i+1, v.Next() {
 		ret[i] = v.Value.(string)
@@ -63,7 +63,7 @@ func ToStringArray(src *list.List) []string {
 }
 
 // isIn returns true when dirA is in dirB
-func IsIn(dirA, dirB string) bool {
+func isIn(dirA, dirB string) bool {
 	dirA, _ = filepath.Abs(dirA)
 	dirB, _ = filepath.Abs(dirB)
 

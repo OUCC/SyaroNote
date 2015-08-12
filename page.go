@@ -34,7 +34,7 @@ type Page struct {
 func LoadPage(wpath string) (*Page, error) {
 	log.Debug("wpath: %s", wpath)
 
-	wfile, err := Load(wpath)
+	wfile, err := loadFile(wpath)
 	if err != nil {
 		log.Debug(err.Error())
 		return nil, err

@@ -1,8 +1,6 @@
 package main
 
 import (
-	"github.com/OUCC/syaro/wikiio"
-
 	"code.google.com/p/go.net/html"
 
 	"net/url"
@@ -141,7 +139,7 @@ func processWikiLink2(n *html.Node, currentDir string) {
 	}
 }
 
-func searchPage(name string, currentDir string) []*wikiio.WikiFile {
+func searchPage(name string, currentDir string) []*WikiFile {
 	if name == "" {
 		return nil
 	}
@@ -153,7 +151,7 @@ func searchPage(name string, currentDir string) []*wikiio.WikiFile {
 		// search name as absolute path
 		// example: /piyo /poyo/pyon.ext
 		return searchPageByAbsPath(name)
-	} else if strings.Contains(name, "/") || util.IsMarkdown(name) {
+	} else if strings.Contains(name, "/") || isMarkdown(name) {
 		// search name as relative path
 		// example: ./hoge ../fuga.ext puyo.ext
 		return searchPageByRelPath(name, currentDir)
@@ -164,27 +162,27 @@ func searchPage(name string, currentDir string) []*wikiio.WikiFile {
 	}
 }
 
-func searchPageByAbsPath(abspath string) []*wikiio.WikiFile {
+func searchPageByAbsPath(abspath string) []*WikiFile {
 	log.Debug("main.searchPageByAbsPath(%s)", abspath)
-	file, _ := wikiio.Load(abspath)
+	file, _ := loadFile(abspath)
 	if file == nil {
 		return nil
 	}
-	return []*wikiio.WikiFile{file}
+	return []*WikiFile{file}
 }
 
-func searchPageByRelPath(relpath, currentDir string) []*wikiio.WikiFile {
+func searchPageByRelPath(relpath, currentDir string) []*WikiFile {
 	log.Debug("main.searchPageByRelPath(%s, %s)", relpath, currentDir)
 	wpath := filepath.Join(currentDir, relpath)
-	file, _ := wikiio.Load(wpath)
+	file, _ := loadFile(wpath)
 	if file == nil {
 		return nil
 	}
-	return []*wikiio.WikiFile{file}
+	return []*WikiFile{file}
 }
 
-func searchPageByBaseName(baseName string) []*wikiio.WikiFile {
+func searchPageByBaseName(baseName string) []*WikiFile {
 	log.Debug("main.searchPageByBaseName(%s)", baseName)
-	files, _ := wikiio.Search(baseName)
+	files, _ := searchFile(baseName)
 	return files
 }

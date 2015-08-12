@@ -1,6 +1,8 @@
 package main
 
 import (
+	pb "github.com/OUCC/syaro/gitservice"
+
 	"net/http"
 )
 
@@ -10,7 +12,8 @@ const (
 
 type HistoryPage struct {
 	*Page
-	Changes []Change
+	// Changes []Change
+	Changes []*pb.Change
 }
 
 func LoadHistoryPage(wpath string) (*HistoryPage, error) {
