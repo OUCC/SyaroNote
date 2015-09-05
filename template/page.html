@@ -70,6 +70,11 @@
         </li>
       </ul>
 
+      {{with .TOCHTML}}
+      <hr/>
+      {{.}}
+      {{end}}
+
       <!-- search box -->
 <!--       <form action="{{urlPrefix}}/error/501?data=Search" method="post" class="navbar-form navbar-left" role="search">
         <div class="form-group">

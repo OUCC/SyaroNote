@@ -1,6 +1,9 @@
-/* overwrite bootstrap3 styles */
+/* navbar */
 .navbar-default {
     background-color: unset;
+}
+.navbar-header>a.navbar-brand:hover {
+    color: #ffa600;
 }
 .breadcrumb {
     background-color: unset;
@@ -19,9 +22,7 @@
     font-size: 20px;
 }
 
-.syaro-filelist {
-    padding: 0 30px 30px 30px;
-}
+/* right sidebar */
 .syaro-right {
     background-image: linear-gradient(to right, #f6f6f6 0%, #fff 8px);
     box-shadow: inset 1px 0 0 #eee;
@@ -89,8 +90,30 @@
     color: #333;
 }
 
-.navbar-header>a.navbar-brand:hover {
-    color: #ffa600;
+/* TOC */
+.syaro-right > nav {
+
+}
+
+/* TOC */
+.syaro-right > nav ul {
+    list-style: none;
+    padding-left: 24px;
+}
+.syaro-right > nav a {
+    position: relative;
+    display: block;
+    padding: 2px 5px;
+    color: #4a4a4a;
+    text-decoration: none;
+}
+.syaro-right > nav a:hover {
+    background-color: #eee;
+}
+
+/* file list */
+.syaro-filelist {
+    padding: 0 30px 30px 30px;
 }
 
 /* error page */

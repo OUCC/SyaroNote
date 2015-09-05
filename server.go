@@ -42,14 +42,14 @@ func startServer() {
 	mux.Get(setting.urlPrefix+"/js/*", fileServer)
 	mux.Get(setting.urlPrefix+"/lib/*", fileServer)
 
-	mux.Get(setting.urlPrefix+"/error/:code",
-		func(c web.C, w http.ResponseWriter, r *http.Request) {
-			i, _ := strconv.Atoi(c.URLParams["code"])
-			if i == 0 { // invalid request
-				i = 400
-			}
-			errorHandler(w, i, r.URL.Query().Get("data"))
-		})
+	// mux.Get(setting.urlPrefix+"/error/:code",
+	// 	func(c web.C, w http.ResponseWriter, r *http.Request) {
+	// 		i, _ := strconv.Atoi(c.URLParams["code"])
+	// 		if i == 0 { // invalid request
+	// 			i = 400
+	// 		}
+	// 		errorHandler(w, i, r.URL.Query().Get("data"))
+	// 	})
 	mux.Get(setting.urlPrefix+"/*",
 		func(w http.ResponseWriter, r *http.Request) {
 			switch r.URL.Query().Get("view") {
@@ -81,14 +81,14 @@ func startServer() {
 		})
 	mux.Delete(setting.urlPrefix+"/*", handlerConverter(deletePage))
 
-	log.Notice("Server started. Waiting connection localhost:%d%s\n",
-		setting.port, setting.urlPrefix)
-
 	// listen port
 	l, err := net.Listen("tcp", ":"+strconv.Itoa(setting.port))
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	log.Notice("Server started. Waiting connection localhost:%d%s\n",
+		setting.port, setting.urlPrefix)
 
 	if setting.fcgi {
 		if err := fcgi.Serve(l, mux); err != nil {
@@ -314,7 +314,7 @@ func errorHandler(w http.ResponseWriter, status int, data string) {
 	log.Info("Rendering error view... (status: %d, data: %s)", status, data)
 
 	w.WriteHeader(status)
-	err := views.ExecuteTemplate(w, strconv.Itoa(status)+".html", data)
+	err := tmpl.ExecuteTemplate(w, strconv.Itoa(status)+".html", data)
 	if err != nil {
 		// template not available
 		http.Error(w, http.StatusText(status), status)

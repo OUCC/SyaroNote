@@ -32,5 +32,5 @@ func NewEditor(wpath string) (*Editor, error) {
 }
 
 func (editor *Editor) Render(res http.ResponseWriter) error {
-	return views.ExecuteTemplate(res, EDITOR_VIEW, editor)
+	return tmpl.ExecuteTemplate(res, EDITOR_VIEW, editor)
 }

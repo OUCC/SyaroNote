@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"path/filepath"
 )
 
 var (
@@ -67,7 +68,7 @@ func parseFlags() {
 	flag.Parse()
 
 	if len(flag.Args()) > 0 {
-		setting.wikiRoot = flag.Arg(0) // set wikiroot
+		setting.wikiRoot = filepath.Clean(flag.Arg(0)) // set wikiroot
 	} else {
 		setting.wikiRoot = "."
 	}

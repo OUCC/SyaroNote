@@ -37,5 +37,5 @@ func (page *HistoryPage) Title() string {
 }
 
 func (page *HistoryPage) Render(res http.ResponseWriter) error {
-	return views.ExecuteTemplate(res, HISTORY_VIEW, page)
+	return tmpl.ExecuteTemplate(res, HISTORY_VIEW, page)
 }

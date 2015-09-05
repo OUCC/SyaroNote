@@ -12,14 +12,13 @@ import (
 )
 
 const (
-	SYARO_REPOSITORY = "github.com/OUCC/syaro"
-	PUBLIC_DIR       = "public"
-	VIEWS_DIR        = "template"
+	PUBLIC_DIR   = "public"
+	TEMPLATE_DIR = "template"
 )
 
 var (
 	version string
-	views   *template.Template
+	tmpl    *template.Template
 )
 
 func main() {
@@ -91,7 +90,7 @@ func main() {
 func findsyaroDir() {
 	// if syaro dir is specified by user, search this dir
 	if setting.syaroDir != "" {
-		_, err := os.Stat(filepath.Join(setting.syaroDir, VIEWS_DIR))
+		_, err := os.Stat(filepath.Join(setting.syaroDir, TEMPLATE_DIR))
 		// if directory isn't exist
 		if err != nil {
 			log.Error("Can't find template file dir specified in argument")
@@ -107,7 +106,7 @@ func findsyaroDir() {
 		}
 
 		for _, path := range paths {
-			_, err := os.Stat(filepath.Join(path, VIEWS_DIR))
+			_, err := os.Stat(filepath.Join(path, TEMPLATE_DIR))
 			if err == nil {
 				setting.syaroDir = path
 				return
@@ -122,8 +121,7 @@ func findsyaroDir() {
 
 func setupViews() error {
 	// funcs for template
-
-	tmpl := template.New("").Funcs(template.FuncMap{
+	tmpl = template.New("").Funcs(template.FuncMap{
 		"add": func(a, b int) int { return a + b },
 		"op": func(op pb.Change_Op) string {
 			switch op {
@@ -144,11 +142,10 @@ func setupViews() error {
 		"gitmode":   func() bool { return setting.gitMode },
 		"byteToStr": func(b []byte) string { return string(b) },
 	})
-	tmpl, err := tmpl.ParseGlob(filepath.Join(setting.syaroDir, VIEWS_DIR, "*.html"))
+	var err error
+	tmpl, err = tmpl.ParseGlob(filepath.Join(setting.syaroDir, TEMPLATE_DIR, "*.html"))
 	if err != nil {
 		return err
 	}
-
-	views = tmpl
 	return nil
 }

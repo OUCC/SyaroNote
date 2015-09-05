@@ -129,6 +129,10 @@ func (page *Page) SidebarMdHTML() template.HTML {
 	return template.HTML(parseMarkdown(b, "/"))
 }
 
+func (page *Page) TOCHTML() template.HTML {
+	return template.HTML(generateTOC([]byte(page.raw())))
+}
+
 func (page *Page) Render(res http.ResponseWriter) error {
-	return views.ExecuteTemplate(res, PAGE_VIEW, &page)
+	return tmpl.ExecuteTemplate(res, PAGE_VIEW, &page)
 }

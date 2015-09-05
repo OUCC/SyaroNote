@@ -12,7 +12,6 @@ import (
 func parseMarkdown(input []byte, dir string) []byte {
 	htmlFlags := 0 |
 		HTML_HREF_TARGET_BLANK |
-		HTML_TOC |
 		HTML_USE_XHTML |
 		HTML_USE_SMARTYPANTS |
 		// HTML_SMARTYPANTS_FRACTIONS |
@@ -318,4 +317,18 @@ func processNav(nav *html.Node) {
 			html.Attribute{Key: "class", Val: "toc-open"},
 		}
 	}
+}
+
+func generateTOC(b []byte) []byte {
+	htmlFlags := 0 |
+		HTML_TOC |
+		HTML_OMIT_CONTENTS |
+		HTML_USE_XHTML
+
+	extensions := 0 |
+		EXTENSION_SPACE_HEADERS |
+		EXTENSION_HEADER_IDS |
+		EXTENSION_AUTO_HEADER_IDS
+
+	return Markdown(b, HtmlRenderer(htmlFlags, "", ""), extensions)
 }
