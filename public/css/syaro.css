@@ -14,6 +14,10 @@
     padding: auto;
     font-size: 20px;
 }
+.navbar-right-menu-group > li > a.navbar-right-menu-orange:hover,
+.navbar-right-menu-group > li > a.navbar-right-menu-orange:focus {
+    color: #F36D00;
+}
 .navbar-sm-right-menu-group {
     display: inline-block;
 }
