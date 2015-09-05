@@ -14,7 +14,7 @@ import (
 const (
 	SYARO_REPOSITORY = "github.com/OUCC/syaro"
 	PUBLIC_DIR       = "public"
-	VIEWS_DIR        = "views"
+	VIEWS_DIR        = "template"
 )
 
 var (
