@@ -9,38 +9,30 @@
 
     <div class="navbar-collapse collapse">
 
-      <!-- search box -->
-      <form action="{{urlPrefix}}/error/501?data=Search" method="post" class="navbar-form navbar-left" role="search">
-        <div class="form-group">
-          <input type="text" class="form-control" placeholder="Search">
-          <button type="submit" class="btn btn-default">
-            <span class="glyphicon glyphicon-search"></span>
-          </button>
-        </div>
-      </form>
+      <!-- breadcrumb list -->
+      <ol class="breadcrumb navbar-nav navbar-left">
+        {{range .WikiPathList}}
+        <li><a href="{{urlPrefix}}{{.WikiPath}}">{{.NameWithoutExt}}</a></li>
+        {{end}}
+      </ol>
 
-      <!-- right buttons -->
-      <ul class="nav navbar-nav navbar-right">
+
+      <ul class="navbar-right-menu-group nav navbar-nav navbar-right">
         <li>
-          <a class="hover-orange" data-toggle="modal" href="#createModal"><span class="glyphicon glyphicon-plus"></span> New</a>
+          <a data-toggle="modal" href="#createModal"><span class="glyphicon glyphicon-plus"></span></a>
         </li>
         <li>
-          <a class="hover-green" data-toggle="modal" href="#renameModal"><span class="glyphicon glyphicon-asterisk"></span> Rename</a>
-        </li>
-        <li>
-          <a href="?view=editor" class="hover-green"><span class="glyphicon glyphicon-pencil"></span> Edit</a>
-        </li>
-        <li>
-          <a href="#" class="hover-purple" onclick="print()"><span class="glyphicon glyphicon-print"></span> Print</a>
-        </li>
-        <li>
-          <a href="?view=history" class="hover-purple"><span class="glyphicon glyphicon-time"></span> History</a>
-        </li>
-        <li>
-          <a class="hover-red" data-toggle="modal" href="#deleteModal"><span class="glyphicon glyphicon-trash"></span> Delete</a>
+          <a data-toggle="modal" href="#uploadModal"><span class="glyphicon glyphicon-open"></span></a>
         </li>
       </ul>
-
     </div>
+
+<!--     {{with .SidebarMdHTML}}
+    <ul class="navbar-sm-right-menu-group nav navbar-nav navbar-right visible-xs">
+      <li>
+        <a data-toggle="modal" href="/_Sidebar.md"><span class="glyphicon glyphicon-th-list"></span></a>
+      </li>
+    </ul>
+    {{end}} -->
   </div>
 </div>

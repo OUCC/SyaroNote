@@ -19,20 +19,16 @@
 
   <div class="container">
 
-    <!-- breadcrumb list -->
-    <ol class="breadcrumb">
-      {{range .WikiPathList}}
-      <li><a href="{{urlPrefix}}{{.WikiPath}}">{{.NameWithoutExt}}</a></li>
-      {{end}}
-    </ol>
-
     {{with .SidebarMdHTML}}
-    <div class="syaro-sidebar col-md-3">
+    <div class="syaro-left col-md-2 col-sm-3 hidden-xs">
       <div class="markdown">{{.}}</div>
     </div>
+
+    <div class="syaro-center col-md-7 col-sm-9 col-xs-12">
+    {{else}}
+    <div class="syaro-center col-md-9 col-sm-10 col-xs-12">
     {{end}}
 
-    <div class="syaro-main col-md-9">
       {{with .MdHTML}}
       <div class="markdown">{{.}}</div>
       {{end}}
@@ -43,6 +39,46 @@
         {{template "page-filelist.html" .ParentDir}}
       {{end}}
 
+    </div>
+
+    <div class="syaro-right col-md-3 hidden-sm hidden-xs">
+
+      <ul class="right-menu-group">
+        <li>
+          <a class="right-menu-orange" data-toggle="modal" href="#renameModal"><span class="glyphicon glyphicon-asterisk"></span></a>
+        </li>
+        <li>
+          <a href="#editor" class="right-menu-blue"><span class="glyphicon glyphicon-pencil"></span></a>
+        </li>
+        <li>
+          <a href="#" class="right-menu-purple" onclick="print()"><span class="glyphicon glyphicon-print"></span></a>
+        </li>
+        <li>
+          <a class="right-menu-red" data-toggle="modal" href="#deleteModal"><span class="glyphicon glyphicon-trash"></span></a>
+        </li>
+      </ul>
+
+      <ul class="sunken-menu-group">
+        <li>
+          <a href="#" aria-selected="true" class="js-selected-navigation-item selected sunken-menu-item">
+          <span class="glyphicon glyphicon-book"></span> Contents</a>
+        </li>
+
+        <li>
+          <a href="#history" class="js-selected-navigation-item sunken-menu-item">
+            <span class="glyphicon glyphicon-time"></span> History</a>
+        </li>
+      </ul>
+
+      <!-- search box -->
+<!--       <form action="{{urlPrefix}}/error/501?data=Search" method="post" class="navbar-form navbar-left" role="search">
+        <div class="form-group">
+          <input type="text" class="form-control" placeholder="Search">
+          <button type="submit" class="btn btn-default">
+            <span class="glyphicon glyphicon-search"></span>
+          </button>
+        </div>
+      </form> -->
     </div>
   </div>
 

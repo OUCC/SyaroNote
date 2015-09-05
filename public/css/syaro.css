@@ -1,26 +1,96 @@
-.syaro-sidebar {
-    padding-top: 25px;
-    background-color: #f5f5f5;
+/* overwrite bootstrap3 styles */
+.navbar-default {
+    background-color: unset;
+}
+.breadcrumb {
+    background-color: unset;
+    margin-bottom: 0px;
+    padding: 15px 15px;
+}
+.navbar-right-menu-group > li > a {
+    padding: auto;
+    font-size: 20px;
+}
+.navbar-sm-right-menu-group {
+    display: inline-block;
+}
+.navbar-sm-right-menu-group > li > a {
+    padding: auto;
+    font-size: 20px;
 }
 
 .syaro-filelist {
     padding: 0 30px 30px 30px;
 }
+.syaro-right {
+    background-image: linear-gradient(to right, #f6f6f6 0%, #fff 8px);
+    box-shadow: inset 1px 0 0 #eee;
+    padding-left: 0;
+}
+
+.right-menu-group {
+    list-style-type: none;
+    display: inline-block;
+    padding-left: 8px;
+    margin: 12px 0;
+}
+.right-menu-group > li {
+    display: inline-block;
+    float: left;
+    font-size: 20px;
+    padding: 0 8px;
+}
+.right-menu-group > li > a {
+    color: #777777;
+}
+.right-menu-orange:hover,
+.right-menu-orange:focus {
+    color: #F36D00;
+}
+.right-menu-blue:hover,
+.right-menu-blue:focus {
+    color: #0065F3;
+}
+.right-menu-purple:hover,
+.right-menu-purple:focus {
+    color: #BF00F3;
+}
+.right-menu-red:hover,
+.right-menu-red:focus {
+    color: #F30004;
+}
+
+.sunken-menu-group {
+    list-style-type: none;
+    padding-left: 0;
+    max-width: 160px;
+}
+.sunken-menu-item {
+    display: block;
+    padding: 8px 10px;
+    margin-top: 5px;
+    margin-bottom: 5px;
+    border: 1px solid transparent;
+    outline: 0;
+}
+.sunken-menu-item.selected {
+    font-weight: bold;
+    color: #333;
+    background-color: #fff;
+    border-color: #eee #eee #eee transparent;
+    border-radius: 0 3px 3px 0;
+    box-shadow: 1px 1px 3px rgba(0,0,0,0.05);
+}
+.sunken-menu-item > span {
+    color: #999;
+}
+.sunken-menu-item.selected > span,
+.sunken-menu-item:hover > span {
+    color: #333;
+}
 
 .navbar-header>a.navbar-brand:hover {
     color: #ffa600;
-}
-.navbar-nav>li>a.hover-orange:hover {
-    color: #ff8800;
-}
-.navbar-nav>li>a.hover-green:hover {
-    color: #00e613;
-}
-.navbar-nav>li>a.hover-purple:hover {
-    color: #b300ff;
-}
-.navbar-nav>li>a.hover-red:hover {
-    color: #ff002e;
 }
 
 /* error page */
