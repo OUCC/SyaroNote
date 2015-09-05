@@ -33,8 +33,8 @@ func init() {
 		"Name of wiki")
 	flag.IntVar(&setting.port, "port", 8080,
 		"Port number")
-	flag.StringVar(&setting.urlPrefix, "url-prefix", "",
-		"URL prefix (ex. if prefix is syarowiki, URL is localhost:PORT/syarowiki/)")
+	// flag.StringVar(&setting.urlPrefix, "url-prefix", "",
+	// 	"URL prefix (ex. if prefix is syarowiki, URL is localhost:PORT/syarowiki/)")
 	flag.BoolVar(&setting.fcgi, "fcgi", false,
 		"If true, syaro runs on fast cgi mode")
 	flag.BoolVar(&setting.mathjax, "mathjax", true,
