@@ -106,6 +106,36 @@ func (f *WikiFile) IsMarkdown() bool { return isMarkdown(f.wikiPath) }
 
 func (f *WikiFile) Files() []*WikiFile { return f.files }
 
+func (f *WikiFile) Folders() []*WikiFile {
+	ret := make([]*WikiFile, 0, len(f.files))
+	for _, file := range f.files {
+		if file.IsDir() {
+			ret = append(ret, file)
+		}
+	}
+	return ret
+}
+
+func (f *WikiFile) MdFiles() []*WikiFile {
+	ret := make([]*WikiFile, 0, len(f.files))
+	for _, file := range f.files {
+		if file.IsMarkdown() {
+			ret = append(ret, file)
+		}
+	}
+	return ret
+}
+
+func (f *WikiFile) OtherFiles() []*WikiFile {
+	ret := make([]*WikiFile, 0, len(f.files))
+	for _, file := range f.files {
+		if !file.IsDir() && !file.IsMarkdown() {
+			ret = append(ret, file)
+		}
+	}
+	return ret
+}
+
 func (f *WikiFile) ParentDir() *WikiFile { return f.parentDir }
 
 func (f *WikiFile) Raw() []byte {
