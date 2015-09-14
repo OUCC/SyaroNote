@@ -1,0 +1,49 @@
+/* editor */
+#app_wrap {
+    position: fixed;
+    top: 50px;
+    bottom: 0;
+    left: 0;
+    right: 0;
+}
+
+#editor {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 50%;
+    font-size: 14px;
+}
+
+#preview {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    right: 0;
+    overflow: auto;
+    background: rgb(250,250,250);
+    box-sizing: border-box;
+    box-flex: 1;
+}
+
+/* modal */
+.modal-content .input-group {
+    margin-bottom: 10px;
+}
+.modal-content .input-group-sm {
+    margin-bottom: 5px;
+    max-width: 50%;
+}
+
+/* emoji */
+ul.dropdown-menu.emoji-suggest-list {
+    max-height: 230px;
+    overflow: auto;
+    position: fixed;
+}
+ul.dropdown-menu.emoji-suggest-list > li > a.insert-emoji-trigger {
+    cursor: pointer;
+    padding: 0 20px;
+}

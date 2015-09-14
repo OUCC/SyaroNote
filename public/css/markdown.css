@@ -180,3 +180,9 @@
 .markdown img {
     max-width: 100%;
 }
+
+/* emoji */
+.markdown img.emoji {
+    vertical-align: text-bottom;
+    height: 1.3em;
+}
