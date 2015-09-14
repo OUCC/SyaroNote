@@ -40,7 +40,7 @@ func startServer() {
 	mux.Get(setting.urlPrefix+"/fonts/*", fileServer)
 	mux.Get(setting.urlPrefix+"/ico/*", fileServer)
 	mux.Get(setting.urlPrefix+"/js/*", fileServer)
-	mux.Get(setting.urlPrefix+"/lib/*", fileServer)
+	mux.Get(setting.urlPrefix+"/images/*", fileServer)
 
 	// mux.Get(setting.urlPrefix+"/error/:code",
 	// 	func(c web.C, w http.ResponseWriter, r *http.Request) {
@@ -50,6 +50,10 @@ func startServer() {
 	// 		}
 	// 		errorHandler(w, i, r.URL.Query().Get("data"))
 	// 	})
+	mux.Get(setting.urlPrefix+"/edit",
+		func(w http.ResponseWriter, r *http.Request) {
+			tmpl.ExecuteTemplate(w, "editor.html", nil)
+		})
 	mux.Get(setting.urlPrefix+"/*",
 		func(w http.ResponseWriter, r *http.Request) {
 			switch r.URL.Query().Get("view") {
