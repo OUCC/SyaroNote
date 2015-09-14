@@ -11,7 +11,6 @@
   "private": true,
   "dependencies": {
     "jquery": "2",
-    "ace-builds": "1",
-    "emojify.js": "~0.9.5"
+    "emojify.js": "1"
   }
 }
