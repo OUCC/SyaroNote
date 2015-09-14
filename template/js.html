@@ -2,23 +2,14 @@
   var syaro = {
     urlPrefix: {{urlPrefix}},
     wikiName: {{wikiName}},
-    wikiPath: {{.WikiPath}},
     mathjax: {{mathjax}},
     highlight: {{highlight}},
     gitmode: {{gitmode}}
   }
 </script>
 
-<script src="{{urlPrefix}}/lib/js/jquery.min.js" type="text/javascript"></script>
+<script src="{{urlPrefix}}/js/jquery.min.js" type="text/javascript"></script>
 <script src="{{urlPrefix}}/js/bootstrap.min.js" type="text/javascript"></script>
-<script src="{{urlPrefix}}/lib/js/emojify.min.js" type="text/javascript"></script>
-
-<script type="text/javascript">
-  emojify.setConfig({
-    img_dir: "{{urlPrefix}}/lib/images/emoji",
-    ignore_emoticons: true
-  });
-</script>
 
 {{if mathjax}}
 <script src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>

@@ -1,0 +1,27 @@
+{
+  "name": "editor",
+  "version": "1.0.0",
+  "description": "editor component of syaro",
+  "main": "index.js",
+  "scripts": {
+    "build": "browserify -t babelify -t debowerify editor.js -o build/editor.js",
+    "minify": "uglifyjs build/editor.js -o build/editor.min.js --source-map build/editor.js.map --source-map-url /js/editor.js.map -p 1",
+    "deploy": "npm run build && npm run minify && cp build/* ../build/public/js/"
+  },
+  "author": "Yuto Tokunaga",
+  "license": "MIT",
+  "dependencies": {
+    "brace": "^0.5.1",
+    "eastasianwidth": "^0.1.0",
+    "emojify.js": "^1.1.0",
+    "jquery": "^2.1.4",
+    "vdom-virtualize": "0.0.12",
+    "virtual-dom": "^2.1.1"
+  },
+  "devDependencies": {
+    "babelify": "^6.3.0",
+    "browser-sync": "^2.9.3",
+    "browserify": "^11.1.0",
+    "uglify-js": "^2.4.24"
+  }
+}
