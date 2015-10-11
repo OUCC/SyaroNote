@@ -1,240 +1,161 @@
 package main
 
 import (
-	pb "github.com/OUCC/syaro/gitservice"
-	"golang.org/x/net/context"
-	"google.golang.org/grpc"
-
 	"html/template"
 	"io"
 	"io/ioutil"
 	"net/url"
 	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
 )
 
-const BACKUP_SUFFIX = "~"
+const (
+	NEW_MD = "_New.md"
+
+	WIKIFILE_FOLDER = 1 + iota
+	WIKIFILE_MARKDOWN
+	WIKIFILE_OTHER
+)
 
 type WikiFile struct {
-	fileInfo  os.FileInfo
-	files     []*WikiFile
-	parentDir *WikiFile
-	wikiPath  string
+	os.FileInfo
+
+	WikiPath string
+	fileType int
 }
 
-// Base name of file (with ext)
-func (f *WikiFile) Name() string {
-	return filepath.Base(f.wikiPath)
-}
+func loadFile(wpath string) (WikiFile, error) {
+	if wpath == "" {
+		wpath = string(filepath.Separator)
+	}
+	wpath = filepath.Clean(wpath)
 
-func (f *WikiFile) NameWithoutExt() string {
-	return removeExt(f.Name())
-}
+	// TODO security check
 
-func (f *WikiFile) WikiPath() string { return f.wikiPath }
-
-// WikiPathList returns slice of each WikiFile in wikipath
-// (slice doesn't include urlPrefix)
-func (f *WikiFile) WikiPathList() []*WikiFile {
-	log.Debug("building...")
-	s := strings.Split(removeExt(f.WikiPath()), "/")
-	if s[0] == "" {
-		s = s[1:]
+	fpath := filepath.Join(setting.wikiRoot, wpath)
+	fi, err := os.Stat(fpath)
+	if err != nil {
+		return WikiFile{}, err
 	}
 
-	ret := make([]*WikiFile, len(s))
-	for i := 0; i < len(ret); i++ {
-		path := "/" + strings.Join(s[:i+1], "/")
-		log.Debug("load %s", path)
-		//		p, err := LoadPage(path)
-		wfile, err := loadFile(path)
-		if err != nil {
-			log.Debug("error in wikiio.Load(path): %s", err)
-		}
-		ret[i] = wfile
+	ft := 0
+	if fi.IsDir() {
+		ft = WIKIFILE_FOLDER
+	} else if isMarkdown(wpath) {
+		ft = WIKIFILE_MARKDOWN
+	} else {
+		ft = WIKIFILE_OTHER
 	}
-	log.Debug("finish")
-	return ret
+
+	log.Debug("wpath: %s, ft: %d", wpath, ft)
+
+	return WikiFile{
+		FileInfo: fi,
+		WikiPath: wpath,
+		fileType: ft,
+	}, nil
 }
 
-// WIKIROOT/a/b/c.md
-func (f *WikiFile) FilePath() string {
-	return filepath.Join(setting.wikiRoot, f.wikiPath)
+func createFile(wpath string) (WikiFile, error) {
+	// TODO security check
+	fpath := filepath.Join(setting.wikiRoot, wpath)
+
+	// check if file is already exists
+	_, err := os.Stat(fpath)
+	if err == nil { // already exists
+		return WikiFile{}, os.ErrExist
+	}
+
+	os.MkdirAll(filepath.Dir(fpath), 0755)
+	err = ioutil.WriteFile(fpath, []byte("\n"), 0644)
+	if err != nil {
+		log.Debug(err.Error())
+		return WikiFile{}, err
+	}
+
+	// if the new page template is exists
+	tmplPath := filepath.Join(setting.wikiRoot, NEW_MD)
+	if src, err := os.Open(tmplPath); err == nil {
+		log.Debug("%s found. copy", tmplPath)
+		// use template
+		dst, _ := os.Open(fpath)
+		io.Copy(src, dst)
+	}
+	return loadFile(wpath)
+}
+
+func (wf WikiFile) NameWithoutExt() string {
+	return removeExt(wf.Name())
 }
 
 // URLPREFIX/a/b/c.md
-func (f *WikiFile) URLPath() template.URL {
-	path := filepath.Join(setting.urlPrefix, f.wikiPath)
+func (wf WikiFile) URL() template.URL {
+	path := strings.Replace(filepath.Join(setting.urlPrefix, wf.WikiPath), string(filepath.Separator), "/", -1)
 
 	// url escape and revert %2F -> /
 	return template.URL(strings.Replace(url.QueryEscape(path), "%2F", "/", -1))
 }
 
-func (f *WikiFile) IsDir() bool { return f.fileInfo.IsDir() }
-
-func (f *WikiFile) IsDirMainPage() bool {
-	return !f.IsDir() &&
-		(strings.HasPrefix(f.WikiPath(), "/Home.") ||
-			f.NameWithoutExt() == f.ParentDir().Name())
+func (wf WikiFile) path() string {
+	return filepath.Join(setting.wikiRoot, wf.WikiPath)
 }
 
-func (f *WikiFile) DirMainPage() *WikiFile {
-	if !f.IsDir() {
+func (wf WikiFile) files() []WikiFile {
+	if !wf.IsDir() {
 		return nil
 	}
 
-	var name string
-	if f.WikiPath() == "/" {
-		name = "Home"
-	} else {
-		name = f.Name()
-	}
-
-	for _, file := range f.files {
-		if file.NameWithoutExt() == name {
-			return file
+	fis, _ := ioutil.ReadDir(wf.path())
+	ret := make([]WikiFile, len(fis))
+	for i, fi := range fis {
+		wf_ := WikiFile{
+			FileInfo: fi,
+			WikiPath: filepath.Join(wf.WikiPath, fi.Name()),
 		}
-	}
-
-	// not found
-	return nil
-}
-
-func (f *WikiFile) IsMarkdown() bool { return isMarkdown(f.wikiPath) }
-
-func (f *WikiFile) Files() []*WikiFile { return f.files }
-
-func (f *WikiFile) Folders() []*WikiFile {
-	ret := make([]*WikiFile, 0, len(f.files))
-	for _, file := range f.files {
-		if file.IsDir() {
-			ret = append(ret, file)
+		switch {
+		case fi.IsDir():
+			wf_.fileType = WIKIFILE_FOLDER
+			ret[i] = wf_
+		case isMarkdown(fi.Name()):
+			wf_.fileType = WIKIFILE_MARKDOWN
+			ret[i] = wf_
+		default:
+			wf_.fileType = WIKIFILE_OTHER
+			ret[i] = wf_
 		}
 	}
 	return ret
 }
 
-func (f *WikiFile) MdFiles() []*WikiFile {
-	ret := make([]*WikiFile, 0, len(f.files))
-	for _, file := range f.files {
-		if file.IsMarkdown() {
-			ret = append(ret, file)
-		}
+func (wf WikiFile) parent() (WikiFile, bool) {
+	if wf.WikiPath == string(filepath.Separator) {
+		return WikiFile{}, false
 	}
-	return ret
+
+	dir := filepath.Dir(wf.WikiPath)
+	fi, _ := os.Stat(filepath.Join(setting.wikiRoot, dir))
+	return WikiFile{
+		FileInfo: fi,
+		WikiPath: dir,
+		fileType: WIKIFILE_FOLDER,
+	}, true
 }
 
-func (f *WikiFile) OtherFiles() []*WikiFile {
-	ret := make([]*WikiFile, 0, len(f.files))
-	for _, file := range f.files {
-		if !file.IsDir() && !file.IsMarkdown() {
-			ret = append(ret, file)
-		}
-	}
-	return ret
+func (wf WikiFile) read() ([]byte, error) {
+	return ioutil.ReadFile(wf.path())
 }
 
-func (f *WikiFile) ParentDir() *WikiFile { return f.parentDir }
-
-func (f *WikiFile) Raw() []byte {
-	if f.IsDir() {
-		return nil
-	}
-
-	b, err := ioutil.ReadFile(f.FilePath())
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return b
+func (wf WikiFile) save(b []byte) error {
+	return ioutil.WriteFile(wf.path(), b, 0644)
 }
 
-func (f *WikiFile) RawBackup() []byte {
-	if f.IsDir() {
-		return nil
-	}
-
-	b, _ := ioutil.ReadFile(f.FilePath() + BACKUP_SUFFIX)
-	return b
+func (wf WikiFile) remove() error {
+	return os.RemoveAll(wf.path())
 }
 
-func (f *WikiFile) Save(b []byte, message, name, email string) error {
-	if err := ioutil.WriteFile(f.FilePath(), b, 0644); err != nil {
-		return err
-	}
-
-	f.RemoveBackup()
-
-	if strings.TrimSpace(message) == "" {
-		message = "Updated " + f.wikiPath
-	}
-
-	return gitCommit(func(client pb.GitClient) (*pb.CommitResponse, error) {
-		return client.Save(context.Background(), &pb.SaveRequest{
-			Path:  f.wikiPath,
-			Name:  name,
-			Email: email,
-			Msg:   message,
-		})
-	})
-}
-
-func (f *WikiFile) SaveBackup(b []byte) error {
-	return ioutil.WriteFile(f.FilePath()+BACKUP_SUFFIX, b, 0644)
-}
-
-func (f *WikiFile) Remove() error {
-	if err := os.RemoveAll(f.FilePath()); err != nil {
-		return err
-	}
-
-	refreshRequired = true
-
-	return gitCommit(func(client pb.GitClient) (*pb.CommitResponse, error) {
-		return client.Remove(context.Background(), &pb.RemoveRequest{
-			Path: f.wikiPath,
-			Msg:  "Removed " + f.wikiPath,
-		})
-	})
-}
-
-func (f *WikiFile) RemoveBackup() error {
-	return os.Remove(f.FilePath() + BACKUP_SUFFIX)
-}
-
-func (f *WikiFile) History() []*pb.Change {
-	if setting.gitMode {
-		conn, err := grpc.Dial("127.0.0.1:" + strconv.Itoa(setting.port+1))
-		if err != nil {
-			log.Debug("Dial error: %s", err)
-			return nil
-		}
-		defer conn.Close()
-
-		client := pb.NewGitClient(conn)
-		stream, err := client.Changes(context.Background(), &pb.ChangesRequest{
-			Path: f.wikiPath,
-		})
-		if err != nil {
-			log.Debug("Git error: %s", err)
-			return nil
-		}
-
-		changes := make([]*pb.Change, 0)
-		for {
-			c, err := stream.Recv()
-			if err == io.EOF {
-				break
-			} else if err != nil {
-				log.Debug("Stream error: %s", err)
-				return nil
-			}
-			changes = append(changes, c)
-		}
-		return changes
-	} else {
-		return nil
-	}
+func (wf WikiFile) rename(newpath string) error {
+	path := filepath.Join(setting.wikiRoot, newpath)
+	os.MkdirAll(filepath.Dir(path), 0755)
+	return os.Rename(wf.path(), path)
 }
