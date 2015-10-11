@@ -66,8 +66,7 @@ func main() {
 	}
 	log.Notice("MathJax: %t", setting.mathjax)
 	log.Notice("Highlight: %t", setting.highlight)
-	log.Notice("Verbose output: %t", setting.verbose)
-	log.Notice("")
+	log.Notice("Verbose output: %t\n", setting.verbose)
 
 	log.Info("Parsing template...")
 	err := setupViews()
@@ -76,9 +75,14 @@ func main() {
 	}
 	log.Info("Template parsed")
 
-	log.Info("Setting up filesystem watcher...")
-	initWatcher()
-	defer closeWatcher()
+	log.Info("Setting up fs watcher...")
+	go fsWatcher()
+
+	log.Info("Setting up file index...")
+	go idxBuilder()
+
+	log.Info("Setting up websockets...")
+	// TODO
 
 	startServer()
 }
@@ -102,7 +106,7 @@ func findsyaroDir() {
 			".",
 			"/usr/share/syaro",
 			"/usr/local/share/syaro",
-			"/Program Files/Syaro",
+			`\Program Files\Syaro`,
 		}
 
 		for _, path := range paths {

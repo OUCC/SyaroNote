@@ -7,8 +7,8 @@ import (
 )
 
 const (
-	LOG_FORMAT       = "%{time:2006/01/02 15:04:05.000000} syaro %{shortfunc:-12.12s} | %{level:.4s} %{message}"
-	COLOR_LOG_FORMAT = "%{time:2006/01/02 15:04:05.000000} syaro %{shortfunc:-12.12s} | %{color:bold}%{level:.4s}%{color:reset} %{color}%{message}%{color:reset}"
+	LOG_FORMAT       = "%{time:2006/01/02 15:04:05.000000} %{shortfunc:-15.15s} | %{level:.4s} %{message}"
+	COLOR_LOG_FORMAT = "%{time:2006/01/02 15:04:05.000000} %{shortfunc:-15.15s} | %{color:bold}%{level:.4s}%{color:reset} %{color}%{message}%{color:reset}"
 )
 
 var (
