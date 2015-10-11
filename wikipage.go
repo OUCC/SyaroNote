@@ -22,7 +22,6 @@ type WikiPage struct {
 	TOC        template.HTML
 	Title      string
 	Tags       []string
-	Alias      []string
 	Parent     WikiFile
 	BreadCrumb []WikiFile
 	Folders    []WikiFile
@@ -38,6 +37,7 @@ func loadPage(wf WikiFile) (WikiPage, error) {
 	var dir string
 	switch wf.fileType {
 	case WIKIFILE_FOLDER:
+		// load _.md
 		wf_, err := loadFile(filepath.Join(wf.WikiPath, FOLDER_MD))
 		if err == nil { // _.md found
 			b, err = wf_.read()
@@ -47,6 +47,7 @@ func loadPage(wf WikiFile) (WikiPage, error) {
 		}
 		dir = wf.WikiPath
 
+		// file list
 		fis := wf.files()
 		wp.Folders = make([]WikiFile, 0, len(fis))
 		wp.MdFiles = make([]WikiFile, 0, len(fis))
@@ -70,8 +71,25 @@ func loadPage(wf WikiFile) (WikiPage, error) {
 		dir = filepath.Dir(wf.WikiPath)
 	}
 
+	markdown.LinkWorker = func(b []byte) []byte {
+		s := string(b)
+		if len(s) < 5 {
+			return nil
+		}
+		link := s[2 : len(s)-2]
+		return []byte(linkWorker(link, dir))
+	}
 	wp.Contents = template.HTML(markdown.Convert(b, dir))
 	wp.TOC = template.HTML(markdown.TOC(b))
+
+	// meta datas
+	meta := markdown.Meta(b)
+	if meta.Title != "" {
+		wp.Title = meta.Title
+	} else {
+		wp.Title = removeExt(wp.Name())
+	}
+	wp.Tags = meta.Tags
 
 	// breadcrumb list
 	bc := make([]WikiFile, 0)

@@ -10,12 +10,13 @@ import (
 )
 
 var (
-	LinkWorker = func(link []byte) []byte {
-		s := string(link)
-		if len(s) > 4 {
-			s = s[2 : len(s)-2]
+	LinkWorker = func(b []byte) []byte {
+		s := string(b)
+		if len(s) < 5 {
+			return nil
 		}
-		return []byte(`<a href="` + s + `">` + s + `</a>`)
+		link := s[2 : len(s)-2]
+		return []byte(`<a href="` + link + `">` + link + `</a>`)
 	}
 
 	reWikiLink = regexp.MustCompile(`\[\[[^\]]+\]\]`)
