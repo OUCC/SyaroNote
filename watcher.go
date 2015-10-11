@@ -8,58 +8,48 @@ import (
 	"strings"
 )
 
-var (
-	// file system watcher
-	watcher *fsnotify.Watcher
-)
-
-func initWatcher() {
-	var err error
-	watcher, err = fsnotify.NewWatcher()
+func fsWatcher() {
+	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
-		log.Fatal(err)
+		log.Error("Failed to setting up filesystem watcher")
+		log.Error(err.Error())
+		log.Error("Auto reload will not be available")
+		return
 	}
+	defer watcher.Close()
 
-	// event loop for watcher
-	go func() {
-		for {
-			select {
-			case event := <-watcher.Events:
-				log.Debug("%s", event)
-				switch {
-				case event.Op&fsnotify.Create != 0:
-					log.Info("New file Created (%s)", event.Name)
-					refreshRequired = true
-
-				case event.Op&fsnotify.Remove != 0:
-					log.Info("File removed (%s)", event.Name)
-					refreshRequired = true
-				}
-
-			case err := <-watcher.Errors:
-				log.Fatal(err)
-			}
-		}
-	}()
-
+	log.Info("Adding files to watcher...")
 	filepath.Walk(setting.wikiRoot, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			log.Error(err.Error())
+			return nil
 		}
 
-		// dont add hidden dir (ex. .git) and backup file
-		if info.IsDir() &&
-			!strings.Contains(path, "/.") &&
-			!strings.HasPrefix(path, ".") &&
-			!strings.HasSuffix(path, BACKUP_SUFFIX) {
+		// exclude hidden dir (ex. .git)
+		if info.IsDir() && !strings.Contains(path, "/.") {
 			watcher.Add(path)
 			log.Debug("%s added to watcher", path)
 		}
 
 		return nil
 	})
-}
 
-func closeWatcher() {
-	watcher.Close()
+	// event loop for watcher
+	for {
+		select {
+		case event := <-watcher.Events:
+			log.Debug("%s", event)
+			switch {
+			case event.Op&fsnotify.Create != 0:
+				log.Info("New file Created (%s)", event.Name)
+
+			case event.Op&fsnotify.Remove != 0:
+				log.Info("File removed (%s)", event.Name)
+			}
+
+		case err := <-watcher.Errors:
+			log.Error("Filesystem watcher unexpectedly crashed")
+			log.Error(err.Error())
+		}
+	}
 }
