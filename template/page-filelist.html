@@ -6,31 +6,31 @@
     <!-- Table -->
     <table class="table">
       <tbody>
-        {{with .ParentDir}}
+        {{with .Parent}}
         <tr>
           <td><span class="glyphicon glyphicon-level-up"></span></td>
-          <td><a href="{{urlPrefix}}{{.WikiPath}}">../</a></td>
+          <td><a href="{{.URL}}">../</a></td>
           <td>{{.WikiPath}}</td>
         </tr>
         {{end}}
         {{range $index, $file:= .Folders}}
         <tr>
           <td><span class="glyphicon glyphicon-folder-open"></span></td>
-          <td><a href="{{urlPrefix}}{{$file.WikiPath}}">{{$file.Name}}/</a></td>
+          <td><a href="{{$file.URL}}">{{$file.Name}}/</a></td>
           <td>{{$file.WikiPath}}</td>
         </tr>
         {{end}}
         {{range $index, $file:= .MdFiles}}
         <tr>
           <td><span class="glyphicon glyphicon-save-file"></span></td>
-          <td><a href="{{urlPrefix}}{{$file.WikiPath}}">{{$file.NameWithoutExt}}</a></td>
+          <td><a href="{{$file.URL}}">{{$file.Name}}</a></td>
           <td>{{$file.WikiPath}}</td>
         </tr>
         {{end}}
         {{range $index, $file:= .OtherFiles}}
         <tr>
           <td><span class="glyphicon glyphicon-file"></span></td>
-          <td><a href="{{urlPrefix}}{{$file.WikiPath}}">{{$file.Name}}</a></td>
+          <td><a href="{{$file.URL}}">{{$file.Name}}</a></td>
           <td>{{$file.WikiPath}}</td>
         </tr>
         {{end}}

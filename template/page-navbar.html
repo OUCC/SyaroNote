@@ -11,8 +11,8 @@
 
       <!-- breadcrumb list -->
       <ol class="breadcrumb navbar-nav navbar-left">
-        {{range .WikiPathList}}
-        <li><a href="{{urlPrefix}}{{.WikiPath}}">{{.NameWithoutExt}}</a></li>
+        {{range .BreadCrumb}}
+        <li><a href="{{.URL}}">{{.Name}}</a></li>
         {{end}}
       </ol>
 
@@ -26,12 +26,14 @@
       </ul>
     </div>
 
-<!--     {{with .SidebarMdHTML}}
+    <!--
+    {{with .Sidebar}}
     <ul class="navbar-sm-right-menu-group nav navbar-nav navbar-right visible-xs">
       <li>
         <a data-toggle="modal" href="/_Sidebar.md"><span class="glyphicon glyphicon-th-list"></span></a>
       </li>
     </ul>
-    {{end}} -->
+    {{end}}
+    -->
   </div>
 </div>
