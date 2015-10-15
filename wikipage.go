@@ -86,6 +86,8 @@ func loadPage(wf WikiFile) (WikiPage, error) {
 	meta := markdown.Meta(b)
 	if meta.Title != "" {
 		wp.Title = meta.Title
+	} else if wp.WikiPath == string(filepath.Separator) {
+		wp.Title = "/"
 	} else {
 		wp.Title = removeExt(wp.Name())
 	}
