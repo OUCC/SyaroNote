@@ -26,6 +26,10 @@
     font-size: 20px;
 }
 
+.syaro-center {
+    margin-bottom: 30px;
+}
+
 /* right sidebar */
 .syaro-right {
     background-image: linear-gradient(to right, #f6f6f6 0%, #fff 8px);

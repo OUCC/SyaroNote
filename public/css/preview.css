@@ -1,0 +1,23 @@
+/* header */
+#preview * {
+    font-size: 14px;
+    line-height: 1.1em;
+}
+#preview h1,
+#preview h2,
+#preview h3,
+#preview h4,
+#preview h5,
+#preview h6 {
+    margin: 1em 0 0 0;
+    padding: 0;
+}
+
+#preview hr {
+    margin: 1em 0 1em 0;
+}
+
+#preview table th,
+#preview table td {
+    padding: 2px 20px;
+}

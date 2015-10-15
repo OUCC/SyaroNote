@@ -43,6 +43,11 @@ $(function(){
   }
 
   function initEmojify() {
+    emojify.setConfig({
+        mode: 'img',
+        img_dir: '/images/emoji',
+        ignore_emoticons: true,
+    });
     $(".markdown").each(function() {
       emojify.run($(this).get(0));
     });

@@ -97,12 +97,50 @@
 }
 
 /* task list */
-.markdown .task-list-item {
-    list-style-type: none;
+.markdown li > input[type=checkbox] {
+    display: none;
+    margin: 0;
 }
-.markdown .task-list-item-checkbox[disabled] {
-    cursor: default;
-    margin: .4em .5em 0 -1.3em;
+.markdown li > input[type=checkbox] + label {
+    position: relative;
+    display: inline-block;
+    margin: .4em .5em 0 -1.5em;
+    padding: 0 0 0 24px;
+    font-weight: normal;
+}
+.markdown li > input[type=checkbox] + label::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 0;
+
+    box-sizing: border-box;
+    display: block;
+    width: 1em;
+    height: 1em;
+    margin-top: -.5em;
+
+    background: #FFF;
+    border: 2px solid #ccc;
+}
+.markdown li > input[type=checkbox]:checked + label::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+
+    box-sizing: border-box;
+    display: block;
+
+    left: 2px;
+
+    width: 1em;
+    height: .5em;
+    margin-top: -.5em;
+
+    border-left: 3px solid #444;
+    border-bottom: 3px solid #444;
+
+    transform: rotate(-45deg);
 }
 
 /* code */
@@ -158,7 +196,7 @@
     border: none;
     border-collapse: collapse;
     border-spacing: 0;
-    margin: 0 0 1em 0;
+    margin: 0 auto 1em auto;
 }
 .markdown table th,
 .markdown table td {
@@ -178,11 +216,15 @@
 
 /* image */
 .markdown img {
-    max-width: 100%;
+  display: block;
+  max-width: 100%;
+  margin: 0 auto;
 }
 
 /* emoji */
 .markdown img.emoji {
-    vertical-align: text-bottom;
-    height: 1.3em;
+  display: inline-block;
+  margin: 0 0 .25em 0;
+  width: 1.2em;
+  height: 1.2em;
 }
