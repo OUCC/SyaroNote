@@ -20,14 +20,21 @@ var editor,
     modified = false,
     timeoutId = '',
     wikiPath = '',
+    fileName = '',
     syncScroll = true;
 
 function init() {
   // set wiki path
   wikiPath = get_url_vars()["wpath"];
+  fileName = wikiPath.split('/');
+  fileName = fileName[fileName.length-1];
 
   // update title
-  document.title = "Editing " + setting.wikiPath;
+  document.title = fileName;
+
+  // update .navbar-header
+  $('.navbar-brand').attr('href', wikiPath);
+  $('.navbar-brand').text(fileName);
 
   initUi();
   initEmojify();
@@ -189,6 +196,9 @@ function initAce() {
   editor.getSession().on('change', (e) => {
     modified = true;
 
+    // update title
+    document.title = '* '+fileName;
+
     if(timeoutId !== "") { clearTimeout(timeoutId); }
 
     timeoutId = setTimeout(() => {
@@ -242,6 +252,7 @@ function renderPreview() {
     $('#splash').remove();
     initialized = true;
     modified = false;
+    document.title = fileName;
   }
 }
 
