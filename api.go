@@ -2,7 +2,6 @@ package main
 
 import (
 	pb "github.com/OUCC/syaro/gitservice"
-	"github.com/OUCC/syaro/markdown"
 
 	"golang.org/x/net/context"
 
@@ -10,7 +9,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
-	"path/filepath"
 )
 
 func getPage(w http.ResponseWriter, r *http.Request) {
@@ -36,7 +34,7 @@ func getPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write(markdown.Convert(b, filepath.Dir(wpath)))
+	w.Write(b)
 	log.Info("OK")
 }
 
@@ -189,7 +187,7 @@ func deleteFile(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err = wf.remove(); err != nil {
-		log.Error("Delete file error: %s", err)
+		log.Error(err.Error())
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}

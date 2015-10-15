@@ -79,7 +79,7 @@ func loadPage(wf WikiFile) (WikiPage, error) {
 		link := s[2 : len(s)-2]
 		return []byte(linkWorker(link, dir))
 	}
-	wp.Contents = template.HTML(markdown.Convert(b, dir))
+	wp.Contents = template.HTML(markdown.Convert(b))
 	wp.TOC = template.HTML(markdown.TOC(b))
 
 	// meta datas
@@ -92,7 +92,7 @@ func loadPage(wf WikiFile) (WikiPage, error) {
 	wp.Tags = meta.Tags
 
 	// breadcrumb list
-	bc := make([]WikiFile, 0)
+	var bc []WikiFile
 	for wf2, ok := wf.parent(); ok; wf2, ok = wf2.parent() {
 		bc = append(bc, wf2)
 	}
@@ -123,7 +123,8 @@ func loadSidebar() (html template.HTML) {
 	b, err := ioutil.ReadFile(path)
 	if err != nil {
 		log.Error(err.Error())
+		return
 	}
-	html = template.HTML(markdown.Convert(b, ""))
+	html = template.HTML(markdown.Convert(b))
 	return
 }

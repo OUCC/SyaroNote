@@ -28,7 +28,7 @@ type MetaData struct {
 	Tags  []string `yaml:"tags"`
 }
 
-func Convert(input []byte, dir string) []byte {
+func Convert(input []byte) []byte {
 	if input == nil {
 		return nil
 	}
@@ -47,6 +47,7 @@ func Convert(input []byte, dir string) []byte {
 	r := bytes.NewReader(input)
 	scn := bufio.NewScanner(r)
 	for scn.Scan() {
+		// FIXME <pre>
 		b := reWikiLink.ReplaceAllFunc(scn.Bytes(), LinkWorker)
 		buf.Write(b)
 		buf.WriteRune('\n')
@@ -59,7 +60,6 @@ func Convert(input []byte, dir string) []byte {
 		HTML_USE_SMARTYPANTS |
 		// HTML_SMARTYPANTS_FRACTIONS |
 		HTML_SMARTYPANTS_LATEX_DASHES |
-		HTML_SMARTYPANTS_ANGLED_QUOTES |
 		HTML_FOOTNOTE_RETURN_LINKS
 
 	extensions := 0 |
@@ -99,6 +99,15 @@ func Meta(input []byte) MetaData {
 }
 
 func TOC(input []byte) []byte {
+	// remove front matter
+	sep := []byte("---\n")
+	if bytes.HasPrefix(input, sep) {
+		b := bytes.SplitN(input, sep, 3)
+		if len(b) == 3 {
+			input = b[2]
+		}
+	}
+
 	htmlFlags := 0 |
 		HTML_TOC |
 		HTML_OMIT_CONTENTS |
