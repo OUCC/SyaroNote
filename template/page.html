@@ -7,6 +7,7 @@
 
   {{template "css.html"}}
 
+  <link rel="stylesheet" type="text/css" href="{{urlPrefix}}/css/emojify.basic.min.css">
   <link rel="stylesheet" type="text/css" href="{{urlPrefix}}/css/page.css">
 
   <link rel="icon" href="{{urlPrefix}}/ico/favicon.png">
@@ -44,12 +45,14 @@
     <div class="syaro-right col-md-3 hidden-sm hidden-xs">
 
       <ul class="right-menu-group">
+        {{if not .IsDir}}
         <li>
           <a class="right-menu-orange" data-toggle="modal" href="#renameModal"><span class="glyphicon glyphicon-asterisk"></span></a>
         </li>
         <li>
           <a href="/edit?wpath={{.WikiPath}}" class="right-menu-blue"><span class="glyphicon glyphicon-pencil"></span></a>
         </li>
+        {{end}}
         <li>
           <a href="#" class="right-menu-purple" onclick="print()"><span class="glyphicon glyphicon-print"></span></a>
         </li>
@@ -91,7 +94,7 @@
   {{template "page-modals.html" .}}
 
   <!-- javascript -->
-  {{template "js.html" .}}
+  {{template "js.html"}}
 
   <script src="{{urlPrefix}}/js/page.js" type="text/javascript"></script>
 

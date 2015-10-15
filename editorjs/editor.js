@@ -1,10 +1,11 @@
 import * as ace from 'brace'
 import 'brace/mode/markdown'
 import 'brace/theme/chrome'
+import 'brace/ext/searchbox'
+var HashHandler = ace.acequire("ace/keyboard/hash_handler").HashHandler;
 
-import TableFormatter from './tableformatter'
-import EmojiAutoComplete from './emojiautocomplete'
-import emojify from 'emojify.js'
+import tableFormatter from './tableformatter'
+import emojiAutoComplete from './emojiautocomplete'
 
 import h from 'virtual-dom/h'
 import diff from 'virtual-dom/diff'
@@ -12,24 +13,18 @@ import patch from 'virtual-dom/patch'
 import createElement from 'virtual-dom/create-element'
 import virtualize from 'vdom-virtualize'
 
-var HashHandler = ace.acequire("ace/keyboard/hash_handler").HashHandler;
+import * as api from './api'
 
-var editor
-  , timeoutId = ''
-  , setting = {
-      wikiPath   : ""
-    , syncScroll : true
-  }
-  , state = {
-      modified   : false
-    , saveModalVisible: false
-    , saving     : ""
-    , backupAvailable : false
-  };
+var editor,
+    initialized = false,
+    modified = false,
+    timeoutId = '',
+    wikiPath = '',
+    syncScroll = true;
 
 function init() {
   // set wiki path
-  setting.wikiPath = get_url_vars()["wpath"];
+  wikiPath = get_url_vars()["wpath"];
 
   // update title
   document.title = "Editing " + setting.wikiPath;
@@ -37,7 +32,24 @@ function init() {
   initUi();
   initEmojify();
   initAce();
-  promptBackup();
+
+  toastr.options = {
+    'positionClass' : 'toast-bottom-right',
+  };
+
+  // register ace HashHandlers
+  tableFormatter(editor);
+  emojiAutoComplete(editor);
+
+  // load markdown
+  api.get(wikiPath, function (contents, err) {
+    if (contents) { editor.getSession().setValue(contents); }
+    else { window.alert("**ERROR** failed to load " + wikiPath + "\n" + err); }
+    modified = false;
+    editor.focus();
+  });
+
+  // TODO backup
 }
 
 function get_url_vars() {
@@ -45,7 +57,7 @@ function get_url_vars() {
   var temp_params = window.location.search.substring(1).split('&');
   for(var i = 0; i <temp_params.length; i++) {
     params = temp_params[i].split('=');
-    vars[params[0]] = params[1];
+    vars[params[0]] = decodeURIComponent(params[1]);
   }
   return vars;
 }
@@ -54,72 +66,80 @@ function initUi() {
   $('.alert').hide()
   $('.modal').hide()
 
-  //== modal
-  $('#saveButton').on('click', function () {
+  //
+  // navbar
+  //
+  $('#btnSave').on('click', function () {
     if (syaro.gitmode) {
       // restore user signature from local storage
       var name  = localStorage.getItem("name"),
           email = localStorage.getItem("email");
-      if (name == undefined)  name = "";
-      if (email == undefined) email = "";
-      $('#nameInput').val();
-      $('#emailInput').val();
+      if (name) $('#nameInput').val(name);
+      if (email) $('#emailInput').val(email);
 
+      // $('.alert').hide();
+      // $('#saveModalButton').toggleClass('disabled', false);
       // show save modal
-      $('.alert').hide();
-      $('#saveModalButton').toggleClass('disabled', false);
-      $('#saveModal').modal('show');
+      $('#mdlSave').modal('show');
 
     } else {
       simpleSave();
     }
   });
 
-  // button on modal
-  $('#saveModalButton').on('click', function() {
+  $('#btnClose').on('click', function () {
+    window.location.href = decodeURIComponent(wikiPath);
+  });
+
+  //
+  // modal
+  //
+  $('#mdlSave-save').on('click', function() {
     var message = $('#messageInput').val();
     var name    = $('#nameInput').val();
-    // var email   = $('#emailInput').val();
-    var email   = "";
+    var email   = $('#emailInput').val();
 
     // save to local storage
     localStorage.setItem("name", name);
     localStorage.setItem("email", email);
 
-    var callback = function (req) {
-      if(req.readyState === 4) {
-        $('#saveModalButton').button('reset')
-        $('.alert').hide()
+    var callback = function (err) {
+      // $('#mdlSave-save').button('reset');
+      // $('.alert').hide();
+      toastr.clear();
 
-        switch (req.status) {
-        case 200:
-          $('#saveModal').modal('hide');
-          indicateSaved();
-          modified = false;
-          break
-
-        default:
-          $('#saveErrorAlert').html('<strong>Error</strong> ' + req.responseText)
-          $('#saveErrorAlert').show()
-          break
-        }
+      if (!err) {
+        // $('#saveModal').modal('hide');
+        toastr.success("", "Saved");
+        modified = false;
+      } else {
+        // $('#mdlSave-alart').html('<strong>Error</strong> ' + req.responseText);
+        // $('#mdlSave-alart').show();
+        toastr.error(err, "Error!");
       }
     };
+    api.update(wikiPath, editor.getSession().getValue(), callback,
+      message, name, email);
 
-    saveAndPreview(callback, false, message, name, email);
+    // $('#saveModalButton').button('loading');
+    $('#mdlSave').modal('hide');
+    toastr.info("", "Saving...");
+  });
+  $('#mdlBackup-restore').on('click', function() {
+    editor.getSession().getDocument().setValue();// FIXME
+    $('#mdlBackup').modal('hide');
+  });
+  $('#mdlBackup-discard').on('click', function() {
+    // TODO
+    $('#mdlBackup').modal('hide');
+  });
 
-    $('#saveModalButton').button('loading')
-  })
-
-  $('#backupModalButton').on('click', function() {
-    editor.getSession().getDocument().setValue(syaro.rawBackup);
-    $('#backupModal').modal('hide');
-  })
-
-  //== option dropdown on navbar
+  //
+  // option dropdown on navbar
+  //
   $('#optionPreview > span').toggleClass('glyphicon-check', true);
   $('#optionSyncScroll > span').toggleClass('glyphicon-check', true);
-  $('#optionMathJax > span').toggleClass('glyphicon-unchecked', true);
+  // $('#optionMathJax > span').toggleClass('glyphicon-unchecked', true);
 
   $('#optionPreview').on('click', function() {
     preview = !preview
@@ -143,7 +163,9 @@ function initUi() {
     return false
   })
 
-  //== alart
+  //
+  // alert
+  //
   $(window).on('beforeunload', function () {
     if (modified) {
       return 'Document will not be saved. OK?'
@@ -165,51 +187,38 @@ function initAce() {
   editor.setOption('scrollPastEnd', true)
 
   editor.getSession().on('change', (e) => {
-    state.modified = true;
+    modified = true;
+
     if(timeoutId !== "") { clearTimeout(timeoutId); }
 
     timeoutId = setTimeout(() => {
-      saveAndPreview((req) => {
-        if (req.readyState === 4 && req.status === 200) {
-          if (!preview) { return; }
-          renderPreview();
-        }
-      }, true);
-    }, 1500);
+      renderPreview();
+    }, 600);
   })
 
   // sync scroll
   editor.getSession().on('changeScrollTop', scroll)
 
-  // Ctrl-S
+  // Ctrl-S: save
   // HashHandler = ace.require('ace/keyboard/hash_handler').HashHandler;
   editor.keyBinding.addKeyboardHandler(new HashHandler([{
-    bindKey: "Ctrl+S",
+    bindKey: "Ctrl-S",
     descr:   "Save document",
     exec:    function () {
       if (syaro.gitmode) {
-        $('#saveModal').modal('show');
+        $('#mdlSave').modal('show');
       } else {
         simpleSave();
       }
     },
   }]));
-
-  // register ace HashHandlers
-  new TableFormatter(editor);
-  new EmojiAutoComplete(editor);
 }
 
 function initEmojify() {
   emojify.setConfig({
-      mode: 'img',
-      img_dir: '/images',
+      mode: 'sprites',
       ignore_emoticons: true,
   });
-}
-
-function render() {
-
 }
 
 function renderPreview() {
@@ -228,72 +237,27 @@ function renderPreview() {
     // update math in #preview
     MathJax.Hub.Queue(["Typeset", MathJax.Hub, "preview"]);
   }
-}
 
-function promptBackup () {
-  if (syaro.rawBackup != undefined) {
-    $('#backupModal').modal('show');
+  if (!initialized) {
+    $('#splash').remove();
+    initialized = true;
+    modified = false;
   }
-}
-
-function saveAndPreview(callback, backup, message, name, email) {
-  var reqUrl = location.href.split('?')[0];
-  if (backup) {
-    reqUrl += '?backup=true';
-  } else {
-    reqUrl += '?message=' + encodeURIComponent(message) +
-              '&name='    + encodeURIComponent(name) +
-              '&email='   + encodeURIComponent(email);
-  }
-
-  var req = new XMLHttpRequest();
-  req.open('PUT', reqUrl);
-
-  req.onreadystatechange = function () {
-    callback(req);
-  };
-
-  req.send(editor.getSession().getValue());
-}
-
-function indicateSaved() {
-  var savedText = "<strong>Saved!</strong>";
-  $('#saveButton').html($('#saveButton').html().replace("Save", savedText));
-
-  var count = 9;
-  var func = function () {
-    if (count % 2 === 1) {
-      $('#saveButton').css('color', '#00e613');
-    } else {
-      $('#saveButton').removeAttr('style');
-    }
-
-    if (count !== 0) { setTimeout(func, 333); }
-    else {
-      $('#saveButton').html($('#saveButton').html().replace(savedText, "Save"));
-    }
-    count--;
-  };
-  setTimeout(func, 333)
-  editor.focus()
 }
 
 function simpleSave() {
-  var callback = function (req) {
-    if(req.readyState === 4) {
-      switch (req.status) {
-      case 200:
-        indicateSaved();
-        modified = false;
-        break
-
-      default:
-        window.alert("**Error** " + req.responseText)
-        break
-      }
+  var callback = function (err) {
+    toastr.clear();
+    if (!err) {
+      toastr.success("", "Saved");
+      modified = false;
+      document.title = fileName;
+    } else {
+      toastr.error(err, "Error!");
     }
   };
-  saveAndPreview(callback, false);
+  api.update(wikiPath, editor.getSession().getValue(), callback);
+  toastr.info("Saving...");
 }
 
 function scroll() {

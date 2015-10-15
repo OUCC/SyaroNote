@@ -26,7 +26,56 @@
     background: rgb(250,250,250);
     box-sizing: border-box;
     box-flex: 1;
+    padding: 5px 5px 10px 5px;
 }
+
+
+#splash {
+    display: block;
+    position: relative;
+    margin: 3em auto 0 auto;
+    padding: 1em;
+    text-align: center;
+    font-weight: bold;
+    font-size: 60px;
+    line-height: 1;
+    background-color: transparent;
+    background-color: #cb7510;
+
+    color: #FFF;
+    /*-webkit-background-clip: text;*/
+    /*-webkit-text-fill-color: transparent;*/
+}
+/* 文字だけを透過させようとしたが失敗
+#splash:before,
+#splash:after {
+    position: absolute;
+    content: '';
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    box-sizing: border-box;
+}
+#splash:before {
+    z-index: -2;
+    background-color: rgba(0, 0, 0, 0);
+}
+#splash:after {
+    z-index: -1;
+    background-color: #cb7510;
+}
+#splash:after {
+    position: absolute;
+    content: '';
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: -1;
+    background-color: #cb7510;
+}
+*/
 
 /* modal */
 .modal-content .input-group {

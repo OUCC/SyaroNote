@@ -4,15 +4,12 @@
 
     <!-- wiki title -->
     <div class="navbar-header">
-      <a class="navbar-brand" href="{{urlPrefix}}/">{{wikiName}}</a>
+      <a class="navbar-brand" href="#"></a>
     </div>
 
     <div class="navbar-collapse collapse">
 
       <ul class="nav navbar-nav">
-        <li class="active">
-          <a href="{{.URLPath}}">{{.WikiPath}}</a>
-        </li>
         <li class="dropdown">
           <a href="#" class="dropdown-toggle" data-toggle="dropdown">Option <span class="caret"></span></a>
 
@@ -23,12 +20,15 @@
             <li>
               <a id="optionSyncScroll" href="#"><span class="glyphicon"></span> Sync scroll</a>
             </li>
-            {{if mathjax}}
+            <!-- {{if mathjax}}
             <li>
               <a id="optionMathJax" href="#"><span class="glyphicon"></span> MathJax</a>
             </li>
-            {{end}}
+            {{end}} -->
             <li class="divider"></li>
+            <li>
+              <a id="dropdown-math" href="#">Math editor</a>
+            </li>
             <li>
               <a href="https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet" target="_blank">Markdown Cheatsheet</a>
             </li>
@@ -39,10 +39,10 @@
       <!-- right buttons -->
       <ul class="nav navbar-nav navbar-right">
         <li>
-          <a id="saveButton" class="hover-green" data-toggle="modal" href="#"><span class="glyphicon glyphicon-floppy-disk"></span> Save</a>
+          <a id="btnSave" class="hover-green" data-toggle="modal" href="#"><span class="glyphicon glyphicon-floppy-disk"></span> Save</a>
         </li>
         <li>
-          <a class="hover-red" href="{{.URLPath}}"><span class="glyphicon glyphicon-remove"></span> Close editor</a>
+          <a id="btnClose" class="hover-red" href="#"><span class="glyphicon glyphicon-remove"></span> Close</a>
         </li>
       </ul>
 
