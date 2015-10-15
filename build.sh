@@ -39,6 +39,9 @@ mkdir build
 npm install
 npm run deploy
 
+# gopherjs
+gopherjs build -m -o ../build/public/js/convert.min.js convert.go
+
 exit
 # page.js
 cd ../pagejs

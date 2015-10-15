@@ -223,7 +223,7 @@ function initEmojify() {
 
 function renderPreview() {
   console.debug('rendering preview...');
-  $('#preview').html(req.responseText);
+  $('#preview').html(convert(editor.getSession().getValue()));
 
   emojify.run($('#preview').get(0));
 
