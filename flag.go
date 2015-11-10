@@ -13,13 +13,13 @@ var (
 
 type Setting struct {
 	syaroDir   string
-	wikiName   string
 	wikiRoot   string
 	port       int
 	urlPrefix  string
 	fcgi       bool
 	mathjax    bool
 	highlight  bool
+	emoji      bool // TODO
 	singleFile bool // TODO
 	readonly   bool // TODO
 	gitMode    bool
@@ -30,8 +30,6 @@ type Setting struct {
 
 func init() {
 	// setting up flags
-	flag.StringVar(&setting.wikiName, "wikiname", "Syaro Wiki",
-		"Name of wiki")
 	flag.IntVar(&setting.port, "port", 8080,
 		"Port number")
 	// flag.StringVar(&setting.urlPrefix, "url-prefix", "",
@@ -42,6 +40,8 @@ func init() {
 		"MathJax (Internet connection is required)")
 	flag.BoolVar(&setting.highlight, "highlight", true,
 		"Syntax highlighting in <code> (Internet connection is required)")
+	flag.BoolVar(&setting.emoji, "emoji", true,
+		"Emoji")
 	flag.BoolVar(&setting.singleFile, "single", false,
 		"Single file mode")
 	flag.BoolVar(&setting.gitMode, "gitmode", false,

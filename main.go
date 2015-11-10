@@ -36,7 +36,6 @@ func main() {
 		log.Fatal("Error: Can't find system file directory.")
 	}
 
-	log.Notice("WikiName: %s", setting.wikiName)
 	log.Notice("WikiRoot: %s", setting.wikiRoot)
 	log.Notice("Syaro dir: %s", setting.syaroDir)
 	if setting.fcgi {
@@ -130,7 +129,6 @@ func findsyaroDir() {
 func setupViews() error {
 	// funcs for template
 	tmpl = template.New("").Funcs(template.FuncMap{
-		"add": func(a, b int) int { return a + b },
 		"op": func(op pb.Change_Op) string {
 			switch op {
 			case pb.Change_OpAdd:
@@ -143,12 +141,11 @@ func setupViews() error {
 			return ""
 		},
 		"timef":     func(t time.Time) string { return t.Format("Mon _2 Jan 2006") },
-		"wikiName":  func() string { return setting.wikiName },
 		"urlPrefix": func() string { return setting.urlPrefix },
 		"mathjax":   func() bool { return setting.mathjax },
 		"highlight": func() bool { return setting.highlight },
+		"emoji":     func() bool { return setting.emoji },
 		"gitmode":   func() bool { return setting.gitMode },
-		"byteToStr": func(b []byte) string { return string(b) },
 	})
 	var err error
 	tmpl, err = tmpl.ParseGlob(filepath.Join(setting.syaroDir, TEMPLATE_DIR, "*.html"))
