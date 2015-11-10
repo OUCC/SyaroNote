@@ -2,26 +2,12 @@
 .navbar-default {
     background-color: unset;
 }
-.navbar-header>a.navbar-brand:hover {
-    color: #ffa600;
-}
 .breadcrumb {
     background-color: unset;
     margin-bottom: 0px;
     padding: 15px 15px;
 }
 .navbar-right-menu-group > li > a {
-    padding: auto;
-    font-size: 20px;
-}
-.navbar-right-menu-group > li > a.navbar-right-menu-orange:hover,
-.navbar-right-menu-group > li > a.navbar-right-menu-orange:focus {
-    color: #F36D00;
-}
-.navbar-sm-right-menu-group {
-    display: inline-block;
-}
-.navbar-sm-right-menu-group > li > a {
     padding: auto;
     font-size: 20px;
 }
@@ -66,6 +52,30 @@
 }
 .right-menu-red:hover,
 .right-menu-red:focus {
+    color: #F30004;
+}
+
+/* file list */
+.panel-heading-menu {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: inline-block;
+    float: right;
+}
+.panel-heading-menu>li {
+    display: inline-block;
+    margin: 0 3px;
+}
+.panel-heading-menu>li>a {
+    font-size: 16px;
+}
+.panel-heading-menu-orange:hover,
+.panel-heading-menu-orange:focus {
+    color: #F36D00;
+}
+.panel-heading-menu-red:hover,
+.panel-heading-menu-red:focus {
     color: #F30004;
 }
 

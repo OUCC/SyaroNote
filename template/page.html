@@ -44,22 +44,16 @@
 
     <div class="syaro-right col-md-3 hidden-sm hidden-xs">
 
+      {{if not .IsDir}}
       <ul class="right-menu-group">
-        {{if not .IsDir}}
-        <li>
-          <a class="right-menu-orange" data-toggle="modal" href="#renameModal"><span class="glyphicon glyphicon-asterisk"></span></a>
-        </li>
         <li>
           <a href="/edit?wpath={{.WikiPath}}" class="right-menu-blue"><span class="glyphicon glyphicon-pencil"></span></a>
         </li>
-        {{end}}
         <li>
           <a href="#" class="right-menu-purple" onclick="print()"><span class="glyphicon glyphicon-print"></span></a>
         </li>
-        <li>
-          <a class="right-menu-red" data-toggle="modal" href="#deleteModal"><span class="glyphicon glyphicon-trash"></span></a>
-        </li>
       </ul>
+      {{end}}
 
       <ul class="sunken-menu-group">
         <li>
@@ -78,15 +72,6 @@
       {{.}}
       {{end}}
 
-      <!-- search box -->
-      <form action="{{urlPrefix}}/error/501?data=Search" method="post" class="navbar-form navbar-left" role="search">
-        <div class="form-group">
-          <input type="text" class="form-control" placeholder="Search">
-          <button type="submit" class="btn btn-default">
-            <span class="glyphicon glyphicon-search"></span>
-          </button>
-        </div>
-      </form>
     </div>
   </div>
 

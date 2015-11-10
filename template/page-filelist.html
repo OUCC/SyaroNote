@@ -1,7 +1,22 @@
 <!-- file list -->
 <div class="syaro-filelist">
   <div class="panel panel-info">
-    <div class="panel-heading">Files under {{.WikiPath}}</div>
+    <div class="panel-heading">Files under {{.WikiPath}}
+      <ul class="panel-heading-menu">
+        <li>
+          <a class="panel-heading-menu-orange" data-toggle="modal" href="#createModal"><span class="glyphicon glyphicon-plus"></span></a>
+        </li>
+        <li>
+          <a class="panel-heading-menu-orange" data-toggle="modal" href="#uploadModal"><span class="glyphicon glyphicon-open"></span></a>
+        </li>
+        <li>
+          <a class="panel-heading-menu-orange" data-toggle="modal" href="#renameModal"><span class="glyphicon glyphicon-asterisk"></span></a>
+        </li>
+        <li>
+          <a class="panel-heading-menu-red" data-toggle="modal" href="#deleteModal"><span class="glyphicon glyphicon-trash"></span></a>
+        </li>
+      </ul>
+    </div>
 
     <!-- Table -->
     <table class="table">
