@@ -1,8 +1,6 @@
 package main
 
 import (
-	"net/url"
-	"path/filepath"
 	"strings"
 )
 
@@ -16,11 +14,11 @@ func linkWorker(link, dir string) string {
 		log.Debug("%d pages found", len(found))
 		log.Debug("select %s", found[0])
 
-		href := url.QueryEscape(found[0])
+		href := queryEscapeWikiPath(found[0])
 		return `<a href="` + href + `">` + link + `</a>`
 	} else { // page not found
 		log.Debug("no page found")
-		href := url.QueryEscape(link)
+		href := queryEscapeWikiPath(link)
 		return `<a class="notfound" href="` + href + `">` + link + `</a>`
 	}
 }

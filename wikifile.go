@@ -4,10 +4,8 @@ import (
 	"html/template"
 	"io"
 	"io/ioutil"
-	"net/url"
 	"os"
 	"path/filepath"
-	"strings"
 )
 
 const (
@@ -91,10 +89,9 @@ func (wf WikiFile) NameWithoutExt() string {
 
 // URLPREFIX/a/b/c.md
 func (wf WikiFile) URL() template.URL {
-	path := strings.Replace(filepath.Join(setting.urlPrefix, wf.WikiPath), string(filepath.Separator), "/", -1)
-
-	// url escape and revert %2F -> /
-	return template.URL(strings.Replace(url.QueryEscape(path), "%2F", "/", -1))
+	wpath := filepath.Join(setting.urlPrefix, wf.WikiPath)
+	s := queryEscapeWikiPath(wpath)
+	return template.URL(s)
 }
 
 func (wf WikiFile) path() string {

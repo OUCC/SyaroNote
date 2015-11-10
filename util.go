@@ -2,6 +2,7 @@ package main
 
 import (
 	"container/list"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -68,4 +69,16 @@ func isIn(dirA, dirB string) bool {
 	dirB, _ = filepath.Abs(dirB)
 
 	return strings.HasPrefix(dirA, dirB)
+}
+
+func queryEscapeWikiPath(wpath string) string {
+	// replace all separator to /
+	s := strings.Replace(wpath, string(filepath.Separator), "/", -1)
+	// url escape
+	s = url.QueryEscape(wpath)
+	// replace all %2F to /
+	s = strings.Replace(s, "%2F", "/", -1)
+	// replace all + to %20
+	s = strings.Replace(s, "+", "%20", -1)
+	return s
 }
