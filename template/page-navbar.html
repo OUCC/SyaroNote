@@ -7,6 +7,14 @@
       <a class="navbar-brand" href="{{urlPrefix}}/">{{wikiName}}</a>
     </div>
 
+    <!-- breadcrumb list -->
+    <ol class="breadcrumb navbar-nav navbar-left">
+      <li><a href="/"><span class="glyphicon glyphicon-home"></span></a></li>
+      {{range .BreadCrumb}}
+      <li><a href="{{.URL}}">{{.Name}}</a></li>
+      {{end}}
+    </ol>
+
     <div class="navbar-collapse collapse">
 
       <!-- breadcrumb list -->

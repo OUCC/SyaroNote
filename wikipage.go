@@ -100,14 +100,16 @@ func loadPage(wf WikiFile) (WikiPage, error) {
 	}
 	// remove wiki root
 	if len(bc) > 1 {
-		l := len(bc) - 1
-		wp.BreadCrumb = make([]WikiFile, l)
+		l := len(bc) - 1 // parent count
+		wp.BreadCrumb = make([]WikiFile, l+1)
 		// reverse list
 		for i := 0; i < l; i++ {
-			wp.BreadCrumb[i] = bc[l-i]
+			wp.BreadCrumb[i] = bc[l-i-1]
 		}
+		wp.BreadCrumb[l] = wp.WikiFile // self
+	} else if len(bc) == 1 { // file under wiki root
+		wp.BreadCrumb = []WikiFile{wp.WikiFile}
 	} else {
-		bc = nil
 		wp.BreadCrumb = nil
 	}
 
@@ -127,6 +129,7 @@ func loadSidebar() (html template.HTML) {
 		log.Error(err.Error())
 		return
 	}
+
 	html = template.HTML(markdown.Convert(b))
 	return
 }
