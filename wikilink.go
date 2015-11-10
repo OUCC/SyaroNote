@@ -4,10 +4,15 @@ import (
 	"strings"
 )
 
-func linkWorker(link, dir string) string {
-	log.Debug("link: %s, dir: %s", link, dir)
+func linkWorker(b []byte) []byte {
+	link := string(b)
+	if len(link) < 5 {
+		return nil
+	}
+	link = link[2 : len(link)-2]
+	log.Debug("link: %s", link)
 
-	found := resolveLink(link, dir)
+	found := resolveLink(link)
 
 	if len(found) != 0 { // page found
 		// TODO disambiguation page
@@ -15,33 +20,18 @@ func linkWorker(link, dir string) string {
 		log.Debug("select %s", found[0])
 
 		href := queryEscapeWikiPath(found[0])
-		return `<a href="` + href + `">` + link + `</a>`
+		return []byte(`<a href="` + href + `">` + link + `</a>`)
 	} else { // page not found
 		log.Debug("no page found")
 		href := queryEscapeWikiPath(link)
-		return `<a class="notfound" href="` + href + `">` + link + `</a>`
+		return []byte(`<a class="notfound" href="` + href + `">` + link + `</a>`)
 	}
 }
 
-func resolveLink(link, dir string) []string {
-	abs := filepath.IsAbs(link)
-	rel := strings.Contains(link, "/") || isMarkdown(link)
-	if abs || rel {
-		var wpath string
-		if abs {
-			// search name as absolute path
-			// example: /piyo /poyo/pyon.ext
-			wpath = link
-		} else {
-			// search name as relative path
-			// example: ./hoge ../fuga.ext puyo.ext
-			wpath = filepath.Join(dir, link)
-		}
-		if _, err := loadFile(wpath); err == nil {
-			return []string{wpath}
-		} else {
-			return nil
-		}
+func resolveLink(link string) []string {
+	if strings.Contains(link, "/") || isMarkdown(link) {
+		// absolute and relative path not supported
+		return nil
 	} else {
 		// search name as base name
 		// example: abc

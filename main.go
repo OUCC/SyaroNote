@@ -2,6 +2,7 @@ package main
 
 import (
 	pb "github.com/OUCC/syaro/gitservice"
+	"github.com/OUCC/syaro/markdown"
 
 	"html/template"
 	"os"
@@ -83,6 +84,9 @@ func main() {
 
 	log.Info("Setting up websockets...")
 	// TODO
+
+	// set link worker
+	markdown.LinkWorker = linkWorker
 
 	startServer()
 }

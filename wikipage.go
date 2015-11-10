@@ -34,7 +34,6 @@ func loadPage(wf WikiFile) (WikiPage, error) {
 	wp.Sidebar = loadSidebar()
 
 	var b []byte
-	var dir string
 	switch wf.fileType {
 	case WIKIFILE_FOLDER:
 		// load _.md
@@ -45,7 +44,6 @@ func loadPage(wf WikiFile) (WikiPage, error) {
 				return wp, err
 			}
 		}
-		dir = wf.WikiPath
 
 		// file list
 		fis := wf.files()
@@ -68,17 +66,8 @@ func loadPage(wf WikiFile) (WikiPage, error) {
 		if err != nil {
 			return wp, err
 		}
-		dir = filepath.Dir(wf.WikiPath)
 	}
 
-	markdown.LinkWorker = func(b []byte) []byte {
-		s := string(b)
-		if len(s) < 5 {
-			return nil
-		}
-		link := s[2 : len(s)-2]
-		return []byte(linkWorker(link, dir))
-	}
 	wp.Contents = template.HTML(markdown.Convert(b))
 	wp.TOC = template.HTML(markdown.TOC(b))
 
