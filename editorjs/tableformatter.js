@@ -191,7 +191,7 @@ function format(tableInfo, newLine) {
     }
     var rowTexts = [];
     for (var rowNum = 0; rowNum < numRows; rowNum++) {
-        row = table[rowNum];
+        var row = table[rowNum];
         var columnNum;
         var rowText = "|";
         if (rowNum === alignRowNum) {
@@ -368,7 +368,7 @@ function moveCursorToCell(editor, tableInfo, row, column) {
     else {
         newCursorColumn = column + 1 + nextCell.raw.indexOf(nextCell.cleaned) + nextCell.cleaned.length;
     }
-    for (i = 0; i < column; i++) {
+    for (var i = 0; i < column; i++) {
         var cell = tableInfo.table[row] === undefined ? undefined : tableInfo.table[row][i];
         var columnWidth;
         if (cell === undefined) {
