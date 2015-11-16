@@ -2,7 +2,6 @@ package main
 
 import (
 	"html/template"
-	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -65,20 +64,24 @@ func createFile(wpath string) (WikiFile, error) {
 		return WikiFile{}, os.ErrExist
 	}
 
+	b := []byte("\n")
+	// if the new page template is exists
+	tmplPath := filepath.Join(setting.wikiRoot, NEW_MD)
+	if src, err := os.Open(tmplPath); err == nil {
+		log.Debug("new page template found.", tmplPath)
+		b, err = ioutil.ReadAll(src)
+		if err != nil {
+			log.Debug(err.Error())
+		}
+	}
+
 	os.MkdirAll(filepath.Dir(fpath), 0755)
-	err = ioutil.WriteFile(fpath, []byte("\n"), 0644)
+	err = ioutil.WriteFile(fpath, b, 0644)
 	if err != nil {
 		log.Debug(err.Error())
 		return WikiFile{}, err
 	}
 
-	// if the new page template is exists
-	tmplPath := filepath.Join(setting.wikiRoot, NEW_MD)
-	if src, err := os.Open(tmplPath); err == nil {
-		log.Debug("%s found. copy", tmplPath)
-		// use template
-		dst, _ := os.Open(fpath)
-		io.Copy(src, dst)
 	return loadFile(wpath)
 }
 
