@@ -213,18 +213,40 @@ func deleteFile(w http.ResponseWriter, r *http.Request) {
 func searchPage(w http.ResponseWriter, r *http.Request) {
 }
 
-/*
-func previewPage(w http.ResponseWriter, r *http.Request) {
+func uploadFile(w http.ResponseWriter, r *http.Request) {
 	wpath := r.URL.Query().Get("wpath")
-	log.Info("Rendering preview...")
+
+	log.Info("Saving uploaded file(%s)...", wpath)
 
 	b, _ := ioutil.ReadAll(r.Body)
 	defer r.Body.Close()
 
-	// return generated html
-	w.Write(convertMd(b, filepath.Dir(wpath)))
-}
-*/
+	if _, err := saveFile(wpath, b); err != nil {
+		log.Error(err.Error())
+		if os.IsExist(err) {
+			http.Error(w, err.Error(), http.StatusFound)
+		} else {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+		return
+	}
 
-func uploadFile(w http.ResponseWriter, r *http.Request) {
+	http.Error(w, "OK", http.StatusCreated)
+	log.Info("OK")
+
+	if setting.gitMode {
+		msg := "Added " + wpath
+		err := gitCommit(func(client pb.GitClient) (*pb.CommitResponse, error) {
+			return client.Save(context.Background(), &pb.SaveRequest{
+				Path: wpath,
+				Msg:  msg,
+			})
+		})
+		if err != nil {
+			log.Error(err.Error())
+		}
+	}
+	// TODO postUpload
+}
+
 }

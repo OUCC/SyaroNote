@@ -41,14 +41,19 @@ func startServer() {
 	mux.Get(setting.urlPrefix+"/api/rename", renameFile)
 	mux.Get(setting.urlPrefix+"/api/delete", deleteFile)
 	mux.Get(setting.urlPrefix+"/api/search", searchPage)
+	mux.Get(setting.urlPrefix+"/api/history", getHistory)
 	mux.Post(setting.urlPrefix+"/api/update", updatePage)
 	mux.Post(setting.urlPrefix+"/api/upload", uploadFile)
 
-	mux.Get(setting.urlPrefix+"/*", mainHandler)
 	mux.Get(setting.urlPrefix+"/edit",
 		func(w http.ResponseWriter, r *http.Request) {
 			tmpl.ExecuteTemplate(w, "editor.html", nil)
 		})
+	mux.Get("setting.urlPrefix+/search",
+		func(w http.ResponseWriter, r *http.Request) {
+			tmpl.ExecuteTemplate(w, "search.html", nil)
+		})
+	mux.Get(setting.urlPrefix+"/*", mainHandler)
 
 	// listen port
 	l, err := net.Listen("tcp", ":"+strconv.Itoa(setting.port))

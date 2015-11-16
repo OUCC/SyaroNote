@@ -79,7 +79,26 @@ func createFile(wpath string) (WikiFile, error) {
 		// use template
 		dst, _ := os.Open(fpath)
 		io.Copy(src, dst)
+	return loadFile(wpath)
+}
+
+func saveFile(wpath string, b []byte) (WikiFile, error) {
+	// TODO security check
+	fpath := filepath.Join(setting.wikiRoot, wpath)
+
+	// check if file is already exists
+	_, err := os.Stat(fpath)
+	if err == nil { // already exists
+		return WikiFile{}, os.ErrExist
 	}
+
+	os.MkdirAll(filepath.Dir(fpath), 0755)
+	err = ioutil.WriteFile(fpath, b, 0644)
+	if err != nil {
+		log.Debug(err.Error())
+		return WikiFile{}, err
+	}
+
 	return loadFile(wpath)
 }
 
