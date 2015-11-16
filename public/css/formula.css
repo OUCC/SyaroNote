@@ -1,0 +1,159 @@
+﻿.math
+{
+	display: flex; display: -moz-box; display: -webkit-box;
+	flex-direction: row; -moz-box-orient: horizontal; -webkit-box-orient: horizontal; -ms-flex-direction: row;
+	-moz-box-direction: normal; -webkit-box-direction: normal;
+	justify-content: center; -moz-box-pack: center; -webkit-box-pack: center; -ms-flex-pack: center;
+	align-items: center; -moz-box-align: center; -webkit-box-align: center; -ms-flex-align: center;
+	text-align: center;
+}
+
+.embraced
+{
+	display: flex; display: -moz-box; display: -webkit-box;
+	flex-direction: row; -moz-box-direction: normal; -webkit-box-direction: normal; -ms-flex-direction: row;
+	-moz-box-orient: horizontal; -webkit-box-orient: horizontal;
+	justify-content: center; -moz-box-pack: center; -webkit-box-pack: center; -ms-flex-pack: center;
+	align-items: stretch; -moz-box-align: stretch; -webkit-box-align: stretch; -ms-flex-align: stretch;
+	text-align: center;
+}
+.bracket
+{
+	background-repeat: no-repeat;
+	background-position: center;
+	background-size: 100% 100%;
+	width: 0.8em;
+}
+
+.frac
+{
+	display: flex; display: -moz-box; display: -webkit-box;
+	flex-direction: column; -moz-box-orient: vertical; -webkit-box-orient: vertical; -ms-flex-direction: column;
+	-moz-box-direction: normal; -webkit-box-direction: normal;
+}
+
+.reverseOrdered
+{
+	flex-direction: column-reverse; -moz-box-direction: reverse; -webkit-box-direction: reverse; -ms-box-direction: reverse;
+}
+
+.accent
+{
+	background-repeat: no-repeat;
+	background-position: center;
+	background-size: 100% 100%;
+	margin-bottom: -0.5em;
+	font-size: xx-small;
+}
+
+.variable
+{
+	margin: 0.1em;
+	border: solid 1px #99f;
+	font-style: italic;
+}
+
+.symbol
+{
+	margin: 0.1em;
+	border: solid 1px #99f;
+}
+
+.styledLetter
+{
+	margin: 0.1em 0em;
+	border: none;
+}
+
+.operator
+{
+	font-size: larger;
+}
+
+.subFormula
+{
+	font-size: smaller;
+}
+
+.number
+{
+	margin: 0.1em;
+	border: solid 1px #99f;
+}
+
+.formula
+{
+	display: flex; display: -moz-box; display: -webkit-box;
+	flex-direction: row; -moz-box-direction: normal; -webkit-box-direction: normal; -ms-flex-direction: row;
+	-moz-box-orient: horizontal; -webkit-box-orient: horizontal;
+	justify-content: center; -moz-box-pack: center; -webkit-box-pack: center; -ms-flex-pack: center;
+	align-items: flex-end; -moz-box-align: end; -webkit-box-align: end; -ms-flex-align: end;
+}
+.formulaStyled
+{
+	border: solid 1px #fb6;
+	padding-left: 0.1em;
+	padding-right: 0.1em;
+}
+
+.overline
+{
+	border-top: solid 1px #000;
+}
+
+.underline
+{
+	border-bottom: solid 1px #000;
+}
+
+.arrowLabel
+{
+	position: absolute;
+	font-size: smaller;
+}
+.activeArrow
+{
+	color: #f39;
+}
+.intendedArrow
+{
+	color: #999;
+}
+
+.label
+{
+	margin-bottom: 1em;
+}
+
+.power
+{
+	margin-bottom: 1em;
+	font-size: smaller;
+}
+
+.index
+{
+	margin-top: 1em;
+	font-size: smaller;
+}
+
+.matrix
+{
+	display: table;
+}
+.matrix .row
+{
+	display: table-row;
+}
+.matrix .cell
+{
+	display: table-cell;
+	padding-left: 0.1em;
+	padding-right: 0.1em;
+}
+
+.matrix .xycell
+{
+	display: table-cell;
+	padding: 1.5em;
+}

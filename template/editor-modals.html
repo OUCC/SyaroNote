@@ -55,3 +55,33 @@
     </div>
   </div>
 </div>
+
+<!-- math editor modal -->
+<div id="mdlMath" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="mdlMath-label" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+        <h4 class="modal-title" id="mdlMath-label">Math editor</h4>
+      </div>
+      <div id="mdlMath-body" class="modal-body">
+
+        <div id="mdlMath-fieldFrame">
+          <div id="mdlMath-select"></div>
+          <canvas id="mdlMath-ghost"></canvas>
+          <div id="mdlMath-field"></div>
+        </div>
+        <div id="mdlMath-candy"></div>
+
+        <div id="mdlMath-latexFrame">
+          <input id="mdlMath-latex" type="text"/>
+        </div>
+
+      </div>
+      <div class="modal-footer">
+        <button id="mdlMath-discard" type="button" class="btn btn-default">Discard</button>
+        <button id="mdlMath-insert" type="button" class="btn btn-primary">Insert</button>
+      </div>
+    </div>
+  </div>
+</div>

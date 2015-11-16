@@ -13,9 +13,11 @@ import patch from 'virtual-dom/patch'
 import createElement from 'virtual-dom/create-element'
 import virtualize from 'vdom-virtualize'
 
+import mathEditor from './matheditor'
 import * as api from './api'
 
 var editor,
+    math,
     initialized = false,
     modified = false,
     timeoutId = '',
@@ -47,6 +49,7 @@ function init() {
   // register ace HashHandlers
   tableFormatter(editor);
   emojiAutoComplete(editor);
+  mathEditor(editor);
 
   // load markdown
   api.get(wikiPath, function (contents, err) {
