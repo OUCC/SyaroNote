@@ -22,12 +22,6 @@ var (
 	reWikiLink = regexp.MustCompile(`\[\[[^\]]+\]\]`)
 )
 
-type MetaData struct {
-	Title string   `yaml:"title"` // TODO
-	Alias []string `yaml:"alias"`
-	Tags  []string `yaml:"tags"`
-}
-
 func Convert(input []byte) []byte {
 	if input == nil {
 		return nil
@@ -80,19 +74,18 @@ func Convert(input []byte) []byte {
 	return Markdown(input, renderer, extensions)
 }
 
-func Meta(input []byte) MetaData {
-	ret := MetaData{}
-
+func Meta(input []byte) map[string]string {
 	// get front matter
 	sep := []byte("---\n")
 	if !bytes.HasPrefix(input, sep) {
-		return ret
+		return nil
 	}
 	b := bytes.SplitN(input, sep, 3)
 	if len(b) != 3 {
-		return ret
+		return nil
 	}
 
+	ret := make(map[string]string)
 	// parse front matter
 	yaml.Unmarshal(b[1], &ret)
 	return ret

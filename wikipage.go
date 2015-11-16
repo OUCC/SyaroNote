@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/OUCC/syaro/markdown"
+	"strings"
 
 	"html/template"
 	"io/ioutil"
@@ -17,11 +18,20 @@ const (
 type WikiPage struct {
 	WikiFile
 
-	Contents   template.HTML
-	Sidebar    template.HTML
-	TOC        template.HTML
-	Title      string
-	Tags       []string
+	Name string
+
+	Meta    map[string]string
+	Title   string
+	Author  string
+	Date    string
+	Tags    []string
+	MathJax string // TODO
+
+	Contents template.HTML
+	Sidebar  template.HTML
+	TOC      template.HTML
+
+	IsRoot     bool
 	Parent     WikiFile
 	BreadCrumb []WikiFile
 	Folders    []WikiFile
@@ -51,6 +61,9 @@ func loadPage(wf WikiFile) (WikiPage, error) {
 		wp.MdFiles = make([]WikiFile, 0, len(fis))
 		wp.OtherFiles = make([]WikiFile, 0, len(fis))
 		for _, fi := range fis {
+			if strings.HasPrefix(fi.Name(), ".") { // is hidden file/dir
+				continue
+			}
 			switch fi.fileType {
 			case WIKIFILE_FOLDER:
 				wp.Folders = append(wp.Folders, fi)
@@ -72,15 +85,21 @@ func loadPage(wf WikiFile) (WikiPage, error) {
 	wp.TOC = template.HTML(markdown.TOC(b))
 
 	// meta datas
-	meta := markdown.Meta(b)
-	if meta.Title != "" {
-		wp.Title = meta.Title
-	} else if wp.WikiPath == string(filepath.Separator) {
-		wp.Title = "/"
+	wp.Meta = markdown.Meta(b)
+	wp.Title = wp.Meta["title"]
+	wp.Author = wp.Meta["author"]
+	wp.Date = wp.Meta["date"]
+	wp.Tags = strings.Split(wp.Meta["tags"], ",")
+
+	var ok bool
+	wp.Parent, ok = wf.parent()
+	wp.IsRoot = !ok
+
+	if wp.IsRoot {
+		wp.Name = "/"
 	} else {
-		wp.Title = removeExt(wp.Name())
+		wp.Name = removeExt(wp.WikiFile.Name())
 	}
-	wp.Tags = meta.Tags
 
 	// breadcrumb list
 	var bc []WikiFile
