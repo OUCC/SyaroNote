@@ -10,9 +10,7 @@
   "license": "MIT",
   "dependencies": {
     "brace": "^0.5.1",
-    "eastasianwidth": "^0.1.0",
-    "vdom-virtualize": "0.0.12",
-    "virtual-dom": "^2.1.1"
+    "eastasianwidth": "^0.1.0"
   },
   "devDependencies": {
     "babelify": "^6.3.0",

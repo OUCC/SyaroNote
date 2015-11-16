@@ -6,15 +6,10 @@ var HashHandler = ace.acequire("ace/keyboard/hash_handler").HashHandler;
 
 import tableFormatter from './tableformatter'
 import emojiAutoComplete from './emojiautocomplete'
-
-import h from 'virtual-dom/h'
-import diff from 'virtual-dom/diff'
-import patch from 'virtual-dom/patch'
-import createElement from 'virtual-dom/create-element'
-import virtualize from 'vdom-virtualize'
-
 import mathEditor from './matheditor'
 import * as api from './api'
+
+const BACKUP_KEY = 'syaro_backup';
 
 var editor,
     math,
@@ -55,11 +50,13 @@ function init() {
   api.get(wikiPath, function (contents, err) {
     if (contents) { editor.getSession().setValue(contents); }
     else { window.alert("**ERROR** failed to load " + wikiPath + "\n" + err); }
-    modified = false;
     editor.focus();
   });
 
   // TODO backup
+  if (getBackup()) {
+    $('#mdlBackup').modal('show');
+  }
 }
 
 function get_url_vars() {
@@ -122,6 +119,9 @@ function initUi() {
         // $('#saveModal').modal('hide');
         toastr.success("", "Saved");
         modified = false;
+        document.title = fileName;
+        $('#btnSave').removeClass('modified');
+        backup(true);
       } else {
         // $('#mdlSave-alart').html('<strong>Error</strong> ' + req.responseText);
         // $('#mdlSave-alart').show();
@@ -136,11 +136,11 @@ function initUi() {
     toastr.info("", "Saving...");
   });
   $('#mdlBackup-restore').on('click', function() {
-    editor.getSession().getDocument().setValue();// FIXME
+    editor.getSession().getDocument().setValue(getBackup());// FIXME
     $('#mdlBackup').modal('hide');
   });
   $('#mdlBackup-discard').on('click', function() {
-    // TODO
+    backup(true); // remove backup
     $('#mdlBackup').modal('hide');
   });
 
@@ -188,7 +188,7 @@ function initAce() {
 
   editor.setTheme('ace/theme/chrome')
   editor.getSession().setMode('ace/mode/markdown')
-  editor.getSession().setTabSize(4)
+  editor.getSession().setTabSize(2)
   editor.getSession().setUseSoftTabs(true)
   editor.getSession().setUseWrapMode(true)
   editor.setHighlightActiveLine(true)
@@ -196,15 +196,24 @@ function initAce() {
   editor.setShowInvisibles(true)
   editor.setOption('scrollPastEnd', true)
 
+  // disable message
+  // Automatically scrolling cursor into view after selection change this will be disabled in the next version
+  editor.$blockScrolling = Infinity;
+
   editor.getSession().on('change', (e) => {
     modified = true;
 
     // update title
     document.title = '* '+fileName;
 
+    $('#btnSave').addClass('modified');
+
     if(timeoutId !== "") { clearTimeout(timeoutId); }
 
     timeoutId = setTimeout(() => {
+      if (initialized) {
+        backup(false);
+      }
       renderPreview();
     }, 600);
   })
@@ -236,7 +245,8 @@ function initEmojify() {
 
 function renderPreview() {
   console.debug('rendering preview...');
-  $('#preview').html(convert(editor.getSession().getValue()));
+  var html = convert(editor.getSession().getValue());
+  $('#preview').html(html);
 
   emojify.run($('#preview').get(0));
 
@@ -246,6 +256,7 @@ function renderPreview() {
     });
   }
 
+  // http://mathjax.readthedocs.org/en/latest/typeset.html
   if (syaro.mathjax && MathJax) {
     // update math in #preview
     MathJax.Hub.Queue(["Typeset", MathJax.Hub, "preview"]);
@@ -256,6 +267,7 @@ function renderPreview() {
     initialized = true;
     modified = false;
     document.title = fileName;
+    $('#btnSave').removeClass('modified');
   }
 }
 
@@ -266,12 +278,28 @@ function simpleSave() {
       toastr.success("", "Saved");
       modified = false;
       document.title = fileName;
+      $('#btnSave').removeClass('modified');
+      backup(true);
     } else {
       toastr.error(err, "Error!");
     }
   };
   api.update(wikiPath, editor.getSession().getValue(), callback);
   toastr.info("Saving...");
+}
+
+function backup(remove) {
+  let key = BACKUP_KEY+'_'+wikiPath;
+  if (remove) {
+    localStorage.removeItem(key);
+  } else {
+    localStorage.setItem(key, editor.getSession().getValue());
+  }
+}
+
+function getBackup() {
+  let key = BACKUP_KEY+'_'+wikiPath;
+  return localStorage.getItem(key);
 }
 
 function scroll() {
