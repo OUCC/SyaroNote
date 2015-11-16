@@ -12,20 +12,26 @@ var (
 )
 
 type Setting struct {
+	// server
 	syaroDir   string
 	wikiRoot   string
 	port       int
 	urlPrefix  string
 	fcgi       bool
-	mathjax    bool
-	highlight  bool
-	emoji      bool // TODO
 	singleFile bool // TODO
 	readonly   bool // TODO
 	gitMode    bool
-	verbose    bool
-	quiet      bool
-	color      bool
+	search     bool
+
+	// markdown related
+	mathjax   bool
+	highlight bool
+	emoji     bool // TODO
+
+	// console output
+	verbose bool
+	quiet   bool
+	color   bool
 }
 
 func init() {
@@ -48,6 +54,8 @@ func init() {
 		"Enable git integration")
 	flag.BoolVar(&setting.readonly, "readonly", false,
 		"Readonly mode")
+	flag.BoolVar(&setting.search, "search", false,
+		"enable indexing for searching markdown documents")
 	flag.BoolVar(&setting.verbose, "verbose", false,
 		"Verbose output")
 	flag.BoolVar(&setting.quiet, "quiet", false,

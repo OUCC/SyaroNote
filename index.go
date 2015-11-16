@@ -4,9 +4,14 @@ import (
 	"github.com/blevesearch/bleve"
 
 	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strings"
 	"sync"
+)
+
+const (
+	BLEVE_PATH = ".syaronote.bleve"
 )
 
 var (
@@ -26,12 +31,16 @@ var (
 
 // must be called after setting.wikiRoot is set
 func idxBuilder() {
-	mapping := bleve.NewIndexMapping()
-	var err error
-	bleveIdx, err = bleve.New(".example.bleve", mapping)
-	if err != nil {
-		log.Error(err.Error())
-		return
+	if setting.search {
+		blevePath := filepath.Join(setting.wikiRoot, BLEVE_PATH)
+		os.RemoveAll(blevePath)
+		mapping := bleve.NewIndexMapping()
+		var err error
+		bleveIdx, err = bleve.New(blevePath, mapping)
+		if err != nil {
+			log.Error(err.Error())
+			return
+		}
 	}
 
 	// builder loop
@@ -42,7 +51,6 @@ func idxBuilder() {
 		nIdx := make(map[string][]string)
 		// tIdx := make(map[string][]string)
 
-		// anonymous recursive function
 		var walkfunc func(string)
 		walkfunc = func(wdir string) {
 			infos, _ := ioutil.ReadDir(filepath.Join(setting.wikiRoot, wdir))
@@ -65,9 +73,11 @@ func idxBuilder() {
 
 				// TODO alias
 
-				b, err := ioutil.ReadFile(filepath.Join(setting.wikiRoot, wpath))
-				if err == nil {
-					bleveIdx.Index(wpath, string(b))
+				if setting.search {
+					b, err := ioutil.ReadFile(filepath.Join(setting.wikiRoot, wpath))
+					if err == nil {
+						bleveIdx.Index(wpath, string(b))
+					}
 				}
 
 				if fi.IsDir() {

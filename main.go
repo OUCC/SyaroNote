@@ -80,6 +80,7 @@ func main() {
 
 	log.Info("Setting up file index...")
 	go idxBuilder()
+	refresh <- "/"
 
 	log.Info("Setting up websockets...")
 	// TODO
@@ -146,6 +147,7 @@ func setupViews() error {
 		"highlight": func() bool { return setting.highlight },
 		"emoji":     func() bool { return setting.emoji },
 		"gitmode":   func() bool { return setting.gitMode },
+		"search":    func() bool { return setting.search },
 	})
 	var err error
 	tmpl, err = tmpl.ParseGlob(filepath.Join(setting.syaroDir, TEMPLATE_DIR, "*.html"))
