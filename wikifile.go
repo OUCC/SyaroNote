@@ -102,8 +102,11 @@ func saveFile(wpath string, b []byte) (WikiFile, error) {
 	return loadFile(wpath)
 }
 
-func (wf WikiFile) NameWithoutExt() string {
-	return removeExt(wf.Name())
+func (wf WikiFile) Name() string {
+	if wf.WikiPath == string(filepath.Separator) {
+		return ""
+	}
+	return wf.FileInfo.Name()
 }
 
 // URLPREFIX/a/b/c.md
