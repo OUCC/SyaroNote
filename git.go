@@ -31,7 +31,7 @@ func gitCommit(commitFunc func(pb.GitClient) (*pb.CommitResponse, error)) error 
 	return nil
 }
 
-func getHistory(wpath string) []*pb.Change {
+func getChanges(wpath string) []*pb.Change {
 	conn, err := grpc.Dial("127.0.0.1:" + strconv.Itoa(setting.port+1))
 	if err != nil {
 		log.Debug("Dial error: %s", err)

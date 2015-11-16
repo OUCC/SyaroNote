@@ -5,6 +5,7 @@ import (
 
 	"golang.org/x/net/context"
 
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -249,4 +250,43 @@ func uploadFile(w http.ResponseWriter, r *http.Request) {
 	// TODO postUpload
 }
 
+func getHistory(w http.ResponseWriter, r *http.Request) {
+	wpath := r.URL.Query().Get("wpath")
+
+	if !setting.gitMode {
+		http.Error(w, "Git mode not enabled", http.StatusBadRequest)
+		return
+	}
+
+	log.Info("loading git history... (%s)", wpath)
+	changes := getChanges(wpath)
+
+	// convert []*pb.Change to JSON
+	v := make([]map[string]string, len(changes))
+	for i, c := range changes {
+		m := make(map[string]string)
+		switch c.Op {
+		case pb.Change_OpNone:
+			m["op"] = "None"
+		case pb.Change_OpAdd:
+			m["op"] = "Add"
+		case pb.Change_OpRename:
+			m["op"] = "Rename"
+		case pb.Change_OpUpdate:
+			m["op"] = "Update"
+		}
+		m["name"] = c.Name
+		m["email"] = c.Email
+		m["msg"] = c.Msg
+
+		v[i] = m
+	}
+
+	b, err := json.Marshal(v)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Write(b)
+	log.Info("OK")
 }
