@@ -1,19 +1,91 @@
 /* navbar */
 .navbar-default {
-    background-color: unset;
+    background-color: #fff;
 }
 .breadcrumb {
-    background-color: unset;
+    background-color: #fff;
     margin-bottom: 0px;
     padding: 15px 15px;
 }
-.navbar-right-menu-group > li > a {
-    padding: auto;
-    font-size: 20px;
+.breadcrumb li a {
+    transition: all 0.3s ease;
+    text-decoration: none;
+}
+.breadcrumb li a.orange:hover,
+.breadcrumb li a.orange:focus {
+    text-shadow: 1px 2px 2px rgba(0,0,0,0.3);
+    color: #FFA600;
 }
 
 .syaro-center {
     margin-bottom: 30px;
+}
+
+/* title */
+.syaro-center header {
+    margin-bottom: 20px;
+    padding: 8px;
+    font-size: 16px;
+    font-family: sans-serif;
+    font-weight: normal;
+    text-align: center;
+    color: #111111;
+    /*background: #f4f4f4;*/
+    border-top: 1px dashed #ccc;
+    /*border-left: 6px solid #b2b2b2;*/
+    border-bottom: 1px dashed #ccc;
+    /*box-shadow: 0 7px 10px -5px rgba(0, 0, 0, .1) inset;*/
+}
+.syaro-center header>h1,
+.syaro-center header .author,
+.syaro-center header date {
+    margin: 0;
+    padding: .5em .75em;
+}
+.syaro-center header>h1 {
+    font-size: 28px;
+}
+
+/* history pane */
+#syaro-history .progress {
+    margin: 100px;
+}
+
+/* menu-group */
+.menu-group {
+    list-style-type: none;
+    display: inline-block;
+    padding: 0;
+}
+.menu-group li {
+    display: inline-block;
+    float: left;
+    margin: 0 8px;
+}
+.menu-group li a {
+    color: #777;
+    font-size: 20px;
+    transition: all 0.3s ease;
+}
+.menu-group li a:hover,
+.menu-group li a:focus {
+    text-shadow: 1px 2px 2px rgba(0,0,0,0.3);
+}
+.menu-group li a.blue:hover,
+.menu-group li a.blue:focus {
+    color: #0065F3;
+}
+.menu-group li a.purple:hover,
+.menu-group li a.purple:focus {
+    color: #BF00F3;
+}
+.menu-group li a.yellow:hover,
+.menu-group li a.yellow:focus {
+    color: #F09400;
+}
+.menu-group li a.red:hover,
+.menu-group li a.red:focus {
+    color: #F30004;
 }
 
 /* right sidebar */
@@ -22,69 +94,102 @@
     box-shadow: inset 1px 0 0 #eee;
     padding-left: 0;
 }
-
-.right-menu-group {
-    list-style-type: none;
-    display: inline-block;
-    padding-left: 8px;
+.syaro-right table {
+    width: auto;
+    margin: 0 10px;
+}
+.syaro-right .menu-group {
     margin: 12px 0;
-}
-.right-menu-group > li {
-    display: inline-block;
-    float: left;
-    font-size: 20px;
-    padding: 0 8px;
-}
-.right-menu-group > li > a {
-    color: #777777;
-}
-.right-menu-orange:hover,
-.right-menu-orange:focus {
-    color: #F36D00;
-}
-.right-menu-blue:hover,
-.right-menu-blue:focus {
-    color: #0065F3;
-}
-.right-menu-purple:hover,
-.right-menu-purple:focus {
-    color: #BF00F3;
-}
-.right-menu-red:hover,
-.right-menu-red:focus {
-    color: #F30004;
+    padding-left: 8px;
 }
 
 /* file list */
-.panel-heading-menu {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: inline-block;
+.syaro-filelist table {
+    margin-bottom: 0;
+    border-bottom-right-radius: 3px;
+    border-bottom-left-radius: 3px;
+}
+.panel-heading .menu-group {
     float: right;
 }
-.panel-heading-menu>li {
-    display: inline-block;
-    margin: 0 3px;
+.panel-heading .menu-group li {
+    margin: 0 4px;
 }
-.panel-heading-menu>li>a {
+.panel-heading .menu-group li.hide {
+    display: none;
+}
+.panel-heading .menu-group li a {
     font-size: 16px;
 }
-.panel-heading-menu-orange:hover,
-.panel-heading-menu-orange:focus {
-    color: #F36D00;
-}
-.panel-heading-menu-red:hover,
-.panel-heading-menu-red:focus {
-    color: #F30004;
+.syaro-filelist table tr.selected {
+    background-color: #eee;
 }
 
-.sunken-menu-group {
+/* file uploader */
+.syaro-filelist .table-wrapper {
+    position: relative;
+}
+.uploader-wrapper {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background-color: #fff;
+    text-align: center;
+    /*z-index: 5;*/
+    background-size: 30px 30px;
+    background-image: linear-gradient(
+        -45deg,
+        #f6f6f6 25%,
+        transparent 25%,
+        transparent 50%,
+        #f6f6f6 50%,
+        #f6f6f6 75%,
+        transparent 75%,
+        transparent
+    );
+    animation: stripes 2s linear infinite;
+}
+@keyframes stripes {
+  from { background-position: 0 0; }
+  to   { background-position: 60px 30px; }
+}
+.uploader-message {
+    position: relative;
+    top: 50%;
+    transform: translateY(-50%);
+    text-align: center;
+    color: #777;
+}
+.uploader-message span {
+    font-size: 50px;
+    color: #ccc;
+}
+.uploader-wrapper input#uploadForm {
+    display: none;
+}
+.uploader-wrapper .progress {
+    position: relative;
+    top: 50%;
+    transform: translateY(-50%);
+    margin: 0 30px;
+}
+.uploader-wrapper .alert {
+    position: relative;
+    top: 50%;
+    transform: translateY(-50%);
+    margin: 0 30px;
+}
+
+/* right sidebar menu */
+ul.sunken-menu-group {
     list-style-type: none;
     padding-left: 0;
     max-width: 160px;
 }
-.sunken-menu-item {
+li a.sunken-menu-item {
     display: block;
     padding: 8px 10px;
     margin-top: 5px;
@@ -92,7 +197,11 @@
     border: 1px solid transparent;
     outline: 0;
 }
-.sunken-menu-item.selected {
+li a.sunken-menu-item:hover,
+li a.sunken-menu-item:focus {
+    text-decoration: none;
+}
+li.active a.sunken-menu-item {
     font-weight: bold;
     color: #333;
     background-color: #fff;
@@ -100,27 +209,47 @@
     border-radius: 0 3px 3px 0;
     box-shadow: 1px 1px 3px rgba(0,0,0,0.05);
 }
-.sunken-menu-item > span {
+li a.sunken-menu-item>span {
     color: #999;
+    transition: all 0.3s ease;
 }
-.sunken-menu-item.selected > span,
-.sunken-menu-item:hover > span {
+li a.sunken-menu-item:hover>span,
+li a.sunken-menu-item:focus>span {
+    text-shadow: 1px 2px 2px rgba(0,0,0,0.3);
+}
+li.active a.sunken-menu-item > span,
+li a.sunken-menu-item:hover>span,
+li a.sunken-menu-item:focus>span {
     color: #333;
+}
+li a.sunken-menu-item.purple:hover>span,
+li a.sunken-menu-item.purple:focus>span {
+    color: #BF00F3;
 }
 
 /* TOC */
-.syaro-right > nav ul {
-    list-style: none;
-    padding-left: 24px;
+.syaro-right nav {
+    position: static;
 }
-.syaro-right > nav a {
+.syaro-right nav.affix {
+    position: fixed;
+    top: 0;
+    padding-top: 20px;
+    background-image: linear-gradient(to right, #f6f6f6 0%, #fff 8px);
+    box-shadow: inset 1px 0 0 #eee;
+}
+.syaro-right nav ul {
+    list-style: none;
+    padding-left: 1em;
+}
+.syaro-right nav a {
     position: relative;
     display: block;
     padding: 2px 5px;
     color: #4a4a4a;
     text-decoration: none;
 }
-.syaro-right > nav a:hover {
+.syaro-right nav a:hover {
     background-color: #eee;
 }
 

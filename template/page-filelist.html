@@ -2,55 +2,80 @@
 <div class="syaro-filelist">
   <div class="panel panel-info">
     <div class="panel-heading">Files under {{.WikiPath}}
-      <ul class="panel-heading-menu">
+      <ul class="menu-group">
         <li>
-          <a class="panel-heading-menu-orange" data-toggle="modal" href="#createModal"><span class="glyphicon glyphicon-plus"></span></a>
+          <a id="createPage" class="purple" href="#">
+            <span class="glyphicon glyphicon-plus"></span>
+          </a>
         </li>
         <li>
-          <a class="panel-heading-menu-orange" data-toggle="modal" href="#uploadModal"><span class="glyphicon glyphicon-open"></span></a>
+          <a id="uploadFile" class="purple" href="#">
+            <span class="glyphicon glyphicon-open"></span>
+          </a>
         </li>
-        <li>
-          <a class="panel-heading-menu-orange" data-toggle="modal" href="#renameModal"><span class="glyphicon glyphicon-asterisk"></span></a>
+        <li class="extra">
+          <a id="renameFile" class="yellow" href="#">
+            <span class="glyphicon glyphicon-asterisk"></span>
+          </a>
         </li>
-        <li>
-          <a class="panel-heading-menu-red" data-toggle="modal" href="#deleteModal"><span class="glyphicon glyphicon-trash"></span></a>
+        <li class="extra">
+          <a id="deleteFile" class="red" href="#">
+            <span class="glyphicon glyphicon-trash"></span>
+          </a>
         </li>
       </ul>
     </div>
 
-    <!-- Table -->
-    <table class="table">
-      <tbody>
-        {{with .Parent}}
-        <tr>
-          <td><span class="glyphicon glyphicon-level-up"></span></td>
-          <td><a href="{{.URL}}">../</a></td>
-          <td>{{.WikiPath}}</td>
-        </tr>
-        {{end}}
-        {{range $index, $file:= .Folders}}
-        <tr>
-          <td><span class="glyphicon glyphicon-folder-open"></span></td>
-          <td><a href="{{$file.URL}}">{{$file.Name}}/</a></td>
-          <td>{{$file.WikiPath}}</td>
-        </tr>
-        {{end}}
-        {{range $index, $file:= .MdFiles}}
-        <tr>
-          <td><span class="glyphicon glyphicon-save-file"></span></td>
-          <td><a href="{{$file.URL}}">{{$file.Name}}</a></td>
-          <td>{{$file.WikiPath}}</td>
-        </tr>
-        {{end}}
-        {{range $index, $file:= .OtherFiles}}
-        <tr>
-          <td><span class="glyphicon glyphicon-file"></span></td>
-          <td><a href="{{$file.URL}}">{{$file.Name}}</a></td>
-          <td>{{$file.WikiPath}}</td>
-        </tr>
-        {{end}}
-      </tbody>
-    </table>
+    <div class="table-wrapper">
+
+      <!-- Table -->
+      <table class="table table-hover">
+        <tbody>
+          {{if not .IsRoot}}{{with .Parent}}
+          <tr>
+            <td><span class="glyphicon glyphicon-level-up"></span></td>
+            <td><a href="{{.URL}}">../</a></td>
+            <td>{{.WikiPath}}</td>
+          </tr>
+          {{end}}{{end}}
+          {{range $index, $file := .Folders}}
+          <tr>
+            <td><span class="glyphicon glyphicon-folder-open"></span></td>
+            <td><a href="{{$file.URL}}">{{$file.Name}}/</a></td>
+            <td>{{$file.WikiPath}}</td>
+          </tr>
+          {{end}}
+          {{range $index, $file := .MdFiles}}
+          <tr>
+            <td><span class="glyphicon glyphicon-save-file"></span></td>
+            <td><a href="{{$file.URL}}">{{$file.Name}}</a></td>
+            <td>{{$file.WikiPath}}</td>
+          </tr>
+          {{end}}
+          {{range $index, $file := .OtherFiles}}
+          <tr>
+            <td><span class="glyphicon glyphicon-file"></span></td>
+            <td><a href="{{$file.URL}}">{{$file.Name}}</a></td>
+            <td>{{$file.WikiPath}}</td>
+          </tr>
+          {{end}}
+        </tbody>
+      </table>
+
+      <!-- file uploader -->
+      <div class="uploader-wrapper" dropzone="copy" style="display: none;">
+        <div class="uploader-message">
+          <span class="glyphicon glyphicon-upload"></span>
+          <p>Drag and drop a file here</p>
+        </div>
+        <input id="uploadForm" type="file" multiple>
+        <div class="progress">
+          <div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+        </div>
+        <div class="alert alert-warning" role="alert"><strong>Error</strong> Failed to upload</div>
+      </div>
+
+    </div>
 
   </div>
 </div>

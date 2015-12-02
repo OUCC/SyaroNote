@@ -4,16 +4,12 @@
     <div class="modal-content">
       <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-        <h4 class="modal-title" id="createModalLabel">Create New Page</h4>
+        <h4 class="modal-title">Create New Page</h4>
       </div>
       <div class="modal-body">
-
         <!-- error alert -->
-        <div id="createErrorAlert" class="alert alert-danger fade in" role="alert">
-        </div>
-
-        <input id="createModalInput" type="text" class="form-control" placeholder="Page Name">
-
+        <div class="alert alert-warning fade in" role="alert"></div>
+        <input type="text" class="form-control" placeholder="Page name">
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
@@ -29,16 +25,12 @@
     <div class="modal-content">
       <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-        <h4 class="modal-title" id="renameModalLabel">Rename Page Name</h4>
+        <h4 class="modal-title"></h4>
       </div>
       <div class="modal-body">
-
         <!-- error alert -->
-        <div id="renameErrorAlert" class="alert alert-danger fade in" role="alert">
-        </div>
-
-        <input id="renameModalInput" type="text" class="form-control" placeholder="Page Name">
-
+        <div class="alert alert-warning fade in" role="alert"></div>
+        <input type="text" class="form-control" placeholder="Page name">
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
@@ -54,24 +46,12 @@
     <div class="modal-content">
       <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-        <h4 class="modal-title" id="deleteModalLabel">Delete Page</h4>
+        <h4 class="modal-title"></h4>
       </div>
       <div class="modal-body">
-
         <!-- error alert -->
-        <div id="deleteErrorAlert" class="alert alert-danger fade in" role="alert">
-        </div>
-
-        <!-- success alert -->
-        <div id="deleteSuccessAlert" class="alert alert-success fade in" role="alert">
-          <strong>Page was deleted.</strong>
-        </div>
-
-        <p>Are you sure you want to <strong>delete</strong> {{.WikiPath}}?</p>
-        {{if .IsDir}}
-        <p>All contents under {{.WikiPath}}/ are deleted!</p>
-        {{end}}
-
+        <div class="alert alert-warning fade in" role="alert"></div>
+        <div class="msg"></div>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
@@ -80,3 +60,5 @@
     </div>
   </div>
 </div>
+
+<input id="modalData" type="text" style="display: none;">
