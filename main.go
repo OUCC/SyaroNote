@@ -15,6 +15,7 @@ import (
 const (
 	PUBLIC_DIR   = "public"
 	TEMPLATE_DIR = "template"
+	ENV_SYARODIR = "SYARODIR"
 )
 
 var (
@@ -33,7 +34,7 @@ func main() {
 
 	findsyaroDir()
 	if setting.syaroDir == "" {
-		log.Fatal("Error: Can't find system file directory.")
+		log.Fatal("Error: Can't find template file directory.")
 	}
 
 	log.Notice("WikiRoot: %s", setting.wikiRoot)
@@ -97,14 +98,16 @@ func main() {
 // If not found, return empty string.
 func findsyaroDir() {
 	// if syaro dir is specified by user, search this dir
-	if setting.syaroDir != "" {
-		_, err := os.Stat(filepath.Join(setting.syaroDir, TEMPLATE_DIR))
+	env := os.Getenv(ENV_SYARODIR)
+	if env != "" {
+		_, err := os.Stat(filepath.Join(env, TEMPLATE_DIR))
 		// if directory isn't exist
 		if err != nil {
-			log.Error("Can't find template file dir specified in argument")
+			log.Error("Can't find template file dir specified by env")
 			setting.syaroDir = ""
 			return
 		}
+		setting.syaroDir = env
 	} else { // directory isn't specified by user so search it by myself
 		paths := []string{
 			".",
