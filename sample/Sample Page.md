@@ -1,5 +1,7 @@
-Sample Page
-====
+---
+title: Markdown Sample Page
+alias: さんぷるぺーじ
+---
 
 Title
 ----
@@ -35,12 +37,16 @@ SmartyPants can perform the following transformations:
 [google](http://google.co.jp)
 
 ### List
+Unordered list
+
 * item 1
 * item 2
     - item 2-1
         + item 2-1-1
     - item 2-2
 * item 3
+
+Ordered list
 
 1. item 1
 2. item 2
@@ -105,7 +111,7 @@ WikiLink
 ----
 * [[Home]]
 * [[page not available]]
-* [[さんぷるぺーじ]](Sample Page)
+* [[さんぷるぺーじ]]
 
 Math
 ----
@@ -114,6 +120,11 @@ To use [MathJax](http://www.mathjax.org/), run `syaro --mathjax`.
 inline math $\mathrm{e}^{i\theta}=\cos\theta+i\sin\theta$
 
 $$ S=\sum^\infty_{n=1}s_n $$
+
+$$E \Psi ( \mathbb{r} , t ) = \left[ \mathrm{i} \hbar \frac{ \partial }{ \partial t } + V ( \mathbb{r} ) \right] \Psi ( \mathbb{r} , t )$$
+
+## Emoji :smile: 
+酒 :sake: ワイン :wine_glass: 
 
 [^lorem-ipsum]: In publishing and graphic design, lorem ipsum is a filler text commonly used to demonstrate the graphic elements of a document or visual presentation.
 [^smarty-pants]: http://daringfireball.net/projects/smartypants/
