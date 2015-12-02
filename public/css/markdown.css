@@ -97,6 +97,9 @@
 }
 
 /* task list */
+.markdown li.tasklist-item {
+    list-style: none;
+}
 .markdown li > input[type=checkbox] {
     display: none;
     margin: 0;
@@ -111,7 +114,7 @@
 .markdown li > input[type=checkbox] + label::before {
     content: "";
     position: absolute;
-    top: 50%;
+    top: 0.75em;
     left: 0;
 
     box-sizing: border-box;
@@ -126,7 +129,7 @@
 .markdown li > input[type=checkbox]:checked + label::after {
     content: "";
     position: absolute;
-    top: 50%;
+    top: 0.75em;
 
     box-sizing: border-box;
     display: block;
@@ -173,17 +176,17 @@
     border-left: .5em solid #eee;
     padding: 0 2em;
     margin-left: 0;
-    max-width: 476px;
 }
 .markdown blockquote  cite {
     font-size: 14px;
     line-height: 20px;
     color: #bfbfbf;
 }
-.markdown blockquote cite:before { content: '\2014 \00A0' }
+.markdown blockquote cite:before {
+    content: '\2014 \00A0';
+}
 .markdown blockquote p {
     color: #666;
-    max-width: 460px;
 }
 
 .markdown hr {
@@ -192,39 +195,73 @@
     border-top: 2px dashed #444;
 }
 
+/* table */
 .markdown table {
     border: none;
     border-collapse: collapse;
     border-spacing: 0;
-    margin: 0 auto 1em auto;
+    margin: 0 auto 20px auto;
+    min-width: 80%;
+    max-width: 100%;
 }
-.markdown table th,
-.markdown table td {
-    padding: 8px 20px;
+.markdown table>thead>tr>th,
+.markdown table>thead>tr>td,
+.markdown table>tbody>tr>th,
+.markdown table>tbody>tr>td,
+.markdown table>tfoot>tr>th,
+.markdown table>tfoot>tr>td {
+    padding: 5px;
+    vertical-align: top;
+    border-top: 1px solid #ddd;
 }
-.markdown table th {
-    color: #000;
-    background: #eee;
+.markdown table>thead>tr>th {
+    vertical-align: bottom;
+    border-bottom: 2px solid #ddd;
     font-size: 80%;
     font-weight: bold;
-    border-bottom: 2px solid #666;
     line-height: 120%;
 }
-.markdown table td {
-    border-bottom: 1px solid #888;
+.markdown table th[align=left] {
+    text-align: left;
+}
+.markdown table th[align=right] {
+    text-align: right;
+}
+.markdown table th[align=center] {
+    text-align: center;
+}
+.markdown table>thead:first-child>tr:first-child>td,
+.markdown table>thead:first-child>tr:first-child>th {
+    border-top: 0;
 }
 
 /* image */
 .markdown img {
-  display: block;
-  max-width: 100%;
-  margin: 0 auto;
+    display: block;
+    max-width: 100%;
+    margin: 0 auto;
+}
+.markdown figure {
+    display: block;
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 4px;
+    margin-bottom: 20px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    transition: border .2s ease-in-out;
+}
+.markdown figure figcaption {
+    padding: 9px;
+    color: #333;
+    text-align: center;
 }
 
 /* emoji */
 .markdown img.emoji {
-  display: inline-block;
-  margin: 0 0 .25em 0;
-  width: 1.2em;
-  height: 1.2em;
+    display: inline-block;
+    margin: 0 0 .25em 0;
+    width: 1.2em;
+    height: 1.2em;
 }
