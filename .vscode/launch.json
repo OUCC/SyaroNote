@@ -1,0 +1,18 @@
+{
+	// "debugServer": 4711,
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"name": "Launch syaro",
+			"type": "go",
+			"request": "launch",
+			"program": "main.go",
+			"stopOnEntry": false,
+			"env": {
+				"SYARODIR": "build"
+			},
+			"args": ["sample"]
+			// "cwd": "build"
+		}
+	]
+}
