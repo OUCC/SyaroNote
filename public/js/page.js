@@ -32,6 +32,11 @@ $(function(){
       $('#createModal input').focus();
     });
 
+    $('#createModal input').on('keypress', function (ev) {
+      if (ev.keyCode === 13) // enter
+        $('#createModalButton').trigger('click');
+    })
+    
     $('#createModalButton').on('click', function (ev) {
       var filename = $('#createModal input').val();
       if (filename.length === 0) { return; }
@@ -72,6 +77,11 @@ $(function(){
     $('#renameModal').on('shown.bs.modal', function () {
       $('#renameModal input').focus();
     });
+    
+    $('#renameModal input').on('keypress', function (ev) {
+      if (ev.keyCode === 13)
+        $('#renameModalButton').trigger('click');
+    })
 
     $('#renameModalButton').on('click', function () {
       var src = $('input#modalData').val();
