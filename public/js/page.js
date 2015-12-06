@@ -36,7 +36,7 @@ $(function(){
       if (ev.keyCode === 13) // enter
         $('#createModalButton').trigger('click');
     })
-    
+
     $('#createModalButton').on('click', function (ev) {
       var filename = $('#createModal input').val();
       if (filename.length === 0) { return; }
@@ -53,17 +53,17 @@ $(function(){
         url: '/api/new?wpath=' + encodeURIComponent(filename),
         method: 'GET',
       }).then(xhr)
-        .then(function (arg) {
-          // redirect to editor
-          location.href = '/edit?wpath=' + encodeURIComponent(filename);
-        })
-        .catch(function (arg) {
-          $('#createModalButton').button('reset');
-          $('#createModal .alert').html('<strong>Error</strong> ' +
-            // (status === 302 ? "Already exists" : "Internal server error"));
-            (arg.responseText ? arg.responseText : commErrorText));
-          $('#createModal .alert').show();
-        });
+      .then(function (arg) {
+        // redirect to editor
+        location.href = '/edit?wpath=' + encodeURIComponent(filename);
+      })
+      .catch(function (arg) {
+        $('#createModalButton').button('reset');
+        $('#createModal .alert').html('<strong>Error</strong> ' +
+          // (status === 302 ? "Already exists" : "Internal server error"));
+          (arg.responseText ? arg.responseText : commErrorText));
+        $('#createModal .alert').show();
+      });
     });
 
     $('#renameModal').on('show.bs.modal', function () {
@@ -77,7 +77,7 @@ $(function(){
     $('#renameModal').on('shown.bs.modal', function () {
       $('#renameModal input').focus();
     });
-    
+
     $('#renameModal input').on('keypress', function (ev) {
       if (ev.keyCode === 13)
         $('#renameModalButton').trigger('click');
@@ -93,7 +93,11 @@ $(function(){
 
       $('#renameModalButton').button('loading')
 
-      renameFile(src, dst)
+      Promise.resolve({
+        url: '/api/rename?src=' + encodeURIComponent(src) + ';dst=' + encodeURIComponent(dst),
+        method: 'GET',
+      })
+      .then(xhr)
       .then(function (status) {
         // refreash Page
         location.reload();
@@ -123,7 +127,10 @@ $(function(){
 
       $('#deleteModalButton').button('loading')
 
-      deleteFile(wpath)
+      Promise.resolve({
+        url: '/api/delete?wpath=' + encodeURIComponent(wpath),
+        method: 'GET',
+      }).then(xhr)
       .then(function (status) {
         // refreash Page
         location.reload();
@@ -240,39 +247,39 @@ $(function(){
       var wpath = syaro.wikiPath + '/' + f.name;
 
       ps.push(
-        Promise.resolve({wpath: wpath, file: f})
-          .then(readFile)
-          .then(uploadFile)
-          .then(function (arg) {
-            c++;
-            var now = 100*c/l;
-            $('.uploader-wrapper .progress-bar').css({width: now+'%'});
-            return arg;
-          })
+        (new Promise(function(resolve, reject) {
+          var r = new FileReader();
+          r.onloadend = function () {
+            resolve({
+              url: '/api/upload?wpath=' + encodeURIComponent(wpath),
+              method: 'POST',
+              wpath: wpath,
+              body: r.result
+            });
+          };
+          r.onerror = function () {
+            reject(r.error);
+          }
+          r.readAsBinaryString(f);
+        }))
+        .then(xhr)
+        .then(function (arg) {
+          c++;
+          var now = 100*c/l;
+          $('.uploader-wrapper .progress-bar').css({width: now+'%'});
+          return arg;
+        })
       );
     }
 
     Promise.all(ps)
-      .then(function (arg) {
-        location.reload();
-      })
-      .catch(function (err) {
-        $('.uploader-wrapper .progress').hide();
-        $('.uploader-wrapper .alert').html('<strong>Error</strong> ' + err.responseText);
-        $('.uploader-wrapper .alert').show();
-      });
-  }
-
-  function readFile(arg) {
-    return new Promise(function(resolve, reject) {
-      var r = new FileReader();
-      r.onloadend = function () {
-        resolve({wpath: arg.wpath, blob: r.result});
-      };
-      r.onerror = function () {
-        reject(new Error(r.error));
-      }
-      r.readAsBinaryString(arg.file);
+    .then(function (arg) {
+      location.reload();
+    })
+    .catch(function (err) {
+      $('.uploader-wrapper .progress').hide();
+      $('.uploader-wrapper .alert').html('<strong>Error</strong> ' + err.responseText ? err.responseText : err);
+      $('.uploader-wrapper .alert').show();
     });
   }
 
@@ -337,86 +344,6 @@ $(function(){
     });
   }
 
-  function createPage(filename) {
-    return new Promise(function (resolve, reject) {
-      var url = '/api/new?wpath=' + encodeURIComponent(filename);
-      var req = new XMLHttpRequest();
-      req.open('GET', url);
-
-      req.onreadystatechange = function () {
-        if (req.readyState !== XMLHttpRequest.DONE) { return; }
-        if (req.status === 201) { // StatusCreated
-          resolve(req.status);
-        } else {
-          reject(req.status);
-        }
-      };
-
-      req.send();
-    });
-  }
-
-  function uploadFile(arg) {
-    return new Promise(function (resolve, reject) {
-      var url = '/api/upload?wpath=' + encodeURIComponent(arg.wpath);
-      var req = new XMLHttpRequest();
-      req.open('POST', url);
-
-      req.onreadystatechange = function () {
-        if (req.readyState !== XMLHttpRequest.DONE) { return; }
-        if (req.status === 201) { // StatusCreated
-          resolve({wpath: arg.wpath});
-        } else {
-          reject({
-            status: req.status,
-            statusText: req.statusText,
-            responseText: req.responseText,
-          });
-        }
-      };
-
-      req.send(arg.blob);
-    });
-  }
-
-  function renameFile(src, dst) {
-    return new Promise(function (resolve, reject) {
-      var url = '/api/rename?src=' + encodeURIComponent(src) + ';dst=' + encodeURIComponent(dst);
-      var req = new XMLHttpRequest();
-      req.open('GET', url);
-
-      req.onreadystatechange = function () {
-        if (req.readyState !== XMLHttpRequest.DONE) { return; }
-        if (req.status === 200) { // StatusOK
-          resolve(req.status);
-        } else {
-          reject(req.status);
-        }
-      };
-
-      req.send();
-    })
-  }
-
-  function deleteFile(wpath) {
-    return new Promise(function (resolve, reject) {
-      var url = '/api/delete?wpath=' + encodeURIComponent(wpath);
-      var req = new XMLHttpRequest();
-      req.open('GET', url);
-
-      req.onreadystatechange = function () {
-        if (req.readyState !== XMLHttpRequest.DONE) { return; }
-        if (req.status === 200) { // StatusOK
-          resolve(req.status);
-        } else {
-          reject(req.status);
-        }
-      };
-
-      req.send();
-    })
-  }
-
   function xhr(arg) {
     return new Promise(function(resolve, reject) {
       var req = new XMLHttpRequest();
@@ -431,7 +358,7 @@ $(function(){
           response: req.response,
           responseText: req.responseText,
         });
-        if (req.status/100 === 2) {
+        if (Math.floor(req.status/100) === 2) {
           resolve(arg);
         } else {
           reject(arg);
@@ -442,7 +369,8 @@ $(function(){
         reject(arg);
       }
 
-      req.send();
+      if (arg.body) req.send(arg.body);
+      else req.send();
     });
   }
 
