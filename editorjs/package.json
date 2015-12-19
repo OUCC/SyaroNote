@@ -9,7 +9,6 @@
   "author": "Yuto Tokunaga",
   "license": "MIT",
   "dependencies": {
-    "brace": "^0.5.1",
     "eastasianwidth": "^0.1.0"
   },
   "devDependencies": {

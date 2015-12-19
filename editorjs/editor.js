@@ -1,9 +1,4 @@
-import * as ace from 'brace'
-import 'brace/mode/markdown'
-import 'brace/theme/chrome'
-import 'brace/ext/searchbox'
-var HashHandler = ace.acequire("ace/keyboard/hash_handler").HashHandler;
-
+/* global ace */
 import tableFormatter from './tableformatter'
 import emojiAutoComplete from './emojiautocomplete'
 import mathEditor from './matheditor'
@@ -222,7 +217,7 @@ function initAce() {
   editor.getSession().on('changeScrollTop', scroll)
 
   // Ctrl-S: save
-  // HashHandler = ace.require('ace/keyboard/hash_handler').HashHandler;
+  var HashHandler = ace.require('ace/keyboard/hash_handler').HashHandler;
   editor.keyBinding.addKeyboardHandler(new HashHandler([{
     bindKey: "Ctrl-S",
     descr:   "Save document",

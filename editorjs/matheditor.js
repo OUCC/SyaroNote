@@ -1,7 +1,6 @@
-import * as ace from 'brace'
-
-var HashHandler = ace.acequire('ace/keyboard/hash_handler').HashHandler;
-var Range = ace.acequire('ace/range').Range;
+/* global ace */
+var HashHandler = ace.require('ace/keyboard/hash_handler').HashHandler;
+var Range = ace.require('ace/range').Range;
 
 import TypeMath from './lib/typemath'
 

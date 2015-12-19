@@ -1,0 +1,89 @@
+diff --git a/lib/ace/mode/markdown_highlight_rules.js b/lib/ace/mode/markdown_highlight_rules.js
+index 1e76cc0..23a23cf 100644
+--- a/lib/ace/mode/markdown_highlight_rules.js
++++ b/lib/ace/mode/markdown_highlight_rules.js
+@@ -93,6 +93,10 @@ function github_embed(tag, prefix) {
+         token : "markup.list",
+         regex : "^\\s{0,3}(?:[*+-]|\\d+\\.)\\s+",
+         next  : "listblock-start"
++    }, { // LaTeX equation
++        token : "language",
++        regex : /\${1,2}(?=[^$]+)/,
++        next  : "equation"
+     }, {
+         include : "basic"
+     });
+@@ -101,6 +105,9 @@ function github_embed(tag, prefix) {
+         "basic" : [{
+             token : "constant.language.escape",
+             regex : /\\[\\`*_{}\[\]()#+\-.!]/
++        }, { // line brake
++            token : "underline",
++            regex : / {2}$/
+         }, { // code span `
+             token : "support.function",
+             regex : "(`+)(.*?[^`])(\\1)"
+@@ -118,12 +125,18 @@ function github_embed(tag, prefix) {
+                     '((?:[^\\)\\s\\\\]|\\\\.|\\s(?=[^"]))*)' +        // href
+                     '(\\s*"' +  escaped('"') + '"\\s*)?' +            // "title"
+                     "(\\))"                                           // )
++        }, { // wiki link
++            token : ["text", "markup.underline", "text"],
++            regex : /(\[{2})(.*?[^\]])(\]{2})/
+         }, { // strong ** __
+             token : "string.strong",
+             regex : "([*]{2}|[_]{2}(?=\\S))(.*?\\S[*_]*)(\\1)"
+         }, { // emphasis * _
+             token : "string.emphasis",
+             regex : "([*]|[_](?=\\S))(.*?\\S[*_]*)(\\1)"
++        }, { // emoji :smile:
++            token : "string",
++            regex : /:[a-z\-]+:/
+         }, { //
+             token : ["text", "url", "text"],
+             regex : "(<)("+
+@@ -194,7 +207,43 @@ function github_embed(tag, prefix) {
+         }, {
+             token : "support.function",
+             regex : ".+"
+-        } ]
++        } ],
++        
++        "equation": [{ // LaTeX equation
++            // A comment. Tex comments start with % and go to 
++            // the end of the line
++            token : "comment",
++            regex : "%.*$"
++        }, {
++            // A block
++            token : ["storage.type", "lparen", "variable.parameter", "rparen"],
++            regex : "(\\\\(?:begin|end))({)(\\w*)(})"
++        }, {
++            // A tex command e.g. \foo
++            token : "storage.type",
++            regex : "\\\\[a-zA-Z]+"
++        }, {
++            // Curly and square braces
++            token : "lparen",
++            regex : "[[({]"
++        }, {
++            // Curly and square braces
++            token : "rparen",
++            regex : "[\\])}]"
++        }, {
++            // superscript and subscript
++            token : "language",
++            regex : /[\^_]/
++        }, {
++            token : "constant.character.escape",
++            regex : "\\\\(?:[^a-zA-Z]|[a-zA-Z]+)"
++        }, {
++            token : "language",
++            regex : "\\${1,2}",
++            next  : "start"
++        }, {
++            defaultToken : "string"
++        }]
+     });
+ 
+     this.embedRules(JavaScriptHighlightRules, "jscode-", [{

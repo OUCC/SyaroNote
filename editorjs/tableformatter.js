@@ -1,8 +1,8 @@
-import * as ace from 'brace'
+/* global ace */
 import eaw from 'eastasianwidth'
 
-var HashHandler = ace.acequire("ace/keyboard/hash_handler").HashHandler;
-var Range = ace.acequire("ace/range").Range;
+var HashHandler = ace.require("ace/keyboard/hash_handler").HashHandler;
+var Range = ace.require("ace/range").Range;
 
 export default function TableFormatter(editor) {
     editor.keyBinding.addKeyboardHandler(new HashHandler([
