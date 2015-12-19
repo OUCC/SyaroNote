@@ -3,15 +3,16 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
+
+	"gopkg.in/yaml.v2"
 )
 
-var (
-	setting Setting
-)
+const yamlPath = ".syaronote.yaml"
 
-type Setting struct {
+var setting struct {
 	// server
 	syaroDir   string
 	wikiRoot   string
@@ -23,15 +24,33 @@ type Setting struct {
 	gitMode    bool
 	search     bool
 
-	// markdown related
-	mathjax   bool
-	highlight bool
-	emoji     bool // TODO
-
 	// console output
 	verbose bool
 	quiet   bool
 	color   bool
+
+	// authentication
+	Auth struct { // TODO
+		Reader string `yaml:"reader"`
+		Writer string `yaml:"writer"`
+	} `yaml:"auth"`
+
+	// markdown related
+	Markdown struct {
+		MathJax   bool `yaml:"mathjax"`
+		Highlight bool `yaml:"highlight"`
+		Emoji     bool `yaml:"emoji"`
+	} `yaml:"markdown"`
+
+	// post action
+	Actions struct {
+		// post actions
+		PostCreate []string `yaml:"post_create"`
+		PostUpdate []string `yaml:"post_update"`
+		PostRename []string `yaml:"post_rename"`
+		PostDelete []string `yaml:"post_remove"`
+		PostUpload []string `yaml:"post_upload"`
+	} `yaml:"actions"`
 }
 
 func init() {
@@ -42,12 +61,6 @@ func init() {
 	// 	"URL prefix (ex. if prefix is syarowiki, URL is localhost:PORT/syarowiki/)")
 	flag.BoolVar(&setting.fcgi, "fcgi", false,
 		"If true, syaro runs on fast cgi mode")
-	flag.BoolVar(&setting.mathjax, "mathjax", true,
-		"MathJax (Internet connection is required)")
-	flag.BoolVar(&setting.highlight, "highlight", true,
-		"Syntax highlighting in <code> (Internet connection is required)")
-	flag.BoolVar(&setting.emoji, "emoji", true,
-		"Emoji")
 	flag.BoolVar(&setting.singleFile, "single", false,
 		"Single file mode")
 	flag.BoolVar(&setting.gitMode, "gitmode", false,
@@ -80,6 +93,24 @@ func parseFlags() {
 	} else {
 		setting.wikiRoot = "."
 	}
+}
 
-	// TODO os.Getenv
+func loadYaml() {
+	// default values
+	setting.Markdown.MathJax = true
+	setting.Markdown.Highlight = true
+	setting.Markdown.Emoji = true
+
+	b, err := ioutil.ReadFile(filepath.Join(setting.wikiRoot, yamlPath))
+	if err != nil {
+		log.Info(yamlPath + " not found")
+		return
+	}
+
+	err = yaml.Unmarshal(b, &setting)
+	if err != nil {
+		log.Error("Failed to load "+yamlPath+": %v", err)
+		return
+	}
+	log.Info("Load settings from " + yamlPath)
 }

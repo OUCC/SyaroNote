@@ -29,8 +29,8 @@ func main() {
 
 	// print welcome message
 	log.Notice("===== Syaro Wiki Server %s =====", version)
-	log.Notice("Starting...")
-	log.Notice("")
+
+	loadYaml()
 
 	findsyaroDir()
 	if setting.syaroDir == "" {
@@ -65,9 +65,10 @@ func main() {
 	} else {
 		log.Notice("Git mode: OFF")
 	}
-	log.Notice("MathJax: %t", setting.mathjax)
-	log.Notice("Highlight: %t", setting.highlight)
 	log.Notice("Verbose output: %t\n", setting.verbose)
+	log.Notice("MathJax: %t", setting.Markdown.MathJax)
+	log.Notice("Highlight: %t", setting.Markdown.Highlight)
+	log.Notice("Emoji: %t", setting.Markdown.Emoji)
 
 	log.Info("Parsing template...")
 	err := setupViews()
@@ -146,11 +147,11 @@ func setupViews() error {
 		},
 		"timef":     func(t time.Time) string { return t.Format("Mon _2 Jan 2006") },
 		"urlPrefix": func() string { return setting.urlPrefix },
-		"mathjax":   func() bool { return setting.mathjax },
-		"highlight": func() bool { return setting.highlight },
-		"emoji":     func() bool { return setting.emoji },
 		"gitmode":   func() bool { return setting.gitMode },
 		"search":    func() bool { return setting.search },
+		"mathjax":   func() bool { return setting.Markdown.MathJax },
+		"highlight": func() bool { return setting.Markdown.Highlight },
+		"emoji":     func() bool { return setting.Markdown.Emoji },
 	})
 	var err error
 	tmpl, err = tmpl.ParseGlob(filepath.Join(setting.syaroDir, TEMPLATE_DIR, "*.html"))
