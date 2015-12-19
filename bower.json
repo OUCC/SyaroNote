@@ -12,6 +12,7 @@
   "dependencies": {
     "jquery": "2",
     "emojify.js": "1",
-    "toastr": "~2.1.2"
+    "toastr": "~2.1.2",
+    "highlightjs": "~9.0.0"
   }
 }
