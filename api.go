@@ -62,18 +62,23 @@ func createPage(w http.ResponseWriter, r *http.Request) {
 	http.Error(w, "OK", http.StatusCreated)
 	log.Info("OK")
 
+	msg := "Created " + wpath
 	if setting.gitMode {
 		err := gitCommit(func(client pb.GitClient) (*pb.CommitResponse, error) {
 			return client.Save(context.Background(), &pb.SaveRequest{
 				Path: wpath,
-				Msg:  "Created " + wpath,
+				Msg:  msg,
 			})
 		})
 		if err != nil {
 			log.Error(err.Error())
 		}
 	}
-	// TODO postSave
+	doPostAction(wikiAction{
+		action:   ACTION_CREATE,
+		wikiPath: wpath,
+		message:  msg,
+	})
 }
 
 func updatePage(w http.ResponseWriter, r *http.Request) {
@@ -108,10 +113,10 @@ func updatePage(w http.ResponseWriter, r *http.Request) {
 	http.Error(w, "OK", http.StatusOK)
 	log.Info("OK")
 
+	if msg == "" {
+		msg = "Updated " + wpath
+	}
 	if setting.gitMode {
-		if msg == "" {
-			msg = "Updated " + wpath
-		}
 		err := gitCommit(func(client pb.GitClient) (*pb.CommitResponse, error) {
 			return client.Save(context.Background(), &pb.SaveRequest{
 				Path:  wpath,
@@ -124,7 +129,13 @@ func updatePage(w http.ResponseWriter, r *http.Request) {
 			log.Error(err.Error())
 		}
 	}
-	// TODO postSave
+	doPostAction(wikiAction{
+		action:   ACTION_UPDATE,
+		wikiPath: wpath,
+		message:  msg,
+		name:     name,
+		email:    email,
+	})
 }
 
 func renameFile(w http.ResponseWriter, r *http.Request) {
@@ -159,16 +170,21 @@ func renameFile(w http.ResponseWriter, r *http.Request) {
 	http.Error(w, "OK", http.StatusOK)
 	log.Info("OK")
 
+	msg := fmt.Sprintf("Renamed %s -> %s", src, dst)
 	if setting.gitMode {
 		gitCommit(func(client pb.GitClient) (*pb.CommitResponse, error) {
 			return client.Rename(context.Background(), &pb.RenameRequest{
 				Src: src,
 				Dst: dst,
-				Msg: fmt.Sprintf("Renamed %s -> %s", src, dst),
+				Msg: msg,
 			})
 		})
 	}
-	// TODO postSave
+	doPostAction(wikiAction{
+		action:   ACTION_RENAME,
+		wikiPath: src,
+		message:  msg,
+	})
 }
 
 func deleteFile(w http.ResponseWriter, r *http.Request) {
@@ -197,18 +213,23 @@ func deleteFile(w http.ResponseWriter, r *http.Request) {
 	http.Error(w, "OK", http.StatusOK)
 	log.Info("Deleted")
 
+	msg := "Removed " + wpath
 	if setting.gitMode {
 		err := gitCommit(func(client pb.GitClient) (*pb.CommitResponse, error) {
 			return client.Remove(context.Background(), &pb.RemoveRequest{
 				Path: wpath,
-				Msg:  "Removed " + wpath,
+				Msg:  msg,
 			})
 		})
 		if err != nil {
 			log.Error(err.Error())
 		}
 	}
-	// TODO post delete
+	doPostAction(wikiAction{
+		action:   ACTION_DELETE,
+		wikiPath: wpath,
+		message:  msg,
+	})
 }
 
 func searchPage(w http.ResponseWriter, r *http.Request) {
@@ -235,8 +256,8 @@ func uploadFile(w http.ResponseWriter, r *http.Request) {
 	http.Error(w, "OK", http.StatusCreated)
 	log.Info("OK")
 
+	msg := "Added " + wpath
 	if setting.gitMode {
-		msg := "Added " + wpath
 		err := gitCommit(func(client pb.GitClient) (*pb.CommitResponse, error) {
 			return client.Save(context.Background(), &pb.SaveRequest{
 				Path: wpath,
@@ -247,7 +268,11 @@ func uploadFile(w http.ResponseWriter, r *http.Request) {
 			log.Error(err.Error())
 		}
 	}
-	// TODO postUpload
+	doPostAction(wikiAction{
+		action:   ACTION_UPLOAD,
+		wikiPath: wpath,
+		message:  msg,
+	})
 }
 
 func getHistory(w http.ResponseWriter, r *http.Request) {
