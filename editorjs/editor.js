@@ -179,17 +179,23 @@ function initUi() {
 }
 
 function initAce() {
-  editor = ace.edit('editor')
+  ace.require("ace/ext/language_tools");
+  editor = ace.edit('editor');
 
-  editor.setTheme('ace/theme/chrome')
-  editor.getSession().setMode('ace/mode/markdown')
-  editor.getSession().setTabSize(2)
-  editor.getSession().setUseSoftTabs(true)
-  editor.getSession().setUseWrapMode(true)
-  editor.setHighlightActiveLine(true)
-  editor.setShowPrintMargin(true)
-  editor.setShowInvisibles(true)
-  editor.setOption('scrollPastEnd', true)
+  editor.setTheme('ace/theme/chrome');
+  editor.getSession().setMode('ace/mode/markdown');
+  editor.getSession().setTabSize(2);
+  editor.getSession().setUseSoftTabs(true);
+  editor.getSession().setUseWrapMode(true);
+  editor.setHighlightActiveLine(true);
+  editor.setShowInvisibles(true);
+  editor.session.setNewLineMode('unix');
+  editor.setOptions({
+    'scrollPastEnd': true,
+    cursorStyle: 'smooth', // "ace"|"slim"|"smooth"|"wide"
+    enableBasicAutocompletion: true,
+    enableLiveAutocompletion: true,
+  });
 
   // disable message
   // Automatically scrolling cursor into view after selection change this will be disabled in the next version
