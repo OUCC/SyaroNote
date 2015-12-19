@@ -1,4 +1,3 @@
-/* global ace */
 import eaw from 'eastasianwidth'
 
 var HashHandler = ace.require("ace/keyboard/hash_handler").HashHandler;

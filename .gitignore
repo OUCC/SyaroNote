@@ -1,4 +1,4 @@
 build
 bower_components
-editorjs/build
-editorjs/node_modules
+node_modules
+typings

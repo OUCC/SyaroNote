@@ -1,4 +1,3 @@
-/* global ace */
 var HashHandler = ace.require('ace/keyboard/hash_handler').HashHandler;
 var Range = ace.require('ace/range').Range;
 

@@ -1,0 +1,13 @@
+{
+    "compilerOptions": {
+        "target": "ES6",
+        "module": "commonjs"
+    },
+    "files": [
+        "editor.js",
+        "tableformatter.js",
+        "emojiautocomplete.js",
+        "matheditor.js",
+        "api.js"
+    ]
+}

@@ -1,4 +1,3 @@
-/* global ace */
 import emojify from 'emojify.js'
 
 var HashHandler = ace.require("ace/keyboard/hash_handler").HashHandler;

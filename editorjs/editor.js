@@ -1,4 +1,5 @@
-/* global ace */
+/// <reference path="../typings/bundle.d.ts" />
+/* global syaro */
 import tableFormatter from './tableformatter'
 import emojiAutoComplete from './emojiautocomplete'
 import mathEditor from './matheditor'
