@@ -4,12 +4,19 @@
 {{if mathjax}}
 <script type="text/x-mathjax-config">
   MathJax.Hub.Config({
+    extensions: ["tex2jax.js", "MathMenu.js", "MathZoom.js", "CHTML-preview.js", "/js/xypic.js"],
+    jax: ["input/TeX", "output/HTML-CSS", "output/CommonHTML"],
+    TeX: {
+      extensions: ["AMSmath.js", "AMSsymbols.js", "noErrors.js", "noUndefined.js"],
+    },
+    "HTML-CSS": {
+      linebreaks: { automatic: true },
+      availableFonts: ["TeX"],
+    },
     showProcessingMessages: false,
-    "HTML-CSS": { linebreaks: { automatic: true } },
-    SVG: { linebreaks: { automatic: true } }
   });
 </script>
-<script src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML" type="text/javascript"></script>
+<script src="//cdn.mathjax.org/mathjax/latest/MathJax.js" type="text/javascript"></script>
 {{end}}
 
 {{if highlight}}
