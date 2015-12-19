@@ -1,5 +1,5 @@
 diff --git a/lib/ace/mode/markdown_highlight_rules.js b/lib/ace/mode/markdown_highlight_rules.js
-index 1e76cc0..23a23cf 100644
+index 1e76cc0..9d76802 100644
 --- a/lib/ace/mode/markdown_highlight_rules.js
 +++ b/lib/ace/mode/markdown_highlight_rules.js
 @@ -93,6 +93,10 @@ function github_embed(tag, prefix) {
@@ -38,7 +38,7 @@ index 1e76cc0..23a23cf 100644
              regex : "([*]|[_](?=\\S))(.*?\\S[*_]*)(\\1)"
 +        }, { // emoji :smile:
 +            token : "string",
-+            regex : /:[a-z\-]+:/
++            regex : /:[a-z0-9+\-_]+:/
          }, { //
              token : ["text", "url", "text"],
              regex : "(<)("+
