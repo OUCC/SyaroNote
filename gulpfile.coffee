@@ -10,13 +10,14 @@ gulp.task 'copy', ->
     ]
     .pipe gulp.dest 'build/public/js'
   gulp.src [
-      'bower_components/emojify.js/dist/css/sprites/emojify.min.css',
-      'bower_components/emojify.js/dist/css/sprites/emojify-emoticons.min.css',
-      'bower_components/emojify.js/dist/css/basic/emojify.min.css',
       'bower_components/toastr/toastr.min.css',
       'bower_components/highlightjs/styles/github.css'
     ]
     .pipe gulp.dest 'build/public/css'
+  gulp.src 'bower_components/emojify.js/dist/css/sprites/emojify.min.css'
+    .pipe gulp.dest 'build/public/css/emojify.sprites.min.css'
+  gulp.src 'bower_components/emojify.js/dist/css/basic/emojify.min.css'
+    .pipe gulp.dest 'build/public/css/emojify.basic.min.css'
   gulp.src 'bower_components/emojify.js/dist/images/sprites/*'
     .pipe gulp.dest 'build/public/images'
   gulp.src 'bower_components/emojify.js/dist/images/basic/*'
