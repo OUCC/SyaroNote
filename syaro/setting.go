@@ -1,13 +1,13 @@
 package main
 
 import (
+	"gopkg.in/yaml.v2"
+
 	"flag"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
-
-	"gopkg.in/yaml.v2"
 )
 
 const yamlPath = ".syaronote.yaml"

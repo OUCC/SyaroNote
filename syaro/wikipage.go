@@ -1,13 +1,13 @@
 package main
 
 import (
-	"github.com/OUCC/syaro/markdown"
-	"strings"
+	"github.com/OUCC/SyaroNote/syaro/markdown"
 
 	"html/template"
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 const (

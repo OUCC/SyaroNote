@@ -1,8 +1,8 @@
 package main
 
 import (
-	pb "github.com/OUCC/syaro/gitservice"
-	"github.com/OUCC/syaro/markdown"
+	pb "github.com/OUCC/SyaroNote/syaro/gitservice"
+	"github.com/OUCC/SyaroNote/syaro/markdown"
 
 	"html/template"
 	"os"

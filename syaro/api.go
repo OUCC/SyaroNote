@@ -1,7 +1,7 @@
 package main
 
 import (
-	pb "github.com/OUCC/syaro/gitservice"
+	pb "github.com/OUCC/SyaroNote/syaro/gitservice"
 
 	"golang.org/x/net/context"
 
