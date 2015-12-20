@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/OUCC/syaro/markdown"
+	"github.com/OUCC/SyaroNote/syaro/markdown"
 	"github.com/gopherjs/gopherjs/js"
 )
 
