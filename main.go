@@ -84,8 +84,7 @@ func main() {
 	go idxBuilder()
 	refresh <- "/"
 
-	log.Info("Setting up websockets...")
-	// TODO
+	// log.Info("Setting up websockets...") // TODO
 
 	// set link worker
 	markdown.LinkWorker = linkWorker

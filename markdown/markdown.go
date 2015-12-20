@@ -4,23 +4,10 @@ import (
 	. "github.com/yuntan/blackfriday"
 	"gopkg.in/yaml.v2"
 
-	"bufio"
 	"bytes"
-	"regexp"
 )
 
-var (
-	LinkWorker = func(b []byte) []byte {
-		s := string(b)
-		if len(s) < 5 {
-			return nil
-		}
-		link := s[2 : len(s)-2]
-		return []byte(`<a href="` + link + `">` + link + `</a>`)
-	}
-
-	reWikiLink = regexp.MustCompile(`\[\[[^\]]+\]\]`)
-)
+var LinkWorker func(*bytes.Buffer, []byte)
 
 func Convert(input []byte) []byte {
 	if input == nil {
@@ -35,18 +22,6 @@ func Convert(input []byte) []byte {
 			input = b[2]
 		}
 	}
-
-	// replace wikilink
-	buf := new(bytes.Buffer)
-	r := bytes.NewReader(input)
-	scn := bufio.NewScanner(r)
-	for scn.Scan() {
-		// FIXME <pre>
-		b := reWikiLink.ReplaceAllFunc(scn.Bytes(), LinkWorker)
-		buf.Write(b)
-		buf.WriteRune('\n')
-	}
-	input = buf.Bytes()
 
 	htmlFlags := 0 |
 		HTML_HREF_TARGET_BLANK |
@@ -69,9 +44,13 @@ func Convert(input []byte) []byte {
 		EXTENSION_AUTO_HEADER_IDS |
 		EXTENSION_BACKSLASH_LINE_BREAK |
 		EXTENSION_DEFINITION_LISTS |
+		EXTENSION_WIKI_LINK |
 		EXTENSION_LATEX_MATH
 
 	renderer := HtmlRenderer(htmlFlags, "", "")
+	if LinkWorker != nil {
+		WikiLinkWorker = LinkWorker
+	}
 	return Markdown(input, renderer, extensions)
 }
 
