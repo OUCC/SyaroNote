@@ -109,9 +109,8 @@ func main() {
 
 WikiLink
 ----
-* [[Home]]
-* [[page not available]]
 * [[さんぷるぺーじ]]
+* [[page not available]]
 
 Math
 ----

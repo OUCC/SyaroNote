@@ -1,6 +1,8 @@
 package main
 
 import (
+	"github.com/OUCC/SyaroNote/syaro/markdown"
+
 	"github.com/blevesearch/bleve"
 
 	"io/ioutil"
@@ -60,23 +62,42 @@ func idxBuilder() {
 				if strings.HasPrefix(fi.Name(), ".") {
 					continue
 				}
+				wpath := filepath.Join(wdir, fi.Name())
 
 				// register name
-				name := removeExt(fi.Name())
-				wpath := filepath.Join(wdir, fi.Name())
-				elem, present := nIdx[name]
-				if present {
-					nIdx[name] = append(elem, wpath)
-				} else {
-					nIdx[name] = []string{wpath}
+				if fi.IsDir() || isMarkdown(fi.Name()) {
+					name := removeExt(fi.Name())
+					elem, present := nIdx[name]
+					if present {
+						nIdx[name] = append(elem, wpath)
+					} else {
+						nIdx[name] = []string{wpath}
+					}
 				}
 
-				// TODO alias
-
-				if setting.search {
+				// register alias
+				if !fi.IsDir() && isMarkdown(fi.Name()) {
 					b, err := ioutil.ReadFile(filepath.Join(setting.wikiRoot, wpath))
-					if err == nil {
-						bleveIdx.Index(wpath, string(b))
+					if err != nil {
+						log.Error("Failed to read file %s: %v", wpath, err)
+						continue
+					}
+					for _, alias := range strings.Split(markdown.Meta(b)["alias"], ",") {
+						alias = strings.TrimSpace(alias)
+						if alias == "" {
+							continue
+						}
+						elem, present := nIdx[alias]
+						if present {
+							nIdx[alias] = append(elem, wpath)
+						} else {
+							nIdx[alias] = []string{wpath}
+						}
+					}
+
+					if setting.search {
+						bleveIdx.Delete(wpath)
+						bleveIdx.Index(wpath, b)
 					}
 				}
 

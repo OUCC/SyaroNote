@@ -6,12 +6,12 @@
 			"name": "Launch syaro",
 			"type": "go",
 			"request": "launch",
-			"program": "main.go",
+			"program": "syaro",
 			"stopOnEntry": false,
 			"env": {
-				"SYARODIR": "build"
+				"SYARODIR": "../build"
 			},
-			"args": ["sample"]
+			"args": ["--verbose", "../sample"]
 			// "cwd": "build"
 		}
 	]
