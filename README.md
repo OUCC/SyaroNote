@@ -77,14 +77,36 @@ VS. [Gollum](https://github.com/gollum/gollum)
 * User friendly Markdown editor
 * Table editor
 
-Build & Install
-----
-Required packages: go, bower, cmake, pkg-config
+## Build
+### syaro
+```sh
+go get github.com/OUCC/SyaroNote
+go build -ldflags "-X main.version=$(git describe)" -o build/syaro github.com/OUCC/SyaroNote/syaro 
+```
 
-```bash
-go get github.com/OUCC/syaro
-cd $GOPATH/src/github.com/OUCC/syaro
-./build.sh
+### editor
+```sh
+cd editorjs
+npm install
+npm run deploy
+```
+
+### copy public
+```sh
+npm install
+bower install
+gulp copy
+```
+
+### git plugin
+```sh
+cd $GOPATH/src/github.com/libgit2/git2go
+git submodule update --init
+make install
+go install
+
+cd $GOPATH/src/github.com/OUCC/SyaroNote
+go build -o build/gitplugin github.com/OUCC/SyaroNote/gitplugin
 ```
 
 Usage
