@@ -1,4 +1,5 @@
 gulp = require 'gulp'
+rename = require 'gulp-rename'
 
 gulp.task 'copy', ->
   gulp.src [
@@ -15,11 +16,13 @@ gulp.task 'copy', ->
     ]
     .pipe gulp.dest 'build/public/css'
   gulp.src 'bower_components/emojify.js/dist/css/sprites/emojify.min.css'
-    .pipe gulp.dest 'build/public/css/emojify.sprites.min.css'
+    .pipe rename 'emojify.sprites.min.css'
+    .pipe gulp.dest 'build/public/css'
   gulp.src 'bower_components/emojify.js/dist/css/basic/emojify.min.css'
-    .pipe gulp.dest 'build/public/css/emojify.basic.min.css'
+    .pipe rename 'emojify.basic.min.css'
+    .pipe gulp.dest 'build/public/css'
   gulp.src 'bower_components/emojify.js/dist/images/sprites/*'
-    .pipe gulp.dest 'build/public/images'
+    .pipe gulp.dest 'build/public/images/sprites'
   gulp.src 'bower_components/emojify.js/dist/images/basic/*'
     .pipe gulp.dest 'build/public/images/emoji'
   gulp.src [
@@ -27,7 +30,7 @@ gulp.task 'copy', ->
       'public/css/*',
       'public/fonts/*',
       'public/ico/*'
-    ], { base: 'public' }
+    ], base: 'public'
     .pipe gulp.dest 'build/public'
   gulp.src 'template/*'
     .pipe gulp.dest 'build/template'
