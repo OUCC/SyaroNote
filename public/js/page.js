@@ -246,30 +246,28 @@ $(function(){
       var f = files[i];
       var wpath = syaro.wikiPath + '/' + f.name;
 
-      ps.push(
-        (new Promise(function(resolve, reject) {
-          var r = new FileReader();
-          r.onloadend = function () {
-            resolve({
-              url: '/api/upload?wpath=' + encodeURIComponent(wpath),
-              method: 'POST',
-              wpath: wpath,
-              body: r.result
-            });
-          };
-          r.onerror = function () {
-            reject(r.error);
-          }
-          r.readAsBinaryString(f);
-        }))
-        .then(xhr)
-        .then(function (arg) {
-          c++;
-          var now = 100*c/l;
-          $('.uploader-wrapper .progress-bar').css({width: now+'%'});
-          return arg;
-        })
-      );
+      ps.push(new Promise(function(resolve, reject) {
+        var r = new FileReader();
+        r.onloadend = function () {
+          resolve({
+            url: '/api/upload?wpath=' + encodeURIComponent(wpath),
+            method: 'POST',
+            wpath: wpath,
+            body: r.result,
+          });
+        };
+        r.onerror = function () {
+          reject(r.error);
+        };
+        r.readAsArrayBuffer(f);
+      })
+      .then(xhr)
+      .then(function (arg) {
+        c++;
+        var now = 100*c/l;
+        $('.uploader-wrapper .progress-bar').css({width: now+'%'});
+        return arg;
+      }));
     }
 
     Promise.all(ps)
