@@ -1,11 +1,11 @@
 /* global emojify */
 /* global syaro */
-$(function(){
-"use strict";
+$(function () {
+  "use strict";
 
   var historyLoaded = false,
-      reMarkdown = /\.(md|mkd|mkdn|mdown|markdown)$/,
-      commErrorText = "Communication error";
+    reMarkdown = /\.(md|mkd|mkdn|mdown|markdown)$/,
+    commErrorText = "Communication error";
 
   function init() {
     initModal();
@@ -35,13 +35,13 @@ $(function(){
     $('#createModal input').on('keypress', function (ev) {
       if (ev.keyCode === 13) // enter
         $('#createModalButton').trigger('click');
-    })
+    });
 
     $('#createModalButton').on('click', function (ev) {
       var filename = $('#createModal input').val();
       if (filename.length === 0) { return; }
 
-      $('#createModalButton').button('loading')
+      $('#createModalButton').button('loading');
       if (!filename.match(reMarkdown)) {
         filename = filename + '.md';
       }
@@ -53,17 +53,17 @@ $(function(){
         url: '/api/new?wpath=' + encodeURIComponent(filename),
         method: 'GET',
       }).then(xhr)
-      .then(function (arg) {
-        // redirect to editor
-        location.href = '/edit?wpath=' + encodeURIComponent(filename);
-      })
-      .catch(function (arg) {
-        $('#createModalButton').button('reset');
-        $('#createModal .alert').html('<strong>Error</strong> ' +
-          // (status === 302 ? "Already exists" : "Internal server error"));
-          (arg.responseText ? arg.responseText : commErrorText));
-        $('#createModal .alert').show();
-      });
+        .then(function (arg) {
+          // redirect to editor
+          location.href = '/edit?wpath=' + encodeURIComponent(filename);
+        })
+        .catch(function (arg) {
+          $('#createModalButton').button('reset');
+          $('#createModal .alert').html('<strong>Error</strong> ' +
+            // (status === 302 ? "Already exists" : "Internal server error"));
+            (arg.responseText ? arg.responseText : commErrorText));
+          $('#createModal .alert').show();
+        });
     });
 
     $('#renameModal').on('show.bs.modal', function () {
@@ -81,7 +81,7 @@ $(function(){
     $('#renameModal input').on('keypress', function (ev) {
       if (ev.keyCode === 13)
         $('#renameModalButton').trigger('click');
-    })
+    });
 
     $('#renameModalButton').on('click', function () {
       var src = $('input#modalData').val();
@@ -91,23 +91,23 @@ $(function(){
         dst = syaro.wikiPath + '/' + dst;
       }
 
-      $('#renameModalButton').button('loading')
+      $('#renameModalButton').button('loading');
 
       Promise.resolve({
         url: '/api/rename?src=' + encodeURIComponent(src) + ';dst=' + encodeURIComponent(dst),
         method: 'GET',
       })
-      .then(xhr)
-      .then(function (status) {
-        // refreash Page
-        location.reload();
-      })
-      .catch(function (status) {
-        $('#renameModalButton').button('reset');
-        $('#renameModal .alert').html('<strong>Error</strong> ' +
+        .then(xhr)
+        .then(function (status) {
+          // refreash Page
+          location.reload();
+        })
+        .catch(function (status) {
+          $('#renameModalButton').button('reset');
+          $('#renameModal .alert').html('<strong>Error</strong> ' +
             (status === 404 ? "Not found" : "Internal server error"));
-        $('#renameModal .alert').show();
-      });
+          $('#renameModal .alert').show();
+        });
     });
 
     $('#deleteModal').on('show.bs.modal', function () {
@@ -125,22 +125,22 @@ $(function(){
     $('#deleteModalButton').on('click', function () {
       var wpath = $('input#modalData').val();
 
-      $('#deleteModalButton').button('loading')
+      $('#deleteModalButton').button('loading');
 
       Promise.resolve({
         url: '/api/delete?wpath=' + encodeURIComponent(wpath),
         method: 'GET',
       }).then(xhr)
-      .then(function (status) {
-        // refreash Page
-        location.reload();
-      })
-      .catch(function (status) {
-        $('#deleteModalButton').button('reset');
-        $('#deleteModal .alert').html('<strong>Error</strong> ' +
+        .then(function (status) {
+          // refreash Page
+          location.reload();
+        })
+        .catch(function (status) {
+          $('#deleteModalButton').button('reset');
+          $('#deleteModal .alert').html('<strong>Error</strong> ' +
             (status === 404 ? "Not found" : "Internal server error"));
-        $('#deleteModal .alert').show();
-      });
+          $('#deleteModal .alert').show();
+        });
     });
   }
 
@@ -246,7 +246,7 @@ $(function(){
       var f = files[i];
       var wpath = syaro.wikiPath + '/' + f.name;
 
-      ps.push(new Promise(function(resolve, reject) {
+      ps.push(new Promise(function (resolve, reject) {
         var r = new FileReader();
         r.onloadend = function () {
           resolve({
@@ -261,24 +261,24 @@ $(function(){
         };
         r.readAsArrayBuffer(f);
       })
-      .then(xhr)
-      .then(function (arg) {
-        c++;
-        var now = 100*c/l;
-        $('.uploader-wrapper .progress-bar').css({width: now+'%'});
-        return arg;
-      }));
+        .then(xhr)
+        .then(function (arg) {
+          c++;
+          var now = 100 * c / l;
+          $('.uploader-wrapper .progress-bar').css({ width: now + '%' });
+          return arg;
+        }));
     }
 
     Promise.all(ps)
-    .then(function (arg) {
-      location.reload();
-    })
-    .catch(function (err) {
-      $('.uploader-wrapper .progress').hide();
-      $('.uploader-wrapper .alert').html('<strong>Error</strong> ' + err.responseText ? err.responseText : err);
-      $('.uploader-wrapper .alert').show();
-    });
+      .then(function (arg) {
+        location.reload();
+      })
+      .catch(function (err) {
+        $('.uploader-wrapper .progress').hide();
+        $('.uploader-wrapper .alert').html('<strong>Error</strong> ' + err.responseText ? err.responseText : err);
+        $('.uploader-wrapper .alert').show();
+      });
   }
 
   function scrollNav() {
@@ -296,11 +296,11 @@ $(function(){
 
   function initEmojify() {
     emojify.setConfig({
-        mode: 'img',
-        img_dir: '/images/emoji',
-        ignore_emoticons: true,
+      mode: 'img',
+      img_dir: '/images/emoji',
+      ignore_emoticons: true,
     });
-    $(".markdown").each(function() {
+    $(".markdown").each(function () {
       emojify.run($(this).get(0));
     });
   }
@@ -319,10 +319,10 @@ $(function(){
 
           var panel = '<div class="panel panel-info">' +
             '<div class="panel-heading">History of ' +
-            syaro.wikiPath + '</div>'
+            syaro.wikiPath + '</div>';
           var thead = '<thead><tr><th>Op</th><th>Message</th><th>Author</th><th>Date</th></tr></thead>';
           var table = '<table class="table table-striped  table-bordered">' + thead + '<tbody>';
-          table += '<thead>'
+          table += '<thead>';
           table += data.map(function (c) {
             return '<tr><td>' + [c.op, c.msg, c.name, c.date].join('</td><td>') +
               '</td></tr>';
@@ -343,7 +343,7 @@ $(function(){
   }
 
   function xhr(arg) {
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
       var req = new XMLHttpRequest();
       req.open(arg.method, arg.url);
 
@@ -356,7 +356,7 @@ $(function(){
           response: req.response,
           responseText: req.responseText,
         });
-        if (Math.floor(req.status/100) === 2) {
+        if (Math.floor(req.status / 100) === 2) {
           resolve(arg);
         } else {
           reject(arg);
@@ -365,13 +365,13 @@ $(function(){
 
       req.onerror = function () {
         reject(arg);
-      }
+      };
 
       if (arg.body) req.send(arg.body);
       else req.send();
     });
   }
 
-  init()
+  init();
 
-})
+});

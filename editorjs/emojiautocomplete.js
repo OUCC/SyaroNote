@@ -35,14 +35,14 @@ function cursorMoveAction(editor) {
 }
 
 function tabKeyAction(editor) {
-    return function() {
+    return function () {
         if (maybe.length > 0) {
             insertEmoji(editor, maybe[0]);
             hideSuggest();
             return true;
         }
         return false;
-    }
+    };
 }
 
 function detectSuggestableEmoji(editor) {

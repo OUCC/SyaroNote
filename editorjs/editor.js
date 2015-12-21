@@ -1,5 +1,8 @@
 /// <reference path="../typings/bundle.d.ts" />
 /* global syaro */
+/* global hljs */
+/* global convert */
+/* global emojify */
 import tableFormatter from './tableformatter'
 import emojiAutoComplete from './emojiautocomplete'
 import mathEditor from './matheditor'
@@ -11,16 +14,17 @@ var editor,
     math,
     initialized = false,
     modified = false,
-    timeoutId = '',
+    timeoutId = 0,
     wikiPath = '',
     fileName = '',
+    preview = true,
     syncScroll = true;
 
 function init() {
   // set wiki path
   wikiPath = get_url_vars()["wpath"];
-  fileName = wikiPath.split('/');
-  fileName = fileName[fileName.length-1];
+  var pathlist = wikiPath.split('/');
+  fileName = pathlist[pathlist.length-1];
 
   // update title
   document.title = fileName;
@@ -66,8 +70,8 @@ function get_url_vars() {
 }
 
 function initUi() {
-  $('.alert').hide()
-  $('.modal').hide()
+  $('.alert').hide();
+  $('.modal').hide();
 
   //
   // navbar
@@ -131,11 +135,11 @@ function initUi() {
     $('#mdlSave').modal('hide');
     toastr.info("", "Saving...");
   });
-  $('#mdlBackup-restore').on('click', function() {
+  $('#mdlBackup-restore').on('click', function () {
     editor.getSession().getDocument().setValue(getBackup());// FIXME
     $('#mdlBackup').modal('hide');
   });
-  $('#mdlBackup-discard').on('click', function() {
+  $('#mdlBackup-discard').on('click', function () {
     backup(true); // remove backup
     $('#mdlBackup').modal('hide');
   });
@@ -147,36 +151,29 @@ function initUi() {
   $('#optionSyncScroll > span').toggleClass('glyphicon-check', true);
   // $('#optionMathJax > span').toggleClass('glyphicon-unchecked', true);
 
-  $('#optionPreview').on('click', function() {
-    preview = !preview
-    $('#optionPreview > span').toggleClass('glyphicon-check')
-    $('#optionPreview > span').toggleClass('glyphicon-unchecked')
-    $('#optionMathJax').parent('li').toggleClass('disabled')
-    return false
-  })
+  $('#optionPreview').on('click', function () {
+    preview = !preview;
+    $('#optionPreview > span').toggleClass('glyphicon-check');
+    $('#optionPreview > span').toggleClass('glyphicon-unchecked');
+    $('#optionMathJax').parent('li').toggleClass('disabled');
+    return false;
+  });
 
-  $('#optionSyncScroll').on('click', function() {
+  $('#optionSyncScroll').on('click', function () {
     syncScroll = !syncScroll;
     $('#optionSyncScroll > span').toggleClass('glyphicon-check');
     $('#optionSyncScroll > span').toggleClass('glyphicon-unchecked');
-    return false
-  })
-
-  $('#optionMathJax').on('click', function() {
-    mathjax = !mathjax
-    $('#optionMathJax > span').toggleClass('glyphicon-check')
-    $('#optionMathJax > span').toggleClass('glyphicon-unchecked')
-    return false
-  })
+    return false;
+  });
 
   //
   // alert
   //
   $(window).on('beforeunload', function () {
     if (modified) {
-      return 'Document will not be saved. OK?'
+      return 'Document will not be saved. OK?';
     }
-  })
+  });
 }
 
 function initAce() {
@@ -192,7 +189,7 @@ function initAce() {
   editor.setShowInvisibles(true);
   editor.session.setNewLineMode('unix');
   editor.setOptions({
-    'scrollPastEnd': true,
+    scrollPastEnd: true,
     cursorStyle: 'smooth', // "ace"|"slim"|"smooth"|"wide"
     enableBasicAutocompletion: true,
     enableLiveAutocompletion: true,
@@ -206,11 +203,11 @@ function initAce() {
     modified = true;
 
     // update title
-    document.title = '* '+fileName;
+    document.title = '* ' + fileName;
 
     $('#btnSave').addClass('modified');
 
-    if(timeoutId !== "") { clearTimeout(timeoutId); }
+    if (!timeoutId) { clearTimeout(timeoutId); }
 
     timeoutId = setTimeout(() => {
       if (initialized) {
@@ -218,10 +215,10 @@ function initAce() {
       }
       renderPreview();
     }, 600);
-  })
+  });
 
   // sync scroll
-  editor.getSession().on('changeScrollTop', scroll)
+  editor.getSession().on('changeScrollTop', scroll);
 
   // Ctrl-S: save
   var HashHandler = ace.require('ace/keyboard/hash_handler').HashHandler;
@@ -240,8 +237,8 @@ function initAce() {
 
 function initEmojify() {
   emojify.setConfig({
-      mode: 'sprites',
-      ignore_emoticons: true,
+    mode: 'sprites',
+    ignore_emoticons: true,
   });
 }
 
@@ -286,7 +283,7 @@ function simpleSave() {
       toastr.error(err, "Error!");
     }
   };
-  api.update(wikiPath, editor.getSession().getValue(), callback);
+  api.update(wikiPath, editor.getSession().getValue(), callback, null, null, null);
   toastr.info("Saving...");
 }
 
@@ -311,7 +308,7 @@ function scroll() {
 
   var previewHeight  = $preview[0].scrollHeight,
       previewVisible = $preview.height(),
-      previewTop     = $preview[0].scrollTop,
+      // previewTop     = $preview[0].scrollTop,
       editorHeight   = editor.getSession().getLength(),
       editorVisible  = editor.getLastVisibleRow() - editor.getFirstVisibleRow(),
       editorTop      = editor.getFirstVisibleRow();

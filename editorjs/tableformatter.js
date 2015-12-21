@@ -40,7 +40,7 @@ function execHashHandler(forward) {
             // allow other ace commands to handle event
             return false;
         }
-    }
+    };
 }
 
 var CellAlign = Object.freeze({
@@ -112,7 +112,7 @@ function getTableInfo(session, cursorPos, minLineNum, maxLineNum) {
     var numRows    = table.length;
     var numColumns = 0;
 
-    var rowNum, row, columnNum, cell;
+    var rowNum, columnNum, cell;
 
     var alignRowNum  = -1;
 
@@ -287,7 +287,7 @@ function moveCursorForward(editor, session, tableInfo, newLine) {
         // move to the next column in the same row
         moveCursorToCell(editor, tableInfo, focusPos.row, focusPos.column + 1);
     }
-    else if (focusPos.row === 0 && focusPos.column == tableInfo.numColumns - 1) {
+    else if (focusPos.row === 0 && focusPos.column === tableInfo.numColumns - 1) {
         // move to the last of the header row
         session.insert(
             {

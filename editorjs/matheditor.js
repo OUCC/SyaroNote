@@ -11,7 +11,7 @@ var editor,
 export default function mathEditor(edit) {
   editor = edit;
   typemath = new TypeMath($("#mdlMath-field"), $("#mdlMath-latex"),
-    $("#mdlMath-candy"), $("#mdlMath-ghost"), $("#mdlMath-select"));
+    $("#mdlMath-candy"), $("#mdlMath-ghost"), $("#mdlMath-select"), null);
 
   $('#mdlMath').on('shown.bs.modal', function () {
     $('#mdlMath-latex').focus();
@@ -77,10 +77,10 @@ function detectMath () {
   // inline math $x$
   var c1 = (line.slice(0, pos.column).match(/\$/g) || []).length;
   var c2 = (line.slice(pos.column).match(/\$/g) || []).length;
-  if (c1%2 == 1 && c2 > 0) {
+  if (c1%2 === 1 && c2 > 0) {
     inline = true;
-    var startCol = line.slice(0, pos.column).lastIndexOf('$');
-    var endCol = pos.column + line.slice(pos.column).indexOf('$') + 1;
+    let startCol = line.slice(0, pos.column).lastIndexOf('$');
+    let endCol = pos.column + line.slice(pos.column).indexOf('$') + 1;
     mathRange = new Range(pos.row, startCol, pos.row, endCol);
     return;
   }
@@ -90,8 +90,8 @@ function detectMath () {
   c2 = (line.slice(pos.column).match(/\$\$/g) || []).length;
   if (c1 > 0 && c2 > 0) {
     inline = false;
-    var startCol = line.slice(0, pos.column).lastIndexOf('$$');
-    var endCol = pos.column + line.slice(pos.column).indexOf('$$') + 2;
+    let startCol = line.slice(0, pos.column).lastIndexOf('$$');
+    let endCol = pos.column + line.slice(pos.column).indexOf('$$') + 2;
     mathRange = new Range(pos.row, startCol, pos.row, endCol);
     return;
   }
