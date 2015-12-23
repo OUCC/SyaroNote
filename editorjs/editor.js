@@ -1,8 +1,8 @@
-/// <reference path="../typings/bundle.d.ts" />
 /* global syaro */
 /* global hljs */
 /* global convert */
 /* global emojify */
+import * as preview from './preview'
 import tableFormatter from './tableformatter'
 import emojiAutoComplete from './emojiautocomplete'
 import mathEditor from './matheditor'
@@ -17,8 +17,8 @@ var editor,
     timeoutId = 0,
     wikiPath = '',
     fileName = '',
-    preview = true,
-    syncScroll = true;
+    optionPreview = true,
+    optionSyncScroll = true;
 
 function init() {
   // set wiki path
@@ -151,19 +151,19 @@ function initUi() {
   $('#optionSyncScroll > span').toggleClass('glyphicon-check', true);
 
   $('#optionPreview').on('click', function () {
-    preview = !preview;
+    optionPreview = !optionPreview;
     $('#optionPreview > span').toggleClass('glyphicon-check');
     $('#optionPreview > span').toggleClass('glyphicon-unchecked');
     $('#optionMathJax').parent('li').toggleClass('disabled');
-    
-    if (preview) {
+
+    if (optionPreview) {
       renderPreview();
     }
     return false;
   });
 
   $('#optionSyncScroll').on('click', function () {
-    syncScroll = !syncScroll;
+    optionSyncScroll = !optionSyncScroll;
     $('#optionSyncScroll > span').toggleClass('glyphicon-check');
     $('#optionSyncScroll > span').toggleClass('glyphicon-unchecked');
     return false;
@@ -210,13 +210,14 @@ function initAce() {
 
     $('#btnSave').addClass('modified');
 
-    if (!timeoutId) { clearTimeout(timeoutId); }
+    if (timeoutId) { clearTimeout(timeoutId); }
 
     timeoutId = setTimeout(() => {
       if (initialized) {
         backup(false);
       }
       renderPreview();
+      timeoutId = 0;
     }, 600);
   });
 
@@ -246,27 +247,10 @@ function initEmojify() {
 }
 
 function renderPreview() {
-  if (!preview) { return; }
+  if (!optionPreview) { return; }
 
-  console.debug('rendering preview...');
   var html = convert(editor.getSession().getValue());
-  $('#preview').html(html);
-
-  if (emojify) {
-    emojify.run($('#preview').get(0));
-  }
-
-  if (syaro.highlight && hljs) {
-    $('#preview pre code').each(function(i, block) {
-      hljs.highlightBlock(block);
-    });
-  }
-
-  // http://mathjax.readthedocs.org/en/latest/typeset.html
-  if (syaro.mathjax && MathJax) {
-    // update math in #preview
-    MathJax.Hub.Queue(["Typeset", MathJax.Hub, "preview"]);
-  }
+  preview.render(html);
 
   if (!initialized) {
     $('#splash').remove();
@@ -309,7 +293,7 @@ function getBackup() {
 }
 
 function scroll() {
-  if (!syncScroll) { return; }
+  if (!optionSyncScroll) { return; }
 
   var $preview = $('#preview');
 

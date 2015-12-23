@@ -9,7 +9,9 @@
   "author": "Yuto Tokunaga",
   "license": "MIT",
   "dependencies": {
-    "eastasianwidth": "^0.1.0"
+    "eastasianwidth": "^0.1.0",
+    "vdom-virtualize": "^1.0.1",
+    "virtual-dom": "^2.1.1"
   },
   "devDependencies": {
     "babelify": "^6.3.0",

@@ -8,6 +8,8 @@
         "tableformatter.js",
         "emojiautocomplete.js",
         "matheditor.js",
-        "api.js"
+        "api.js",
+        "preview.js",
+        "../typings/bundle.d.ts"
     ]
 }
