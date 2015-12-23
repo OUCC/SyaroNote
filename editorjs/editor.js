@@ -149,13 +149,16 @@ function initUi() {
   //
   $('#optionPreview > span').toggleClass('glyphicon-check', true);
   $('#optionSyncScroll > span').toggleClass('glyphicon-check', true);
-  // $('#optionMathJax > span').toggleClass('glyphicon-unchecked', true);
 
   $('#optionPreview').on('click', function () {
     preview = !preview;
     $('#optionPreview > span').toggleClass('glyphicon-check');
     $('#optionPreview > span').toggleClass('glyphicon-unchecked');
     $('#optionMathJax').parent('li').toggleClass('disabled');
+    
+    if (preview) {
+      renderPreview();
+    }
     return false;
   });
 
@@ -243,11 +246,15 @@ function initEmojify() {
 }
 
 function renderPreview() {
+  if (!preview) { return; }
+
   console.debug('rendering preview...');
   var html = convert(editor.getSession().getValue());
   $('#preview').html(html);
 
-  emojify.run($('#preview').get(0));
+  if (emojify) {
+    emojify.run($('#preview').get(0));
+  }
 
   if (syaro.highlight && hljs) {
     $('#preview pre code').each(function(i, block) {
