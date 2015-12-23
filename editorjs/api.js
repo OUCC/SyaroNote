@@ -1,42 +1,51 @@
-export function get (wpath, callback) {
+export function get (wpath) {
   var url = '/api/get?wpath=' + encodeURIComponent(wpath);
 
-  var xhr = new XMLHttpRequest();
-  xhr.open('GET', url);
-  xhr.onreadystatechange = function () {
-    if(xhr.readyState !== 4) { return; }
-    switch (xhr.status) {
-    case 200:
-      callback(xhr.responseText);
-      break
-
-    default:
-      callback(undefined, xhr.statusText);
-      break
-    }
-  };
-  xhr.send();
+  return xhr({
+    url: url,
+    method: 'GET',
+  });
 }
 
-export function update (wpath, contents, callback, message, name, email) {
+export function update (wpath, contents, message, name, email) {
   var url = '/api/update?wpath=' + encodeURIComponent(wpath);
   if (message) { url += '&message=' + encodeURIComponent(message); }
   if (name) { url += '&name=' + encodeURIComponent(name); }
   if (email) { url += '&email=' + encodeURIComponent(email); }
 
-  var xhr = new XMLHttpRequest();
-  xhr.open('POST', url);
-  xhr.onreadystatechange = function () {
-    if(xhr.readyState !== 4) { return; }
-    switch (xhr.status) {
-    case 200:
-      callback();
-      break
+  return xhr({
+    url: url,
+    method: 'POST',
+    body: contents,
+  });
+}
 
-    default:
-      callback(xhr.statusText);
-      break
-    }
-  };
-  xhr.send(contents);
+function xhr(arg) {
+  return new Promise(function (resolve, reject) {
+    var req = new XMLHttpRequest();
+    req.open(arg.method, arg.url);
+
+    req.onreadystatechange = function () {
+      if (req.readyState !== XMLHttpRequest.DONE) { return; }
+
+      var arg = $.extend(arg, {
+        status: req.status,
+        statusText: req.statusText,
+        response: req.response,
+        responseText: req.responseText,
+      });
+      if (Math.floor(req.status / 100) === 2) {
+        resolve(arg);
+      } else {
+        reject(arg);
+      }
+    };
+
+    req.onerror = function () {
+      reject(arg);
+    };
+
+    if (arg.body) req.send(arg.body);
+    else req.send();
+  });
 }

@@ -12,7 +12,6 @@ const BACKUP_KEY = 'syaro_backup';
 
 var editor,
     math,
-    initialized = false,
     modified = false,
     timeoutId = 0,
     wikiPath = '',
@@ -34,29 +33,39 @@ function init() {
   $('.navbar-brand').text(fileName);
 
   initUi();
-  initEmojify();
   initAce();
 
   toastr.options = {
     'positionClass' : 'toast-bottom-right',
   };
 
-  // register ace HashHandlers
-  tableFormatter(editor);
-  emojiAutoComplete(editor);
-  mathEditor(editor);
-
-  // load markdown
-  api.get(wikiPath, function (contents, err) {
-    if (contents) { editor.getSession().setValue(contents); }
-    else { window.alert("**ERROR** failed to load " + wikiPath + "\n" + err); }
-    editor.focus();
+  emojify.setConfig({
+    mode: 'sprites',
+    ignore_emoticons: true,
   });
 
-  // TODO backup
-  if (getBackup()) {
-    $('#mdlBackup').modal('show');
-  }
+  // load markdown
+  api.get(wikiPath)
+    .then((arg) => {
+      editor.getSession().setValue(arg.responseText);
+
+      if (getBackup()) {
+        $('#mdlBackup').modal('show');
+      }
+
+      $('#splash').remove();
+      modified = false;
+      document.title = fileName;
+      $('#btnSave').removeClass('modified');
+
+      editor.focus();
+    })
+    .catch((arg) => {
+      $('#splash').remove();
+      window.alert("**ERROR** failed to load " + wikiPath + "\n" +
+        arg.status + " " + arg.statusText + "\n" +
+        arg.responseText);
+    });
 }
 
 function get_url_vars() {
@@ -76,32 +85,26 @@ function initUi() {
   //
   // navbar
   //
-  $('#btnSave').on('click', function () {
-    if (syaro.gitmode) {
-      // restore user signature from local storage
-      var name  = localStorage.getItem("name"),
-          email = localStorage.getItem("email");
-      if (name) $('#nameInput').val(name);
-      if (email) $('#emailInput').val(email);
-
-      // $('.alert').hide();
-      // $('#saveModalButton').toggleClass('disabled', false);
-      // show save modal
-      $('#mdlSave').modal('show');
-
-    } else {
-      simpleSave();
-    }
-  });
-
-  $('#btnClose').on('click', function () {
+  $('#btnSave').on('click', save);
+  $('#btnClose').on('click', () => {
     window.location.href = decodeURIComponent(wikiPath);
   });
 
   //
   // modal
   //
-  $('#mdlSave-save').on('click', function() {
+  $('#mdlSave-save').on('show.bs.modal', () => {
+    // restore user signature from local storage
+    let name = localStorage.getItem("name")
+      , email = localStorage.getItem("email");
+    if (name) $('#nameInput').val(name);
+    if (email) $('#emailInput').val(email);
+  });
+  $('#mdlSave-save').on('shown.bs.modal', () => {
+    $('#nameInput').focus();
+  });
+  $('#mdlSave-save').on('click', () => {
+    var contents = editor.getSession().getValue();
     var message = $('#messageInput').val();
     var name    = $('#nameInput').val();
     var email   = $('#emailInput').val();
@@ -110,37 +113,31 @@ function initUi() {
     localStorage.setItem("name", name);
     localStorage.setItem("email", email);
 
-    var callback = function (err) {
-      // $('#mdlSave-save').button('reset');
-      // $('.alert').hide();
-      toastr.clear();
+    $('#mdlSave').modal('hide');
+    toastr.info("", "Saving...");
 
-      if (!err) {
-        // $('#saveModal').modal('hide');
+    api.update(wikiPath, contents, message, name, email)
+      .then((arg) => {
+        toastr.clear();
+
         toastr.success("", "Saved");
         modified = false;
         document.title = fileName;
         $('#btnSave').removeClass('modified');
-        backup(true);
-      } else {
-        // $('#mdlSave-alart').html('<strong>Error</strong> ' + req.responseText);
-        // $('#mdlSave-alart').show();
-        toastr.error(err, "Error!");
-      }
-    };
-    api.update(wikiPath, editor.getSession().getValue(), callback,
-      message, name, email);
-
-    // $('#saveModalButton').button('loading');
-    $('#mdlSave').modal('hide');
-    toastr.info("", "Saving...");
+        removeBackup();
+      })
+      .catch((arg) => {
+        toastr.clear();
+        toastr.error(arg.status + " " + arg.statusText + "\n" +
+          arg.responseText, "ERROR!");
+      });
   });
   $('#mdlBackup-restore').on('click', function () {
-    editor.getSession().getDocument().setValue(getBackup());// FIXME
+    editor.getSession().setValue(getBackup());
     $('#mdlBackup').modal('hide');
   });
   $('#mdlBackup-discard').on('click', function () {
-    backup(true); // remove backup
+    removeBackup();
     $('#mdlBackup').modal('hide');
   });
 
@@ -157,7 +154,8 @@ function initUi() {
     $('#optionMathJax').parent('li').toggleClass('disabled');
 
     if (optionPreview) {
-      renderPreview();
+      var html = convert(editor.getSession().getValue());
+      preview.render(html);
     }
     return false;
   });
@@ -202,97 +200,89 @@ function initAce() {
   // Automatically scrolling cursor into view after selection change this will be disabled in the next version
   editor.$blockScrolling = Infinity;
 
-  editor.getSession().on('change', (e) => {
-    modified = true;
-
-    // update title
-    document.title = '* ' + fileName;
-
-    $('#btnSave').addClass('modified');
-
-    if (timeoutId) { clearTimeout(timeoutId); }
-
-    timeoutId = setTimeout(() => {
-      if (initialized) {
-        backup(false);
-      }
-      renderPreview();
-      timeoutId = 0;
-    }, 600);
-  });
-
-  // sync scroll
-  editor.getSession().on('changeScrollTop', scroll);
-
+  //
+  // Keyboard shortcut
+  //
   // Ctrl-S: save
   var HashHandler = ace.require('ace/keyboard/hash_handler').HashHandler;
   editor.keyBinding.addKeyboardHandler(new HashHandler([{
     bindKey: "Ctrl-S",
     descr:   "Save document",
-    exec:    function () {
-      if (syaro.gitmode) {
-        $('#mdlSave').modal('show');
-      } else {
-        simpleSave();
-      }
-    },
+    exec: save,
   }]));
-}
 
-function initEmojify() {
-  emojify.setConfig({
-    mode: 'sprites',
-    ignore_emoticons: true,
+  // register ace HashHandlers
+  tableFormatter(editor);
+  emojiAutoComplete(editor);
+  mathEditor(editor);
+
+  //
+  // Event
+  //
+  editor.getSession().on('change', (e) => {
+    modified = true;
+    document.title = '* ' + fileName; // update title
+    $('#btnSave').addClass('modified');
+
+    if (timeoutId) { clearTimeout(timeoutId); }
+
+    timeoutId = setTimeout(() => {
+      backup();
+      timeoutId = 0;
+
+      if (!optionPreview) { return; }
+
+      var html = convert(editor.getSession().getValue());
+      preview.render(html);
+    }, 600);
   });
+
+  // sync scroll
+  editor.getSession().on('changeScrollTop', syncScroll);
 }
 
-function renderPreview() {
-  if (!optionPreview) { return; }
-
-  var html = convert(editor.getSession().getValue());
-  preview.render(html);
-
-  if (!initialized) {
-    $('#splash').remove();
-    initialized = true;
-    modified = false;
-    document.title = fileName;
-    $('#btnSave').removeClass('modified');
+function save() {
+  if (syaro.gitmode) {
+    $('#mdlSave').modal('show');
+    return;
   }
-}
 
-function simpleSave() {
-  var callback = function (err) {
-    toastr.clear();
-    if (!err) {
+  toastr.info("Saving...");
+
+  let contents = editor.getSession().getValue();
+  api.update(wikiPath, contents, null, null, null)
+    .then((arg) => {
+      toastr.clear();
       toastr.success("", "Saved");
       modified = false;
       document.title = fileName;
       $('#btnSave').removeClass('modified');
-      backup(true);
-    } else {
-      toastr.error(err, "Error!");
-    }
-  };
-  api.update(wikiPath, editor.getSession().getValue(), callback, null, null, null);
-  toastr.info("Saving...");
+      removeBackup();
+    })
+    .catch((arg) => {
+      toastr.clear();
+      toastr.error(arg.status + " " + arg.statusText + "\n" +
+        arg.responseText, "ERROR!");
+    });
 }
 
-function backup(remove) {
-  let key = BACKUP_KEY+'_'+wikiPath;
-  if (remove) {
-    localStorage.removeItem(key);
-  } else {
-    localStorage.setItem(key, editor.getSession().getValue());
-  }
+function backup() {
+  let key = BACKUP_KEY + '_' + wikiPath
+    , contents = editor.getSession().getValue();
+  localStorage.setItem(key, contents);
 }
 
 function getBackup() {
-  let key = BACKUP_KEY+'_'+wikiPath;
+  let key = BACKUP_KEY + '_' + wikiPath;
   return localStorage.getItem(key);
 }
 
-function scroll() {
+function removeBackup() {
+  let key = BACKUP_KEY + '_' + wikiPath;
+  localStorage.removeItem(key);
+}
+
+function syncScroll() {
   if (!optionSyncScroll) { return; }
 
   var $preview = $('#preview');
@@ -308,7 +298,8 @@ function scroll() {
   //   = previewTop / (previewHeight - previewVisible)
   var top = editorTop * (previewHeight - previewVisible) / (editorHeight - editorVisible);
 
-  $preview.scrollTop(top);
+  // $preview.scrollTop(top);
+  $preview.animate({ scrollTop: top }, 10, 'swing');
 }
 
 init();
