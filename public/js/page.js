@@ -46,7 +46,7 @@ $(function () {
         filename = filename + '.md';
       }
       if (filename[0] !== '/') {
-        filename = syaro.wikiPath + '/' + filename;
+        filename = joinPath([syaro.wikiPath, filename]);
       }
 
       Promise.resolve({
@@ -88,7 +88,7 @@ $(function () {
       var dst = $('#renameModal input').val();
       if (dst.length === 0) { return; }
       if (dst[0] !== '/') {
-        dst = syaro.wikiPath + '/' + dst;
+        dst = joinPath([syaro.wikiPath, dst]);
       }
 
       $('#renameModalButton').button('loading');
@@ -244,7 +244,7 @@ $(function () {
     var ps = [];
     for (var i = 0; i < l; i++) {
       var f = files[i];
-      var wpath = syaro.wikiPath + '/' + f.name;
+      var wpath = joinPath([syaro.wikiPath, f.name]);
 
       ps.push(new Promise(function (resolve, reject) {
         var r = new FileReader();
@@ -370,6 +370,10 @@ $(function () {
       if (arg.body) req.send(arg.body);
       else req.send();
     });
+  }
+  
+  function joinPath(parts) {
+    return parts.join('/').replace(/\/+/g, '/');
   }
 
   init();
