@@ -16,6 +16,8 @@ var editor,
     timeoutId = 0,
     wikiPath = '',
     fileName = '',
+    savedText = '',
+    initialized = false,
     optionPreview = true,
     optionSyncScroll = true;
 
@@ -47,18 +49,16 @@ function init() {
   // load markdown
   api.get(wikiPath)
     .then((arg) => {
-      editor.getSession().setValue(arg.responseText);
-
-      if (getBackup()) {
-        $('#mdlBackup').modal('show');
-      }
-
+      savedText = arg.responseText;
       $('#splash').remove();
-      modified = false;
-      document.title = fileName;
-      $('#btnSave').removeClass('modified');
 
-      editor.focus();
+      if (getBackup()) { // backup is available
+        $('#mdlBackup').modal('show');
+      } else { // DONT OVERWRITE BACKUP UNTIL USER SELECTS DISCARD
+        editor.getSession().setValue(savedText);
+        editor.focus();
+        initialized = true;
+      }
     })
     .catch((arg) => {
       $('#splash').remove();
@@ -81,6 +81,7 @@ function get_url_vars() {
 function initUi() {
   $('.alert').hide();
   $('.modal').hide();
+  $('#mdlBackup').modal({keyboard: false});
 
   //
   // navbar
@@ -125,6 +126,7 @@ function initUi() {
         document.title = fileName;
         $('#btnSave').removeClass('modified');
         removeBackup();
+        savedText = contents;
       })
       .catch((arg) => {
         toastr.clear();
@@ -132,13 +134,19 @@ function initUi() {
           arg.responseText, "ERROR!");
       });
   });
-  $('#mdlBackup-restore').on('click', function () {
-    editor.getSession().setValue(getBackup());
+  $('#mdlBackup-restore').on('click', () => {
     $('#mdlBackup').modal('hide');
+
+    editor.getSession().setValue(getBackup());
+    initialized = true;
   });
-  $('#mdlBackup-discard').on('click', function () {
+  $('#mdlBackup-discard').on('click', () => {
     removeBackup();
     $('#mdlBackup').modal('hide');
+
+    editor.getSession().setValue(savedText);
+    editor.focus();
+    initialized = true;
   });
 
   //
@@ -220,9 +228,11 @@ function initAce() {
   // Event
   //
   editor.getSession().on('change', (e) => {
+    if (initialized) {
     modified = true;
     document.title = '* ' + fileName; // update title
     $('#btnSave').addClass('modified');
+    }
 
     if (timeoutId) { clearTimeout(timeoutId); }
 
@@ -258,6 +268,7 @@ function save() {
       document.title = fileName;
       $('#btnSave').removeClass('modified');
       removeBackup();
+      savedText = contents;
     })
     .catch((arg) => {
       toastr.clear();
