@@ -13,7 +13,7 @@ Features
 Syaro can handle markdown format files. [blackfriday] is used to convert
 Markdown to HTML.
 
-Viewer supports MathJax. LaTeX text surrounded by `$` (inline math) or `$$` 
+Viewer supports MathJax. LaTeX text surrounded by `$` (inline math) or `$$`
 (display math) is converted to beautiful mathematical expression.
 
 Viewer also supports code syntax highlighting. This feature is powered by
@@ -21,7 +21,7 @@ Viewer also supports code syntax highlighting. This feature is powered by
 
 ### `[[WikiLink]]`
 Texts surrounded by double bracket are interpreted as WikiLink. To link to
-another wiki page, you can use WikiLink. 
+another wiki page, you can use WikiLink.
 another wiki page, you can use WikiLink. For example,
 
 ```
@@ -57,7 +57,7 @@ is appended when you see `gochiusa.md`.
 ### Powerful Markdown editor
 * Realtime preview (including MathJax rendering and code highlighting)
 * Markdown syntax highlight
-* User fiendly table editor (inspired by 
+* User fiendly table editor (inspired by
 [Sublime Table Editor](https://sublime.wbond.net/packages/Table%20Editor))
   - auto format (alignment, cell size) table
   - move cursor by tab/shift-tab
@@ -78,10 +78,12 @@ VS. [Gollum](https://github.com/gollum/gollum)
 * Table editor
 
 ## Build
+Go and nodejs are required.
+
 ### syaro
 ```sh
 go get github.com/OUCC/SyaroNote
-go build -ldflags "-X main.version=$(git describe)" -o build/syaro github.com/OUCC/SyaroNote/syaro 
+go build -ldflags "-X main.version=$(git describe)" -o build/syaro github.com/OUCC/SyaroNote/syaro
 ```
 
 ### editor
@@ -98,7 +100,7 @@ bower install
 gulp copy
 ```
 
-### git plugin
+### git plugin (optional)
 ```sh
 cd $GOPATH/src/github.com/libgit2/git2go
 git submodule update --init
@@ -143,6 +145,7 @@ About
 ### Author
 * @yuntan
 * @susisu (Table editor)
+* @spring-raining (emoji)
 
 This software is released under MIT License.
 
