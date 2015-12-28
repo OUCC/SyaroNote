@@ -1,5 +1,5 @@
 /* global hljs */
-/* global emojify */
+/* global emojione */
 import {diff, patch} from 'virtual-dom'
 import virtualize from 'vdom-virtualize'
 
@@ -13,11 +13,11 @@ export function render(html) {
 
   console.debug('rendering preview...');
 
-  buffer.innerHTML = html;
-
-  if (emojify) {
-    emojify.run(buffer); // sync
+  if (emojione) {
+    html = emojione.toImage(html);
   }
+
+  buffer.innerHTML = html;
 
   if (hljs) {
     $('#preview-buffer pre code').each(function(i, block) {

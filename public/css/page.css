@@ -45,6 +45,9 @@
 .syaro-center header>h1 {
     font-size: 28px;
 }
+.syaro-center article.markdown {
+    margin-bottom: 30px;
+}
 
 /* history pane */
 #syaro-history .progress {

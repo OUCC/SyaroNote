@@ -1,5 +1,7 @@
-/* global emojify */
 /* global syaro */
+/* global hljs */
+/* global emojione */
+
 $(function () {
   "use strict";
 
@@ -11,7 +13,8 @@ $(function () {
     initModal();
     initFileList();
     initFileListMenu();
-    initEmojify();
+    initHighlight();
+    initEmojione();
     initHistory();
 
     if ($('.syaro-right nav')) {
@@ -294,14 +297,21 @@ $(function () {
     }
   }
 
-  function initEmojify() {
-    emojify.setConfig({
-      mode: 'img',
-      img_dir: '/images/emoji',
-      ignore_emoticons: true,
+  function initHighlight() {
+    if (!hljs) { return; }
+    $('#syaro-content pre code').each(function(i, block) {
+      hljs.highlightBlock(block); // sync
     });
-    $(".markdown").each(function () {
-      emojify.run($(this).get(0));
+  }
+
+  function initEmojione() {
+    if (!emojione) { return; }
+    emojione.unicodeAlt = false;
+    emojione.imagePathPNG = '/images/emojione/';
+
+    $('.markdown').each(function () {
+      var html = this.innerHTML;
+      this.innerHTML = emojione.toImage(html);
     });
   }
 
@@ -371,7 +381,7 @@ $(function () {
       else req.send();
     });
   }
-  
+
   function joinPath(parts) {
     return parts.join('/').replace(/\/+/g, '/');
   }

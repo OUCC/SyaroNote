@@ -259,7 +259,7 @@
 }
 
 /* emoji */
-.markdown img.emoji {
+.markdown img.emojione {
     display: inline-block;
     margin: 0 0 .25em 0;
     width: 1.2em;

@@ -7,6 +7,7 @@
         "editor.js",
         "tableformatter.js",
         "emojiautocomplete.js",
+        "emojicompleter.js",
         "matheditor.js",
         "api.js",
         "preview.js",

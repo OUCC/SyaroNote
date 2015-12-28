@@ -1,10 +1,11 @@
 /* global syaro */
 /* global hljs */
 /* global convert */
-/* global emojify */
+/* global emojione */
 import * as preview from './preview'
 import tableFormatter from './tableformatter'
-import emojiAutoComplete from './emojiautocomplete'
+// import emojiAutoComplete from './emojiautocomplete'
+import EmojiCompleter from './emojicompleter'
 import mathEditor from './matheditor'
 import * as api from './api'
 
@@ -41,10 +42,11 @@ function init() {
     'positionClass' : 'toast-bottom-right',
   };
 
-  emojify.setConfig({
-    mode: 'sprites',
-    ignore_emoticons: true,
-  });
+  // emojione config
+  if (emojione) {
+    emojione.unicodeAlt = false;
+    emojione.imagePathPNG = '/images/emojione/';
+  }
 
   // load markdown
   api.get(wikiPath)
@@ -186,7 +188,6 @@ function initUi() {
 }
 
 function initAce() {
-  ace.require("ace/ext/language_tools");
   editor = ace.edit('editor');
 
   editor.setTheme('ace/theme/chrome');
@@ -221,17 +222,18 @@ function initAce() {
 
   // register ace HashHandlers
   tableFormatter(editor);
-  emojiAutoComplete(editor);
+  // emojiAutoComplete(editor);
   mathEditor(editor);
+  EmojiCompleter();
 
   //
   // Event
   //
   editor.getSession().on('change', (e) => {
     if (initialized) {
-    modified = true;
-    document.title = '* ' + fileName; // update title
-    $('#btnSave').addClass('modified');
+      modified = true;
+      document.title = '* ' + fileName; // update title
+      $('#btnSave').addClass('modified');
     }
 
     if (timeoutId) { clearTimeout(timeoutId); }

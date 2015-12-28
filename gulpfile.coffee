@@ -15,16 +15,16 @@ gulp.task 'copy', ->
       'bower_components/highlightjs/styles/github.css'
     ]
     .pipe gulp.dest 'build/public/css'
-  gulp.src 'bower_components/emojify.js/dist/css/sprites/emojify.min.css'
-    .pipe rename 'emojify.sprites.min.css'
+  gulp.src [
+      'bower_components/emojione/emoji.json'
+      'bower_components/emojione/emoji_strategy.json'
+      'bower_components/emojione/lib/js/emojione.min.js'
+    ]
+    .pipe gulp.dest 'build/public/js'
+  gulp.src 'bower_components/emojione/assets/css/emojione.min.css'
     .pipe gulp.dest 'build/public/css'
-  gulp.src 'bower_components/emojify.js/dist/css/basic/emojify.min.css'
-    .pipe rename 'emojify.basic.min.css'
-    .pipe gulp.dest 'build/public/css'
-  gulp.src 'bower_components/emojify.js/dist/images/sprites/*'
-    .pipe gulp.dest 'build/public/images/sprites'
-  gulp.src 'bower_components/emojify.js/dist/images/basic/*'
-    .pipe gulp.dest 'build/public/images/emoji'
+  gulp.src 'bower_components/emojione/assets/png/*'
+    .pipe gulp.dest 'build/public/images/emojione'
   gulp.src [
       'public/js/**',
       'public/css/*',
