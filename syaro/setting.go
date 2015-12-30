@@ -70,8 +70,6 @@ func init() {
 		"Enable git integration")
 	flag.BoolVar(&setting.readonly, "readonly", false,
 		"Readonly mode")
-	flag.BoolVar(&setting.search, "search", false,
-		"enable indexing for searching markdown documents")
 	flag.BoolVar(&setting.verbose, "verbose", false,
 		"Verbose output")
 	flag.BoolVar(&setting.quiet, "quiet", false,

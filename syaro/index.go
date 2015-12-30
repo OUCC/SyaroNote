@@ -6,7 +6,6 @@ import (
 	"github.com/blevesearch/bleve"
 	"github.com/blevesearch/bleve/analysis/analyzers/keyword_analyzer"
 	_ "github.com/blevesearch/bleve/analysis/language/en"
-	// _ "github.com/blevesearch/bleve/analysis/language/ja"
 
 	"gopkg.in/fsnotify.v1"
 
@@ -46,7 +45,39 @@ func (w *wikiPageIndex) Type() string {
 // must be called after setting.wikiRoot is set
 func indexLoop() {
 	blevePath := filepath.Join(setting.wikiRoot, BLEVE_PATH)
-	os.RemoveAll(blevePath)
+	var err error
+	bleveIndex, err = bleve.Open(blevePath)
+	if err != nil {
+		indexAll()
+	}
+
+	// loop for updating index
+	for {
+		ev := <-updateIndex
+		wpath := toWikiPath(ev.Name)
+
+		switch ev.Op {
+		case fsnotify.Create, fsnotify.Write:
+			data, err := loadPageIndex(wpath)
+			if err != nil {
+				continue
+			}
+			log.Debug("Index %s", wpath)
+			if bleveIndex.Index(wpath, data) != nil {
+				log.Debug("Indexing falied: %v", err)
+			}
+
+		case fsnotify.Rename, fsnotify.Remove:
+			log.Debug("Delete %s", wpath)
+			if bleveIndex.Delete(wpath) != nil {
+				log.Debug("Indexing falied: %v", err)
+			}
+		}
+	}
+}
+
+func indexAll() {
+	blevePath := filepath.Join(setting.wikiRoot, BLEVE_PATH)
 	mapping, err := buildIndexMapping()
 	if err != nil {
 		log.Fatalf("Failed to create index: %v", err)
@@ -74,32 +105,7 @@ func indexLoop() {
 	if err != nil || bleveIndex.Batch(batch) != nil {
 		log.Fatalf("Failed to create index: %v", err)
 	}
-	batch.Reset()
 	log.Info("Index building end")
-
-	// loop for updating index
-	for {
-		ev := <-updateIndex
-		wpath := toWikiPath(ev.Name)
-
-		switch ev.Op {
-		case fsnotify.Create, fsnotify.Write:
-			data, err := loadPageIndex(wpath)
-			if err != nil {
-				continue
-			}
-			log.Debug("Index %s", wpath)
-			if bleveIndex.Index(wpath, data) != nil {
-				log.Debug("Indexing falied: %v", err)
-			}
-
-		case fsnotify.Rename, fsnotify.Remove:
-			log.Debug("Delete %s", wpath)
-			if bleveIndex.Delete(wpath) != nil {
-				log.Debug("Indexing falied: %v", err)
-			}
-		}
-	}
 }
 
 func buildIndexMapping() (*bleve.IndexMapping, error) {
