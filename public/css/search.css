@@ -1,0 +1,45 @@
+/* navbar */
+.navbar-default {
+  background-color: #fff;
+}
+
+#result-stat {
+  color: #808080;
+  margin-bottom: 12px;
+}
+
+.result {
+  margin-bottom: 24px;
+}
+
+.result-header a.title {
+  font-size: 18px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.result-header .score {
+  float: right;
+  display: inline-block;
+  min-width: 10px;
+  padding: 3px 7px;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  color: #fff;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: middle;
+  background-color: #777;
+  border-radius: 10px;
+}
+
+.result cite.wpath {
+  font-size: 14px;
+  color: #006621;
+  font-style: italic;
+}
+
+.result pre.fragment {
+  background-color: #fff;
+}

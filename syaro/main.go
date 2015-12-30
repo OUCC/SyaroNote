@@ -81,7 +81,7 @@ func main() {
 	go fsWatcher()
 
 	log.Info("Setting up file index...")
-	go idxBuilder()
+	go indexLoop()
 
 	// log.Info("Setting up websockets...") // TODO
 

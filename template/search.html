@@ -6,6 +6,7 @@
   {{template "meta.html"}}
 
   {{template "css.html"}}
+  <link rel="stylesheet" type="text/css" href="/css/search.css">
 
   <link rel="icon" href="/ico/favicon.png">
 </head>
@@ -42,14 +43,21 @@
     <div class="syaro-center {{with .Sidebar}} col-md-7 col-sm-9 col-xs-12 {{else}} col-md-9 col-sm-10 col-xs-12 {{end}}">
 
       <div id="syaro-search">
-        <h1>Search result of {{.Query}}</h1>
-        <div class="result-detail">Total: {{.Total}} Took: {{.Took}}</div>
-        {{range $i, $result := .Results}}
+        <div id="result-stat">{{len .Results}} Pages ({{.Took}})</div>
+
+        {{range $ := .Results}}
         <div class="result">
-          <a href="{{$result.WikiPath}}"><h2>{{$result.WikiPath}}</h2></a>
-          <div class="fragment">{{$result.Fragment}}</div>
+          <div class="result-header">
+            <a class="title" href="{{.WikiPath}}">{{if .Title}}{{.Title}}{{else}}{{.Name}}{{end}}</a>
+            <span class="score">{{printf "%.3f" .Score}}</span>
+          </div>
+          <cite class="wpath">{{.WikiPath}}</cite>
+          {{range $ := .Fragments}}
+          <pre class="fragment">{{.}}</pre>
+          {{end}}
         </div>
         {{end}}
+
       </div>
 
     </div>
@@ -64,10 +72,6 @@
       emojione.imagePathPNG = '/images/emojione/';
 
       $('.markdown').each(function () {
-        var html = this.innerHTML;
-        this.innerHTML = emojione.toImage(html);
-      });
-      $('.result .fragment').each(function () {
         var html = this.innerHTML;
         this.innerHTML = emojione.toImage(html);
       });
