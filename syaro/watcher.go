@@ -11,9 +11,8 @@ import (
 func fsWatcher() {
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
-		log.Error("Failed to setting up filesystem watcher")
-		log.Error(err.Error())
-		log.Error("Auto reload will not be available")
+		log.Error("Failed to setting up filesystem watcher: %v", err)
+		log.Error("Auto reload and text indexing will not be available")
 		return
 	}
 	defer watcher.Close()
@@ -38,18 +37,11 @@ func fsWatcher() {
 	for {
 		select {
 		case event := <-watcher.Events:
-			log.Debug("%s", event)
-			switch {
-			case event.Op&fsnotify.Create != 0:
-				log.Info("New file Created (%s)", event.Name)
-
-			case event.Op&fsnotify.Remove != 0:
-				log.Info("File removed (%s)", event.Name)
-			}
+			log.Debug("%+v", event)
+			updateIndex <- event
 
 		case err := <-watcher.Errors:
-			log.Error("Filesystem watcher unexpectedly crashed")
-			log.Error(err.Error())
+			log.Error("Filesystem watcher unexpectedly crashed: %v", err)
 		}
 	}
 }

@@ -40,7 +40,6 @@ func startServer() {
 	mux.Get(setting.urlPrefix+"/api/new", createPage)
 	mux.Get(setting.urlPrefix+"/api/rename", renameFile)
 	mux.Get(setting.urlPrefix+"/api/delete", deleteFile)
-	mux.Get(setting.urlPrefix+"/api/search", searchPage)
 	mux.Get(setting.urlPrefix+"/api/history", getHistory)
 	mux.Post(setting.urlPrefix+"/api/update", updatePage)
 	mux.Post(setting.urlPrefix+"/api/upload", uploadFile)
@@ -49,10 +48,7 @@ func startServer() {
 		func(w http.ResponseWriter, r *http.Request) {
 			tmpl.ExecuteTemplate(w, "editor.html", nil)
 		})
-	mux.Get("setting.urlPrefix+/search",
-		func(w http.ResponseWriter, r *http.Request) {
-			tmpl.ExecuteTemplate(w, "search.html", nil)
-		})
+	mux.Get(setting.urlPrefix+"/search",searchHandler)
 	mux.Get(setting.urlPrefix+"/*", mainHandler)
 
 	// listen port

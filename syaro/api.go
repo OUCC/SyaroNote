@@ -232,9 +232,6 @@ func deleteFile(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func searchPage(w http.ResponseWriter, r *http.Request) {
-}
-
 func uploadFile(w http.ResponseWriter, r *http.Request) {
 	wpath := r.URL.Query().Get("wpath")
 

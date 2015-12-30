@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Search result of {{.Query}}</title>
+
+  {{template "meta.html"}}
+
+  {{template "css.html"}}
+
+  <link rel="icon" href="/ico/favicon.png">
+</head>
+<body>
+
+  <!-- navigation bar -->
+  <div class="navbar navbar-default navbar-static-top" role="navigation">
+    <div class="container">
+
+      <div class="navbar-left">
+
+      </div>
+      <div class="navbar-header">
+        <span class="navbar-brand" href="#">
+          <span class="glyphicon glyphicon-search"></span> {{.Query}}
+        </span>
+      </div>
+
+      <div class="navbar-collapse collapse navbar-right">
+        {{template "searchbox.html"}}
+      </div>
+
+    </div>
+  </div>
+
+  <div class="container">
+
+    {{with .Sidebar}}
+    <div class="syaro-left col-md-2 col-sm-3 hidden-xs">
+      <div class="markdown">{{.}}</div>
+    </div>
+    {{end}}
+
+    <div class="syaro-center {{with .Sidebar}} col-md-7 col-sm-9 col-xs-12 {{else}} col-md-9 col-sm-10 col-xs-12 {{end}}">
+
+      <div id="syaro-search">
+        <h1>Search result of {{.Query}}</h1>
+        <div class="result-detail">Total: {{.Total}} Took: {{.Took}}</div>
+        {{range $i, $result := .Results}}
+        <div class="result">
+          <a href="{{$result.WikiPath}}"><h2>{{$result.WikiPath}}</h2></a>
+          <div class="fragment">{{$result.Fragment}}</div>
+        </div>
+        {{end}}
+      </div>
+
+    </div>
+  </div>
+
+  <!-- javascript -->
+  {{template "js.html"}}
+  <script type="text/javascript">
+    $(function () {
+      if (!emojione) { return; }
+      emojione.unicodeAlt = false;
+      emojione.imagePathPNG = '/images/emojione/';
+
+      $('.markdown').each(function () {
+        var html = this.innerHTML;
+        this.innerHTML = emojione.toImage(html);
+      });
+      $('.result .fragment').each(function () {
+        var html = this.innerHTML;
+        this.innerHTML = emojione.toImage(html);
+      });
+    });
+  </script>
+
+</body>
+</html>

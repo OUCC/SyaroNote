@@ -32,6 +32,7 @@ func resolveLink(link string) []string {
 	} else {
 		// search name as base name
 		// example: abc
-		return nameIdx[link]
+		// return nameIdx[link]
+		return nil
 	}
 }

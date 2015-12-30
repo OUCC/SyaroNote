@@ -82,3 +82,11 @@ func queryEscapeWikiPath(wpath string) string {
 	s = strings.Replace(s, "+", "%20", -1)
 	return s
 }
+
+func toWikiPath(path string) string {
+	wpath, err := filepath.Rel(setting.wikiRoot, path)
+	if err != nil || strings.HasPrefix(wpath, "..") {
+		return "/"
+	}
+	return filepath.Join(string(filepath.Separator), wpath)
+}

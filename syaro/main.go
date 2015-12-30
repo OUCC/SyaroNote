@@ -82,7 +82,6 @@ func main() {
 
 	log.Info("Setting up file index...")
 	go idxBuilder()
-	refresh <- "/"
 
 	// log.Info("Setting up websockets...") // TODO
 

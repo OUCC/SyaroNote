@@ -11,19 +11,7 @@
     </ol>
 
     <div class="navbar-collapse collapse navbar-right">
-
-      {{if search}}
-      <!-- search box -->
-      <form action="{{urlPrefix}}/error/501?data=Search" method="get" class="navbar-form navbar-left" role="search">
-        <div class="form-group">
-          <input type="text" class="form-control" placeholder="Search">
-          <button type="submit" class="btn btn-default">
-            <span class="glyphicon glyphicon-search"></span>
-          </button>
-        </div>
-      </form>
-      {{end}}
-
+      {{template "searchbox.html"}}
     </div>
 
     <!--

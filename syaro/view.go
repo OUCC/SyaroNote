@@ -1,6 +1,8 @@
 package main
 
 import (
+	"github.com/blevesearch/bleve"
+
 	"net/http"
 	"os"
 	"strconv"
@@ -46,6 +48,32 @@ func renderPage(w http.ResponseWriter, wf WikiFile) {
 	}
 	if err := tmpl.ExecuteTemplate(w, PAGE_TMPL, &wp); err != nil {
 		log.Error(err.Error())
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	log.Info("OK")
+}
+
+func searchHandler(w http.ResponseWriter, r *http.Request) {
+	q := r.URL.Query().Get("q")
+
+	log.Info("Searching... q: %s", q)
+	query := bleve.NewQueryStringQuery(q)
+	request := bleve.NewSearchRequest(query)
+	request.Highlight = bleve.NewHighlight()
+	request.Highlight.AddField("title")
+	request.Highlight.AddField("contents")
+	result, err := bleveIndex.Search(request)
+	if err != nil {
+		log.Error("Failed to search: %v", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	log.Debug(result.String())
+
+	log.Info("Rendering search page...")
+	if err := renderSearchPage(w, q, result); err != nil {
+		log.Error("Rendering error: %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
