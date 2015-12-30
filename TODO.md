@@ -26,7 +26,7 @@ TODO
 * [x] print ready page
   - [x] print button
 * [ ] search
-  - [ ] text
+  - [x] text
   - [ ] tag
   - [ ] back link
 * [x] change filelist show rule
@@ -48,9 +48,12 @@ TODO
   - [x] alert before leaving editor
   - [x] save by Ctrl-S
   - [x] saved indicator
+  - [ ] diff view
 * [x] ~~[[Link|Page name]] or [[Link>Page name]] or [[Link]](Page name)~~
 * [ ] UML diagram
 * [ ] remark.js
 * [ ] singlefile
 * [ ] auto reload (websocket)
 * [ ] documentation
+* [ ] history diff viewer
+* [ ] disambiguation page
