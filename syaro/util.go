@@ -85,8 +85,16 @@ func queryEscapeWikiPath(wpath string) string {
 
 func toWikiPath(path string) string {
 	wpath, err := filepath.Rel(setting.wikiRoot, path)
-	if err != nil || strings.HasPrefix(wpath, "..") {
-		return "/"
+	if err != nil || strings.HasPrefix(wpath, "..") || wpath == "." {
+		return string(filepath.Separator)
 	}
 	return filepath.Join(string(filepath.Separator), wpath)
+}
+
+func splitCommma(s string) []string {
+	ss := strings.Split(s, ",")
+	for i := range ss {
+		ss[i] = strings.TrimSpace(ss[i])
+	}
+	return ss
 }

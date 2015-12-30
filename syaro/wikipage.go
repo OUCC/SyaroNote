@@ -8,7 +8,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"unicode"
 )
 
 const (
@@ -19,17 +18,17 @@ const (
 type WikiPage struct {
 	WikiFile
 
-	Name string `json:"name"`
+	Name string
 
 	Meta    map[string]string
-	Title   string `json:"title"`
-	Author  string `json:"author"`
+	Title   string
+	Author  string
 	Date    string
-	Aliases []string `json:"aliases"`
-	Tags    []string `json:"tags"`
-	MathJax string   // TODO
+	Aliases []string
+	Tags    []string
+	MathJax string // TODO
 
-	Contents template.HTML `json:"contents"`
+	Contents template.HTML
 	Sidebar  template.HTML
 	TOC      template.HTML
 
@@ -39,11 +38,6 @@ type WikiPage struct {
 	Folders    []WikiFile
 	MdFiles    []WikiFile
 	OtherFiles []WikiFile
-}
-
-// implement bleve.Classifier
-func (w WikiPage) Type() string {
-	return "wiki"
 }
 
 func loadPage(wf WikiFile) (WikiPage, error) {
@@ -96,12 +90,8 @@ func loadPage(wf WikiFile) (WikiPage, error) {
 	wp.Title = wp.Meta["title"]
 	wp.Author = wp.Meta["author"]
 	wp.Date = wp.Meta["date"]
-	// split space, commma, etc
-	f := func(c rune) bool {
-		return !unicode.IsLetter(c) && !unicode.IsNumber(c)
-	}
-	wp.Aliases = strings.FieldsFunc(wp.Meta["alias"]+" "+wp.Meta["aliases"], f)
-	wp.Tags = strings.FieldsFunc(wp.Meta["tag"]+" "+wp.Meta["tags"], f)
+	wp.Aliases = splitCommma(wp.Meta["alias"] + "," + wp.Meta["aliases"])
+	wp.Tags = splitCommma(wp.Meta["tag"] + "," + wp.Meta["tags"])
 
 	var ok bool
 	wp.Parent, ok = wf.parent()
