@@ -29,6 +29,9 @@ var setting struct {
 	quiet   bool
 	color   bool
 
+	// bleve indexing
+	IndexingMode string `yaml:"indexing_mode"`
+
 	// authentication
 	Auth struct { // TODO
 		Reader string `yaml:"reader"`
@@ -97,6 +100,7 @@ func parseFlags() {
 
 func loadYaml() {
 	// default values
+	setting.IndexingMode = "standard"
 	setting.Markdown.MathJax = true
 	setting.Markdown.Highlight = true
 	setting.Markdown.Emoji = true

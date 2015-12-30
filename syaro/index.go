@@ -1,22 +1,19 @@
 package main
 
 import (
+	"github.com/OUCC/SyaroNote/syaro/markdown"
+
 	"github.com/blevesearch/bleve"
-	"github.com/blevesearch/bleve/analysis/analyzers/custom_analyzer"
 	"github.com/blevesearch/bleve/analysis/analyzers/keyword_analyzer"
-	"github.com/blevesearch/bleve/analysis/char_filters/html_char_filter"
-	"github.com/blevesearch/bleve/analysis/language/en"
-	"github.com/blevesearch/bleve/analysis/language/ja"
-	"github.com/blevesearch/bleve/analysis/token_filters/lower_case_filter"
-	"github.com/blevesearch/bleve/analysis/token_filters/porter"
-	"github.com/blevesearch/bleve/analysis/token_filters/unicode_normalize"
-	"github.com/blevesearch/bleve/analysis/tokenizers/unicode"
+	_ "github.com/blevesearch/bleve/analysis/language/en"
+	// _ "github.com/blevesearch/bleve/analysis/language/ja"
 
 	"gopkg.in/fsnotify.v1"
 
+	"fmt"
+	"html"
 	"os"
 	"path/filepath"
-	// "regexp"
 	"strings"
 )
 
@@ -30,17 +27,33 @@ var (
 	updateIndex = make(chan fsnotify.Event)
 )
 
+type wikiPageIndex struct {
+	Name string `json:"name"`
+
+	Title   string   `json:"title"`
+	Author  string   `json:"author"`
+	Aliases []string `json:"aliases"`
+	Tags    []string `json:"tags"`
+
+	Contents string `json:"contents"`
+}
+
+// implement bleve.Classifier
+func (w *wikiPageIndex) Type() string {
+	return "wiki"
+}
+
 // must be called after setting.wikiRoot is set
-func idxBuilder() {
+func indexLoop() {
 	blevePath := filepath.Join(setting.wikiRoot, BLEVE_PATH)
 	os.RemoveAll(blevePath)
 	mapping, err := buildIndexMapping()
 	if err != nil {
-		log.Fatal("Failed to create index: %v", err)
+		log.Fatalf("Failed to create index: %v", err)
 	}
 	bleveIndex, err = bleve.New(blevePath, mapping)
 	if err != nil {
-		log.Fatal("Failed to create index: %v", err)
+		log.Fatalf("Failed to create index: %v", err)
 	}
 
 	log.Info("Building index...")
@@ -50,43 +63,33 @@ func idxBuilder() {
 			return err
 		}
 
-		// exclude hidden files
-		if strings.Contains(path, "/.") {
-			return nil
-		}
 		wpath := toWikiPath(path)
-		wf, err := loadFile(wpath)
-		if err != nil || wf.fileType == WIKIFILE_OTHER {
-			return nil
-		}
-		wp, err := loadPage(wf)
+		data, err := loadPageIndex(wpath)
 		if err != nil {
 			return nil
 		}
 		log.Debug("Indexing %s", wpath)
-		return batch.Index(wpath, wp)
+		return batch.Index(wpath, data)
 	})
 	if err != nil || bleveIndex.Batch(batch) != nil {
-		log.Fatal("Failed to create index: %v", err)
+		log.Fatalf("Failed to create index: %v", err)
 	}
+	batch.Reset()
 	log.Info("Index building end")
 
 	// loop for updating index
 	for {
 		ev := <-updateIndex
 		wpath := toWikiPath(ev.Name)
+
 		switch ev.Op {
 		case fsnotify.Create, fsnotify.Write:
-			log.Debug("Index %s", wpath)
-			wf, err := loadFile(wpath)
-			if err != nil || wf.fileType == WIKIFILE_OTHER {
-				continue
-			}
-			wp, err := loadPage(wf)
+			data, err := loadPageIndex(wpath)
 			if err != nil {
 				continue
 			}
-			if bleveIndex.Index(wpath, wp) != nil {
+			log.Debug("Index %s", wpath)
+			if bleveIndex.Index(wpath, data) != nil {
 				log.Debug("Indexing falied: %v", err)
 			}
 
@@ -97,124 +100,29 @@ func idxBuilder() {
 			}
 		}
 	}
-
-	// 		case q := <-searchName:
-	// 			log.Debug("Searching name... q: %s", q)
-	// 			query := bleve.NewPhraseQuery([]string{q}, "name")
-	// 			request := bleve.NewSearchRequest(query)
-	// 			result, err := bleveIndex.Search(request)
-	// 			if err != nil {
-	// 				log.Debug("Error: %v", err)
-	// 			} else if result.Total > 0 {
-	// 				log.Debug(result.String())
-	// 				continue
-	// 			}
-
-	// 			query = bleve.NewPhraseQuery([]string{q}, "aliases")
-	// 			request = bleve.NewSearchRequest(query)
-	// 			result, err = bleveIndex.Search(request)
-	// 			if err != nil {
-	// 				log.Debug("Error: %v", err)
-	// 			} else {
-	// 				log.Debug(result.String())
-	// 			}
-
-	// 		case q := <-searchText:
-	// 			log.Debug("Searching text... q: %s", q)
-	// 			query := bleve.NewQueryStringQuery(q)
-	// 			request := bleve.NewSearchRequest(query)
-	// 			request.Highlight = bleve.NewHighlightWithStyle(ansi.Name)
-	// 			request.Highlight.AddField("contents")
-	// 			result, err := bleveIndex.Search(request)
-	// 			if err != nil {
-	// 				log.Debug("Error: %v", err)
-	// 			} else {
-	// 				log.Debug(result.String())
-	// 			}
-	// 		}
-	// }
 }
 
 func buildIndexMapping() (*bleve.IndexMapping, error) {
-	// reAnalizer := regexp.MustCompile(`^standard|en|ja$`)
-	analizer := "standard"
-	// if reAnalizer.MatchString(setting.IndexingMode) {
-	// analizer = setting.IndexingMode
-	// }
-	log.Info("Using indexing mode %s", analizer)
+	log.Info("Using indexing mode %s", setting.IndexingMode)
 
-	titleFieldMapping := bleve.NewTextFieldMapping()
-	titleFieldMapping.Analyzer = analizer
-
-	htmlFieldMapping := bleve.NewTextFieldMapping()
-	htmlFieldMapping.Analyzer = analizer + "html"
+	textFieldMapping := bleve.NewTextFieldMapping()
+	textFieldMapping.Analyzer = setting.IndexingMode
 
 	keywordFieldMapping := bleve.NewTextFieldMapping()
 	keywordFieldMapping.Analyzer = keyword_analyzer.Name
 	keywordFieldMapping.IncludeInAll = false
-	keywordFieldMapping.IncludeTermVectors = false
+	// keywordFieldMapping.IncludeTermVectors = false
 
 	wikiMapping := bleve.NewDocumentStaticMapping()
 	wikiMapping.AddFieldMappingsAt("name", keywordFieldMapping)
-	wikiMapping.AddFieldMappingsAt("title", titleFieldMapping)
+	wikiMapping.AddFieldMappingsAt("title", textFieldMapping)
 	wikiMapping.AddFieldMappingsAt("author", keywordFieldMapping)
 	wikiMapping.AddFieldMappingsAt("aliases", keywordFieldMapping)
 	wikiMapping.AddFieldMappingsAt("tags", keywordFieldMapping)
-	wikiMapping.AddFieldMappingsAt("contents", htmlFieldMapping)
+	wikiMapping.AddFieldMappingsAt("contents", textFieldMapping)
 
 	mapping := bleve.NewIndexMapping()
-	err := mapping.AddCustomAnalyzer("standardhtml", map[string]interface{}{
-		"type": custom_analyzer.Name,
-		"char_filters": []string{
-			html_char_filter.Name,
-		},
-		"tokenizer": unicode.Name,
-		"token_filters": []string{
-			lower_case_filter.Name,
-			en.StopName,
-		},
-	})
-	if err != nil {
-		return nil, err
-	}
-	err = mapping.AddCustomTokenFilter(unicode_normalize.NFKD, map[string]interface{}{
-		"type": unicode_normalize.Name,
-		"form": unicode_normalize.NFKD,
-	})
-	if err != nil {
-		return nil, err
-	}
-	err = mapping.AddCustomAnalyzer("jahtml", map[string]interface{}{
-		"type": custom_analyzer.Name,
-		"char_filters": []string{
-			html_char_filter.Name,
-		},
-		"tokenizer": ja.TokenizerName,
-		"token_filters": []string{
-			unicode_normalize.NFKD,
-		},
-	})
-	if err != nil {
-		return nil, err
-	}
-	err = mapping.AddCustomAnalyzer("enhtml", map[string]interface{}{
-		"type": custom_analyzer.Name,
-		"char_filters": []string{
-			html_char_filter.Name,
-		},
-		"tokenizer": unicode.Name,
-		"token_filters": []string{
-			lower_case_filter.Name,
-			en.StopName,
-			en.PossessiveName,
-			porter.Name,
-		},
-	})
-	if err != nil {
-		return nil, err
-	}
-	mapping.DefaultAnalyzer = analizer
-	// mapping.DefaultField = "body"
+	mapping.DefaultAnalyzer = setting.IndexingMode
 	mapping.AddDocumentMapping("wiki", wikiMapping)
 
 	for _, s := range []string{"name", "title", "contents"} {
@@ -222,4 +130,56 @@ func buildIndexMapping() (*bleve.IndexMapping, error) {
 	}
 
 	return mapping, nil
+}
+
+func loadPageIndex(wpath string) (*wikiPageIndex, error) {
+	if strings.Contains(wpath, string(filepath.Separator)+".") || // exclude hidden files
+		strings.HasSuffix(wpath, FOLDER_MD) { // exclude _.md
+		return nil, fmt.Errorf("excluded file")
+	}
+
+	wf, err := loadFile(wpath)
+	if err != nil {
+		return nil, err
+	}
+
+	var name string
+	if wpath == string(filepath.Separator) {
+		name = wpath
+	} else {
+		name = removeExt(wf.Name())
+	}
+
+	var b []byte
+	switch wf.fileType {
+	case WIKIFILE_MARKDOWN:
+		var err error
+		b, err = wf.read()
+		if err != nil {
+			return nil, err
+		}
+	case WIKIFILE_FOLDER:
+		wf_, err := loadFile(filepath.Join(wf.WikiPath, FOLDER_MD))
+		if err != nil {
+			return &wikiPageIndex{
+				Name: name,
+			}, nil
+		}
+		if b, err = wf_.read(); err != nil {
+			return nil, err
+		}
+	case WIKIFILE_OTHER:
+		return nil, fmt.Errorf("not a markdown")
+	}
+
+	meta := markdown.Meta(b)
+
+	return &wikiPageIndex{
+		Name:     name,
+		Title:    html.EscapeString(meta["title"]),
+		Author:   meta["author"],
+		Aliases:  splitCommma(meta["alias"] + "," + meta["aliases"]),
+		Tags:     splitCommma(meta["tag"] + "," + meta["tags"]),
+		Contents: html.EscapeString(string(b)),
+	}, nil
 }
