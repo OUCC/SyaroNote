@@ -55,7 +55,7 @@ function init() {
       $('#splash').remove();
 
       if (getBackup()) { // backup is available
-        $('#mdlBackup').modal('show');
+        $('#mdlBackup').modal({keyboard: false});
       } else { // DONT OVERWRITE BACKUP UNTIL USER SELECTS DISCARD
         editor.getSession().setValue(savedText);
         editor.focus();
@@ -83,7 +83,6 @@ function get_url_vars() {
 function initUi() {
   $('.alert').hide();
   $('.modal').hide();
-  $('#mdlBackup').modal({keyboard: false});
 
   //
   // navbar
@@ -139,8 +138,9 @@ function initUi() {
   $('#mdlBackup-restore').on('click', () => {
     $('#mdlBackup').modal('hide');
 
-    editor.getSession().setValue(getBackup());
     initialized = true;
+    editor.getSession().setValue(getBackup());
+    editor.focus();
   });
   $('#mdlBackup-discard').on('click', () => {
     removeBackup();
@@ -230,11 +230,10 @@ function initAce() {
   // Event
   //
   editor.getSession().on('change', (e) => {
-    if (initialized) {
-      modified = true;
-      document.title = '* ' + fileName; // update title
-      $('#btnSave').addClass('modified');
-    }
+    if (!initialized) { return; }
+    modified = true;
+    document.title = '* ' + fileName; // update title
+    $('#btnSave').addClass('modified');
 
     if (timeoutId) { clearTimeout(timeoutId); }
 
