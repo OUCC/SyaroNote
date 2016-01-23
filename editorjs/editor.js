@@ -57,6 +57,8 @@ function init() {
       if (getBackup()) { // backup is available
         $('#mdlBackup').modal({keyboard: false});
       } else { // DONT OVERWRITE BACKUP UNTIL USER SELECTS DISCARD
+        let html = convert(savedText);
+        preview.render(html);
         editor.getSession().setValue(savedText);
         editor.focus();
         initialized = true;
