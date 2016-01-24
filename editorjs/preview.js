@@ -3,27 +3,56 @@
 import {diff, patch} from 'virtual-dom'
 import virtualize from 'vdom-virtualize'
 
-var preview = $('#preview div').get(0)
+var worker = new Worker('/js/worker.js')
+  , preview = $('#preview div').get(0)
   , buffer = $('#preview-buffer div').get(0)
+  , oldTree
   , running = false;
 
-export function render(html) {
+oldTree = virtualize(preview);
+
+worker.addEventListener('message', (e) => {
+  let data = e.data;
+  switch (data.cmd) {
+  case 'convert':
+    updateBuffer(data.data);
+    break;
+
+  case 'diff':
+    // applyChanges(data.data);
+    break;
+  }
+});
+
+export default function renderPreview(markdown) {
   if (running) { return; }
   running = true;
 
-  console.debug('rendering preview...');
+  console.time('renderPreview');
 
+  worker.postMessage({ cmd: 'convert', data: markdown });
+}
+
+function updateBuffer(html) {
+  /* moved to worker
+  console.time('emojione');
   if (emojione) {
     html = emojione.toImage(html);
   }
+  console.timeEnd('emojione');
+   */
 
+  console.time('updateBuffer innerHTML');
   buffer.innerHTML = html;
+  console.timeEnd('updateBuffer innerHTML');
 
+  console.time('updateBuffer hljs');
   if (hljs) {
     $('#preview-buffer pre code').each(function(i, block) {
       hljs.highlightBlock(block); // sync
     });
   }
+  console.timeEnd('updateBuffer hljs');
 
   // http://mathjax.readthedocs.org/en/latest/typeset.html
   if (MathJax) {
@@ -36,11 +65,25 @@ export function render(html) {
 }
 
 function applyChanges() {
-  var tree = virtualize(preview);
-  var newTree = virtualize(buffer);
-  var patches = diff(tree, newTree);
-  patch(preview, patches);
-  running = false;
+  console.time('applyChanges');
 
-  console.debug('applyChanges end');
+  console.time('applyChanges virtualize');
+  // var tree = virtualize(preview);
+  var newTree = virtualize(buffer);
+  console.timeEnd('applyChanges virtualize');
+
+  // worker.postMessage({ cmd: 'diff', tree: tree, newTree: newTree });
+  console.time('applyChanges diff');
+  var patches = diff(oldTree, newTree);
+  console.timeEnd('applyChanges diff');
+
+  console.time('applyChanges patch');
+  patch(preview, patches);
+  console.timeEnd('applyChanges patch');
+
+  running = false;
+  oldTree = newTree;
+
+  console.timeEnd('applyChanges');
+  console.timeEnd('renderPreview');
 }
