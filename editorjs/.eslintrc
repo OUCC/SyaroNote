@@ -11,6 +11,6 @@
   },
   "rules": {
     // Strict mode
-    "strict": [2, "never"],
+    "strict": [2, "never"]
   }
 }

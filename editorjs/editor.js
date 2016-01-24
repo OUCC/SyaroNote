@@ -1,8 +1,7 @@
 /* global syaro */
 /* global hljs */
-/* global convert */
 /* global emojione */
-import * as preview from './preview'
+import renderPreview from './preview'
 import tableFormatter from './tableformatter'
 // import emojiAutoComplete from './emojiautocomplete'
 import EmojiCompleter from './emojicompleter'
@@ -11,16 +10,16 @@ import * as api from './api'
 
 const BACKUP_KEY = 'syaro_backup';
 
-var editor,
-    math,
-    modified = false,
-    timeoutId = 0,
-    wikiPath = '',
-    fileName = '',
-    savedText = '',
-    initialized = false,
-    optionPreview = true,
-    optionSyncScroll = true;
+var editor
+  , math
+  , modified = false
+  , timeoutId = 0
+  , wikiPath = ''
+  , fileName = ''
+  , savedText = ''
+  , initialized = false
+  , optionPreview = true
+  , optionSyncScroll = true;
 
 function init() {
   // set wiki path
@@ -52,16 +51,14 @@ function init() {
   api.get(wikiPath)
     .then((arg) => {
       savedText = arg.responseText;
-      $('#splash').remove();
 
       if (getBackup()) { // backup is available
         $('#mdlBackup').modal({keyboard: false});
       } else { // DONT OVERWRITE BACKUP UNTIL USER SELECTS DISCARD
-        let html = convert(savedText);
-        preview.render(html);
         editor.getSession().setValue(savedText);
         editor.focus();
-        initialized = true;
+        renderPreview(savedText);
+        $('#splash').remove();
       }
     })
     .catch((arg) => {
@@ -125,9 +122,7 @@ function initUi() {
         toastr.clear();
 
         toastr.success("", "Saved");
-        modified = false;
-        document.title = fileName;
-        $('#btnSave').removeClass('modified');
+        setModified(false);
         removeBackup();
         savedText = contents;
       })
@@ -139,18 +134,23 @@ function initUi() {
   });
   $('#mdlBackup-restore').on('click', () => {
     $('#mdlBackup').modal('hide');
+    setModified(true);
 
-    initialized = true;
-    editor.getSession().setValue(getBackup());
+    let text = getBackup();
+    editor.getSession().setValue(text);
     editor.focus();
+    renderPreview(text);
+    $('#splash').remove();
   });
   $('#mdlBackup-discard').on('click', () => {
     removeBackup();
     $('#mdlBackup').modal('hide');
+    setModified(false);
 
     editor.getSession().setValue(savedText);
     editor.focus();
-    initialized = true;
+    renderPreview(savedText);
+    $('#splash').remove();
   });
 
   //
@@ -166,8 +166,8 @@ function initUi() {
     $('#optionMathJax').parent('li').toggleClass('disabled');
 
     if (optionPreview) {
-      var html = convert(editor.getSession().getValue());
-      preview.render(html);
+      let markdown = editor.getSession().getValue();
+      renderPreview(markdown);
     }
     return false;
   });
@@ -232,10 +232,11 @@ function initAce() {
   // Event
   //
   editor.getSession().on('change', (e) => {
-    if (!initialized) { return; }
-    modified = true;
-    document.title = '* ' + fileName; // update title
-    $('#btnSave').addClass('modified');
+    if (!initialized) {
+      initialized = true;
+      return;
+    }
+    setModified(true);
 
     if (timeoutId) { clearTimeout(timeoutId); }
 
@@ -245,13 +246,25 @@ function initAce() {
 
       if (!optionPreview) { return; }
 
-      var html = convert(editor.getSession().getValue());
-      preview.render(html);
+      let markdown = editor.getSession().getValue();
+      renderPreview(markdown);
     }, 600);
   });
 
   // sync scroll
   editor.getSession().on('changeScrollTop', syncScroll);
+}
+
+function setModified(b) {
+  if (b) {
+    modified = true;
+    document.title = '* ' + fileName; // update title
+    $('#btnSave').addClass('modified');
+  } else {
+    modified = false;
+    document.title = fileName;
+    $('#btnSave').removeClass('modified');
+  }
 }
 
 function save() {

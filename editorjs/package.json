@@ -2,7 +2,7 @@
   "name": "editor",
   "description": "editor component of syaro",
   "scripts": {
-    "build": "browserify -t babelify editor.js -o build/editor.js",
+    "build": "browserify -t babelify editor.js -o build/editor.js && browserify -t babelify worker.js -o build/worker.js",
     "minify": "uglifyjs build/editor.js -o build/editor.min.js --source-map build/editor.js.map --source-map-url /js/editor.js.map -p 1",
     "deploy": "npm run build && npm run minify && cp build/* ../build/public/js/"
   },

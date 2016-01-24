@@ -11,6 +11,7 @@
         "matheditor.js",
         "api.js",
         "preview.js",
+        "worker.js",
         "../typings/bundle.d.ts"
     ]
 }
