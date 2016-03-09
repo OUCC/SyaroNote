@@ -19,7 +19,8 @@ var editor
   , savedText = ''
   , initialized = false
   , optionPreview = true
-  , optionSyncScroll = true;
+  , optionSyncScroll = true
+  , optionBlackTheme = false;
 
 function init() {
   // set wiki path
@@ -30,9 +31,9 @@ function init() {
   // update title
   document.title = fileName;
 
-  // update .navbar-header
-  $('.navbar-brand').attr('href', wikiPath);
-  $('.navbar-brand').text(fileName);
+  // update .topbar-header
+  $('.topbar-brand').attr('href', wikiPath);
+  $('.topbar-brand').text(fileName);
 
   initUi();
   initAce();
@@ -84,7 +85,7 @@ function initUi() {
   $('.modal').hide();
 
   //
-  // navbar
+  // topbar
   //
   $('#btnSave').on('click', save);
   $('#btnClose').on('click', () => {
@@ -154,10 +155,11 @@ function initUi() {
   });
 
   //
-  // option dropdown on navbar
+  // option dropdown on topbar
   //
   $('#optionPreview > span').toggleClass('glyphicon-check', true);
   $('#optionSyncScroll > span').toggleClass('glyphicon-check', true);
+  $('#optionBlackTheme > span').toggleClass('glyphicon-unchecked', true);
 
   $('#optionPreview').on('click', function () {
     optionPreview = !optionPreview;
@@ -176,6 +178,21 @@ function initUi() {
     optionSyncScroll = !optionSyncScroll;
     $('#optionSyncScroll > span').toggleClass('glyphicon-check');
     $('#optionSyncScroll > span').toggleClass('glyphicon-unchecked');
+    return false;
+  });
+
+  $('#optionBlackTheme').on('click', () => {
+    optionBlackTheme = !optionBlackTheme;
+    $('#optionBlackTheme > span').toggleClass('glyphicon-check');
+    $('#optionBlackTheme > span').toggleClass('glyphicon-unchecked');
+
+    if (optionBlackTheme) {
+      $(document.body).toggleClass('theme-black', true);
+      editor.setTheme('ace/theme/monokai');
+    } else {
+      $(document.body).toggleClass('theme-black', false);
+      editor.setTheme('ace/theme/chrome');
+    }
     return false;
   });
 

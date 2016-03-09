@@ -265,3 +265,44 @@
     width: 1.2em;
     height: 1.2em;
 }
+
+/* black theme */
+.theme-black .markdown {
+  color: #eee;
+}
+.theme-black .markdown h1,
+.theme-black .markdown h2,
+.theme-black .markdown h3,
+.theme-black .markdown h4,
+.theme-black .markdown h5,
+.theme-black .markdown h6 {
+  color: #fff;
+}
+.theme-black .markdown h1:before,
+.theme-black .markdown h2:before,
+.theme-black .markdown h3:before,
+.theme-black .markdown h4:before,
+.theme-black .markdown h5:before,
+.theme-black .markdown h6:before {
+  color: #aaa;
+}
+.theme-black .markdown a {
+  color: #45a3f3;
+}
+.theme-black .markdown a:hover,
+.theme-black .markdown a:focus {
+  color: #3a84c5;
+}
+.theme-black .markdown blockquote cite {
+  color: #bfbfbf;
+}
+.theme-black .markdown blockquote p {
+  color: #ddd;
+}
+.theme-black .markdown figure {
+  background-color: transparent;
+  border: 1px solid #777;
+}
+.theme-black .markdown figure figcaption {
+  color: #eee;
+}

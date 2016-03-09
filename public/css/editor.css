@@ -1,20 +1,96 @@
-.navbar-header a,
-.navbar-nav a {
-    transition: all 0.3s ease;
+/* topbar style */
+.topbar {
+  position: relative;
+  height: 40px;
+  padding: 0 40px;
+  background-color: #eee;
 }
-.navbar-nav #btnSave.modified,
-.navbar-nav #btnSave:hover,
-.navbar-nav #btnSave:focus {
-    color: #00f420;
+.theme-black .topbar {
+  background-color: #21252b;
 }
-.navbar-nav #btnClose:hover,
-.navbar-nav #btnClose:focus {
-    color: #F30004;
+.topbar a {
+  transition: all 0.3s ease;
+}
+.topbar-header {
+  float: left;
+}
+.topbar-brand {
+  float: left;
+  padding: 10px 15px;
+  font-size: 18px;
+  line-height: 20px;
+  height: 40px;
+}
+.topbar-nav>li {
+  float: left;
+}
+.topbar-nav>li>.dropdown-menu {
+  margin-top: 0;
+  border-top: 0;
+  border-top-right-radius: 0;
+  border-top-left-radius: 0;
+}
+.topbar-left {
+  float: left;
+}
+.topbar-right {
+  float: right;
+}
+.topbar-brand,
+.topbar-nav>li>a {
+  color: #808080;
+}
+.theme-black .topbar-brand,
+.theme-black .topbar-nav>li>a {
+  color: #9d9d9d;
+}
+.topbar-brand:hover,
+.topbar-brand:focus,
+.topbar-nav .open>a:hover,
+.topbar-nav .open>a:focus,
+.topbar-nav>li>a:hover,
+.topbar-nav>li>a:focus {
+  color: #333;
+  /*background-color: #ddd;*/
+  background-color: transparent;
+  text-decoration: none;
+}
+.theme-black .topbar-brand:hover,
+.theme-black .topbar-brand:focus,
+.theme-black .topbar-nav .open>a:hover,
+.theme-black .topbar-nav .open>a:focus,
+.theme-black .topbar-nav>li>a:hover,
+.theme-black .topbar-nav>li>a:focus {
+  color: #fff;
+}
+#btnToggle {
+  display: none;
+}
+#btnSave.modified,
+#btnSave:hover,
+#btnSave:focus {
+  color: #25ee1b;
+}
+#btnClose:hover,
+#btnClose:focus {
+  color: #f40004;
+}
+@media (max-width: 768px) {
+  .topbar {
+    padding: 0;
+  }
+  .topbar-header {
+    display: none;
+  }
+  #btnToggle {
+    display: block;
+  }
 }
 
+/* app container */
 #app_wrap {
     position: fixed;
-    top: 50px;
+    top: 40px;
     bottom: 0;
     left: 0;
     right: 0;
@@ -36,12 +112,29 @@
     left: 50%;
     right: 0;
     overflow: auto;
-    background: rgb(250,250,250);
+    background-color: #fafafa;
     box-sizing: border-box;
     box-flex: 1;
     padding: 5px 5px 10px 5px;
 }
-
+.theme-black #preview {
+  background-color: #202020;
+}
+@media (max-width: 768px) {
+  #editor {
+    right: 0;
+  }
+  body.preview #editor {
+    display: none;
+  }
+  #preview {
+    display: none;
+    left: 0;
+  }
+  body.preview #preview {
+    display: block;
+  }
+}
 
 #splash {
     display: block;
