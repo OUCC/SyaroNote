@@ -67,12 +67,10 @@
   display: none;
 }
 #btnSave.modified,
-#btnSave:hover,
-#btnSave:focus {
+#btnSave:hover {
   color: #25ee1b;
 }
-#btnClose:hover,
-#btnClose:focus {
+#btnClose:hover {
   color: #f40004;
 }
 @media (max-width: 768px) {
@@ -95,16 +93,26 @@
     left: 0;
     right: 0;
 }
-
 #editor {
     position: absolute;
     top: 0;
     bottom: 0;
     left: 0;
     right: 50%;
+    width: 50%;
     font-size: 14px;
 }
-
+textarea#editor {
+  font-family: monospace;
+  border: none;
+}
+textarea#editor:focus {
+  outline: none;
+}
+.theme-black textarea#editor {
+  color: #F8F8F2;
+  background-color: #272822;
+}
 #preview {
     position: absolute;
     top: 0;
@@ -123,6 +131,7 @@
 @media (max-width: 768px) {
   #editor {
     right: 0;
+    width: 100%;
   }
   body.preview #editor {
     display: none;

@@ -20,9 +20,19 @@ var editor
   , initialized = false
   , optionPreview = true
   , optionSyncScroll = true
-  , optionBlackTheme = false;
+  , optionBlackTheme = false
+  , isMobile = false;
 
 function init() {
+  // detect mobile browser
+  var ua = navigator.userAgent;
+  if(ua.indexOf('iPhone') > 0 || ua.indexOf('iPod') > 0 || ua.indexOf('iPad') > 0 ||
+      ua.indexOf('Android') > 0) {
+    isMobile = true;
+    optionPreview = false;
+    optionSyncScroll = false;
+  }
+
   // set wiki path
   wikiPath = get_url_vars()["wpath"];
   var pathlist = wikiPath.split('/');
@@ -36,7 +46,11 @@ function init() {
   $('.topbar-brand').text(fileName);
 
   initUi();
-  initAce();
+  if (isMobile) {
+    initTextarea();
+  } else {
+    initAce();
+  }
 
   toastr.options = {
     'positionClass' : 'toast-bottom-right',
@@ -56,9 +70,18 @@ function init() {
       if (getBackup()) { // backup is available
         $('#mdlBackup').modal({keyboard: false});
       } else { // DONT OVERWRITE BACKUP UNTIL USER SELECTS DISCARD
-        editor.getSession().setValue(savedText);
-        editor.focus();
-        renderPreview(savedText);
+        if (isMobile) {
+          editor.value = savedText;
+          editor.focus();
+          editor.scrollTop = 0;
+        } else {
+          editor.getSession().setValue(savedText);
+          editor.focus();
+        }
+
+        if (optionPreview) {
+          renderPreview(savedText);
+        }
         $('#splash').remove();
       }
     })
@@ -87,6 +110,18 @@ function initUi() {
   //
   // topbar
   //
+  $('#btnToggle').on('click', () => {
+    $(document.body).toggleClass('preview');
+    if (!optionPreview) {
+      let markdown;
+      if (isMobile) {
+        markdown = editor.value;
+      } else {
+        markdown = editor.getSession().getValue();
+      }
+      renderPreview(markdown);
+    }
+  });
   $('#btnSave').on('click', save);
   $('#btnClose').on('click', () => {
     window.location.href = decodeURIComponent(wikiPath);
@@ -106,7 +141,12 @@ function initUi() {
     $('#nameInput').focus();
   });
   $('#mdlSave-save').on('click', () => {
-    var contents = editor.getSession().getValue();
+    let contents;
+    if (isMobile) {
+      contents = textarea.value;
+    } else {
+      contents = editor.getSession().getValue();
+    }
     var message = $('#messageInput').val();
     var name    = $('#nameInput').val();
     var email   = $('#emailInput').val();
@@ -138,9 +178,17 @@ function initUi() {
     setModified(true);
 
     let text = getBackup();
-    editor.getSession().setValue(text);
-    editor.focus();
-    renderPreview(text);
+    if (isMobile) {
+      editor.value = text;
+      editor.focus();
+    } else {
+      editor.getSession().setValue(text);
+      editor.focus();
+    }
+
+    if (optionPreview) {
+      renderPreview(text);
+    }
     $('#splash').remove();
   });
   $('#mdlBackup-discard').on('click', () => {
@@ -148,50 +196,63 @@ function initUi() {
     $('#mdlBackup').modal('hide');
     setModified(false);
 
-    editor.getSession().setValue(savedText);
-    editor.focus();
-    renderPreview(savedText);
+    if (isMobile) {
+      editor.value = savedText;
+      editor.focus();
+    } else {
+      editor.getSession().setValue(savedText);
+      editor.focus();
+    }
+
+    if (optionPreview) {
+      renderPreview(savedText);
+    }
     $('#splash').remove();
   });
 
   //
   // option dropdown on topbar
   //
-  $('#optionPreview > span').toggleClass('glyphicon-check', true);
-  $('#optionSyncScroll > span').toggleClass('glyphicon-check', true);
-  $('#optionBlackTheme > span').toggleClass('glyphicon-unchecked', true);
+  updateOptionDropdown();
 
-  $('#optionPreview').on('click', function () {
+  $('#optionPreview').on('click', (e) => {
+    e.preventDefault();
     optionPreview = !optionPreview;
-    $('#optionPreview > span').toggleClass('glyphicon-check');
-    $('#optionPreview > span').toggleClass('glyphicon-unchecked');
+    updateOptionDropdown();
     $('#optionMathJax').parent('li').toggleClass('disabled');
 
     if (optionPreview) {
-      let markdown = editor.getSession().getValue();
+      let markdown;
+      if (isMobile) {
+        markdown = editor.value;
+      } else {
+        markdown = editor.getSession().getValue();
+      }
       renderPreview(markdown);
     }
     return false;
   });
 
-  $('#optionSyncScroll').on('click', function () {
+  $('#optionSyncScroll').on('click', (e) => {
+    e.preventDefault();
     optionSyncScroll = !optionSyncScroll;
-    $('#optionSyncScroll > span').toggleClass('glyphicon-check');
-    $('#optionSyncScroll > span').toggleClass('glyphicon-unchecked');
+    updateOptionDropdown();
     return false;
   });
 
-  $('#optionBlackTheme').on('click', () => {
+  $('#optionBlackTheme').on('click', (e) => {
+    e.preventDefault();
     optionBlackTheme = !optionBlackTheme;
-    $('#optionBlackTheme > span').toggleClass('glyphicon-check');
-    $('#optionBlackTheme > span').toggleClass('glyphicon-unchecked');
+    updateOptionDropdown();
 
-    if (optionBlackTheme) {
-      $(document.body).toggleClass('theme-black', true);
-      editor.setTheme('ace/theme/monokai');
-    } else {
-      $(document.body).toggleClass('theme-black', false);
-      editor.setTheme('ace/theme/chrome');
+
+    $(document.body).toggleClass('theme-black', optionBlackTheme);
+    if (!isMobile) {
+      if (optionBlackTheme) {
+        editor.setTheme('ace/theme/monokai');
+      } else {
+        editor.setTheme('ace/theme/chrome');
+      }
     }
     return false;
   });
@@ -272,6 +333,42 @@ function initAce() {
   editor.getSession().on('changeScrollTop', syncScroll);
 }
 
+function initTextarea() {
+  $('#editor').get(0).outerHTML = '<textarea id="editor"></textarea>';
+  editor = $('#editor').get(0);
+
+  editor.addEventListener('input', () => {
+    if (!initialized) {
+      initialized = true;
+      return;
+    }
+    setModified(true);
+
+    if (timeoutId) { clearTimeout(timeoutId); }
+
+    timeoutId = setTimeout(() => {
+      backup();
+      timeoutId = 0;
+
+      if (!optionPreview) { return; }
+
+      let markdown = editor.value;
+      renderPreview(markdown);
+    }, 600);
+  });
+
+  editor.addEventListener('scroll', syncScroll);
+}
+
+function updateOptionDropdown () {
+  $('#optionPreview > span').toggleClass('glyphicon-check', optionPreview);
+  $('#optionPreview > span').toggleClass('glyphicon-unchecked', !optionPreview);
+  $('#optionSyncScroll > span').toggleClass('glyphicon-check', optionSyncScroll);
+  $('#optionSyncScroll > span').toggleClass('glyphicon-unchecked', !optionSyncScroll);
+  $('#optionBlackTheme > span').toggleClass('glyphicon-check', optionBlackTheme);
+  $('#optionBlackTheme > span').toggleClass('glyphicon-unchecked', !optionBlackTheme);
+}
+
 function setModified(b) {
   if (b) {
     modified = true;
@@ -292,7 +389,13 @@ function save() {
 
   toastr.info("Saving...");
 
-  let contents = editor.getSession().getValue();
+  let contents;
+  if (isMobile) {
+    contents = editor.value;
+  } else {
+    contents = editor.getSession().getValue();
+  }
+
   api.update(wikiPath, contents, null, null, null)
     .then((arg) => {
       toastr.clear();
@@ -311,8 +414,12 @@ function save() {
 }
 
 function backup() {
-  let key = BACKUP_KEY + '_' + wikiPath
-    , contents = editor.getSession().getValue();
+  let key = BACKUP_KEY + '_' + wikiPath, contents;
+  if (isMobile) {
+    contents = editor.value;
+  } else {
+    contents = editor.getSession().getValue();
+  }
   localStorage.setItem(key, contents);
 }
 
@@ -334,9 +441,19 @@ function syncScroll() {
   var previewHeight  = $preview[0].scrollHeight,
       previewVisible = $preview.height(),
       // previewTop     = $preview[0].scrollTop,
-      editorHeight   = editor.getSession().getLength(),
-      editorVisible  = editor.getLastVisibleRow() - editor.getFirstVisibleRow(),
-      editorTop      = editor.getFirstVisibleRow();
+      editorHeight,
+      editorVisible,
+      editorTop;
+
+  if (isMobile) {
+    editorHeight = editor.scrollHeight;
+    editorVisible = editor.getBoundingClientRect().height;
+    editorTop = editor.scrollTop;
+  } else {
+    editorHeight   = editor.getSession().getLength();
+    editorVisible  = editor.getLastVisibleRow() - editor.getFirstVisibleRow();
+    editorTop      = editor.getFirstVisibleRow();
+  }
 
   // editorTop / (editorHeight - editorVisible)
   //   = previewTop / (previewHeight - previewVisible)
