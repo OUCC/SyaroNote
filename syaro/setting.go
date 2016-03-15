@@ -20,7 +20,6 @@ var setting struct {
 	urlPrefix  string
 	fcgi       bool
 	singleFile bool // TODO
-	readonly   bool // TODO
 	gitMode    bool
 	search     bool
 
@@ -34,8 +33,11 @@ var setting struct {
 
 	// authentication
 	Auth struct { // TODO
-		Reader string `yaml:"reader"`
-		Writer string `yaml:"writer"`
+		Mode             string `yaml:"mode"`
+		Realm            string `yaml:"realm"`
+		PermitReadNobody bool   `yaml:"permit_read_nobody"`
+		User             string `yaml:"user"`
+		Pass             string `yaml:"pass"`
 	} `yaml:"auth"`
 
 	// markdown related
@@ -68,8 +70,6 @@ func init() {
 		"Single file mode")
 	flag.BoolVar(&setting.gitMode, "gitmode", false,
 		"Enable git integration")
-	flag.BoolVar(&setting.readonly, "readonly", false,
-		"Readonly mode")
 	flag.BoolVar(&setting.verbose, "verbose", false,
 		"Verbose output")
 	flag.BoolVar(&setting.quiet, "quiet", false,
