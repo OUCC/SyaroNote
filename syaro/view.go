@@ -3,6 +3,7 @@ package main
 import (
 	"net/http"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 )
@@ -15,6 +16,12 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 	// url unescape (+ -> <Space>)
 	wpath := strings.Replace(r.URL.Path, "+", " ", -1)
 	// wpath := strings.TrimPrefix(r.URL.Path, setting.urlPrefix)
+
+	if strings.Contains(wpath, string(filepath.Separator)+".") {
+		log.Error("Hidden file (%s) requested",wpath)
+		renderError(w, wpath, http.StatusNotFound)
+		return
+	}
 
 	wf, err := loadFile(wpath)
 	if os.IsNotExist(err) {

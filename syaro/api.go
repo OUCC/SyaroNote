@@ -10,10 +10,18 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"path/filepath"
+	"strings"
 )
 
 func getPage(w http.ResponseWriter, r *http.Request) {
 	wpath := r.URL.Query().Get("wpath")
+
+	if strings.Contains(wpath, string(filepath.Separator)+".") {
+		log.Error("Hidden file (%s) requested", wpath)
+		renderError(w, wpath, http.StatusNotFound)
+		return
+	}
 
 	log.Info("Loading page (%s)...", wpath)
 	wf, err := loadFile(wpath)
