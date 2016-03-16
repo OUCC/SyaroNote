@@ -2,7 +2,7 @@ TODO
 ====
 * [x] fix wiki link bug (wiki link including space is not valid)
 * [ ] ~~readonly mode~~
-* [ ] digest auth
+* [x] digest auth
 * [ ] git integration
   - [x] specify message and signature on commit
   - [x] save signature in localstorage
@@ -26,6 +26,7 @@ TODO
 * [x] print ready page
   - [x] print button
 * [ ] search
+  - [ ] title or name
   - [x] text
   - [ ] tag
   - [ ] back link
@@ -40,7 +41,7 @@ TODO
 * [x] Goji
 * [ ] Tablet and smartphone
   - [ ] sidebar
-  - [ ] editor
+  - [x] editor
 * [x] favicon
 * [x] redesign editor
   - [x] auto backup
@@ -57,3 +58,9 @@ TODO
 * [ ] documentation
 * [ ] history diff viewer
 * [ ] disambiguation page
+* [ ] CSV codeblock -> Table
+* [ ] TeX codeblock -> Display math
+* [ ] Switch emoji convertion by OS
+* [ ] Wiki graph
+* [ ] Custom CSS
+* [ ] Trash
