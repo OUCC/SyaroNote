@@ -111,6 +111,8 @@ function initUi() {
   // topbar
   //
   $('#btnToggle').on('click', () => {
+    $('#btnToggle span').toggleClass('glyphicon-picture');
+    $('#btnToggle span').toggleClass('glyphicon-pencil');
     $(document.body).toggleClass('preview');
     if (!optionPreview) {
       let markdown;
@@ -143,7 +145,7 @@ function initUi() {
   $('#mdlSave-save').on('click', () => {
     let contents;
     if (isMobile) {
-      contents = textarea.value;
+      contents = editor.value;
     } else {
       contents = editor.getSession().getValue();
     }
