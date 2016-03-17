@@ -39,6 +39,7 @@ func processTree(b []byte) []byte {
 
 	var w bytes.Buffer
 	html.Render(&w, tree) // re-render html
+	b = w.Bytes()
 
 	// strip prefix (<html><head></head><body>) and suffix (</body></html>)
 	return w.Bytes()[25 : len(b)-14]

@@ -34,14 +34,6 @@ export default function renderPreview(markdown) {
 }
 
 function updateBuffer(html) {
-  /* moved to worker
-  console.time('emojione');
-  if (emojione) {
-    html = emojione.toImage(html);
-  }
-  console.timeEnd('emojione');
-   */
-
   console.time('updateBuffer innerHTML');
   buffer.innerHTML = html;
   console.timeEnd('updateBuffer innerHTML');

@@ -323,6 +323,10 @@ $(function () {
       var html = this.innerHTML;
       this.innerHTML = emojione.unicodeToImage(html);
     });
+    $('.syaro-right nav').each(function () {
+      var html = this.innerHTML;
+      this.innerHTML = emojione.unicodeToImage(html);
+    });
   }
 
   function initHistory() {

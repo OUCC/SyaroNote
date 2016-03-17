@@ -12,7 +12,7 @@ addEventListener('message', (e) => {
     console.time('worker.js convert');
     let html = data.data;
     html = convert(html);
-    html = emojione.toImage(html);
+    html = emojione.unicodeToImage(html);
     postMessage({
       cmd: 'convert',
       data: html,
