@@ -2,12 +2,47 @@ package markdown
 
 import (
 	. "github.com/yuntan/blackfriday"
+
+	"code.google.com/p/go.net/html"
 	"gopkg.in/yaml.v2"
 
 	"bytes"
 )
 
 var LinkWorker func(*bytes.Buffer, []byte)
+
+func processTree(b []byte) []byte {
+	var treeManip func(*html.Node)
+	treeManip = func(n *html.Node) {
+		// if text node is in `pre` or `code`
+		if n.Type == html.ElementNode && (n.Data == "pre" || n.Data == "code") {
+			return
+		}
+
+		// search for [[WikiLink]]
+		if n.Type == html.TextNode {
+			processEmoji(n)
+		}
+
+		for c := n.FirstChild; c != nil; c = c.NextSibling {
+			treeManip(c)
+		}
+	}
+
+	r := bytes.NewReader(b) // byte reader
+	tree, err := html.Parse(r)
+	if err != nil {
+		return nil
+	}
+
+	treeManip(tree)
+
+	var w bytes.Buffer
+	html.Render(&w, tree) // re-render html
+
+	// strip prefix (<html><head></head><body>) and suffix (</body></html>)
+	return w.Bytes()[25 : len(b)-14]
+}
 
 func Convert(input []byte) []byte {
 	if input == nil {
@@ -51,7 +86,7 @@ func Convert(input []byte) []byte {
 	if LinkWorker != nil {
 		WikiLinkWorker = LinkWorker
 	}
-	return Markdown(input, renderer, extensions)
+	return processTree(Markdown(input, renderer, extensions))
 }
 
 func Meta(input []byte) map[string]string {
@@ -91,5 +126,5 @@ func TOC(input []byte) []byte {
 		EXTENSION_HEADER_IDS |
 		EXTENSION_AUTO_HEADER_IDS
 
-	return Markdown(input, HtmlRenderer(htmlFlags, "", ""), extensions)
+	return processTree(Markdown(input, HtmlRenderer(htmlFlags, "", ""), extensions))
 }

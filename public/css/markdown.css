@@ -74,6 +74,9 @@
 }
 
 /* link */
+.markdown a {
+    overflow-wrap: break-word;
+}
 .markdown a.notfound {
     color: #ba0000;
 }

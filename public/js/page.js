@@ -306,12 +306,22 @@ $(function () {
 
   function initEmojione() {
     if (!emojione) { return; }
+    // detect iOS, Mac, Android
+    var ua = navigator.userAgent;
+    if(ua.indexOf('iPhone') > 0 || ua.indexOf('iPod') > 0 || ua.indexOf('iPad') > 0 ||
+        ua.indexOf('Android') > 0 || ua.indexOf('Mac') > 0) {
+      return;
+    }
+
     emojione.unicodeAlt = false;
     emojione.imagePathPNG = '/images/emojione/';
 
-    $('.markdown').each(function () {
+    $('.markdown').each(function (i, elem) {
+      if (elem.tagName === 'pre' || elem.tagName === 'code') {
+        return;
+      }
       var html = this.innerHTML;
-      this.innerHTML = emojione.toImage(html);
+      this.innerHTML = emojione.unicodeToImage(html);
     });
   }
 

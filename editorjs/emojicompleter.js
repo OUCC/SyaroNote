@@ -26,7 +26,7 @@ export default function EmojiCompleter() {
 
       let line = session.getLine(pos.row).substr(0, pos.column);
       // let m = line.match(/\B:([\w+\-]+)$/);
-      if (!line.match(/\B:[\w+\-]+$/)) {
+      if (!line.match(/\B:[\w+\-_]+$/)) {
         callback(null, []);
         return;
       }
