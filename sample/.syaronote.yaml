@@ -1,9 +1,0 @@
-actions:
-  post_create: []
-  post_update: ["touch", "updated"]
-  post_rename: ["touch", "renamed"]
-  post_delete: []
-  post_upload: []
-auth:
-  reader: pass
-  writer: pass
