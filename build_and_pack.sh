@@ -44,7 +44,6 @@ build_and_compress () {
 
 # editorjs
 cd editorjs
-npm install
 npm run deploy
 
 cd ..

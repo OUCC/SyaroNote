@@ -1,7 +1,7 @@
 package main
 
 import (
-	pb "github.com/OUCC/syaro/gitservice"
+	pb "github.com/OUCC/SyaroNote/syaro/gitservice"
 
 	"google.golang.org/grpc"
 
